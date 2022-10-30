@@ -342,6 +342,33 @@ R2GLMER(sm3.3$model) # check the R2 values
 # $marginal
 # [1] 0.1149284
 
+# remove order Orthoptera from sites data for plotting
+sites <- sites[!sites$Order == "Orthoptera",]
+
+# remove order Orthoptera from model data for plotting
+model_data_ab <- model_data_ab[!model_data_ab$Order == "Orthoptera",]
+model_data_sr <- model_data_sr[!model_data_sr$Order == "Orthoptera",]
+
+# plot map of site distribution
+
+# plot the raster in ggplot
+map.world <- map_data('world')
+
+# map of sites, coloured by order
+p_map <-ggplot() +
+  geom_map(data=map.world, map=map.world,
+           aes(x=long, y=lat, group=group, map_id=region),
+           fill= "grey", colour="grey", size=0.2) +
+  geom_point(data = sites, aes(x = Longitude, y = Latitude, colour = factor(Order)), shape = 20) +
+  theme(axis.title = element_blank(), 
+        plot.background = element_blank(),
+        plot.margin = unit(c(0.1,3,0.1,3),'cm'),
+        panel.background = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        legend.title = element_blank())+
+  ggtitle("a")
+
 ## Species Richness Plot ##
 richness_metric <- predict_effects(iterations = 1000,
                                    model = sm3.3$model,
@@ -416,21 +443,21 @@ write.csv(all_res, file = paste0(predsDir,"percentage_change_LUI.csv"))
 richness <- richness_metric + 
   xlab(NULL) + 
   ylab("Species richness diff. (%)") + 
-  guides(scale = "none") + ggtitle("A") + 
-  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75), limits = c(-100, 75)) + 
-  #scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175,200,225,250), limits = c(-100, 250)) + 
-  theme(axis.text.x = element_blank(), 
+  guides(scale = "none") +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75), limits = c(-100, 75)) +
+  theme(axis.text.x = element_text(size = 9,angle=45,margin=margin(t=20)), 
         axis.ticks = element_blank(),
-        legend.position = "none")
+        legend.position = "none")+
+  ggtitle("b")
 
 
 abundance <- abundance_metric + xlab(NULL) + 
-  ylab("Total abundance diff. (%)") + ggtitle("B") + 
-  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75), limits = c(-100, 75)) +
-  #scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175,200,225,250), limits = c(-100, 250)) + 
+  ylab("Total abundance diff. (%)") +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75), limits = c(-100, 75)) + 
   theme(axis.text.x = element_text(size = 9,angle=45,margin=margin(t=20)), 
         axis.ticks = element_blank(), 
-        legend.position = "none")
+        legend.position = "none")+
+  ggtitle("c")
 
 
 # get the legend
@@ -443,11 +470,12 @@ legend <- get_legend(
           legend.title = element_blank())
 )
 
-LUI_predictions <- cowplot::plot_grid(richness, abundance, legend,ncol=1, rel_heights = c(1,1.25,0.2))
+plot_figure <- cowplot::plot_grid(p_map, cowplot::plot_grid(richness, abundance), legend, ncol = 1, rel_heights = c(1.3, 1,0.1))
+
+ggsave(filename = paste0(outDir, "Figure1_map_simplemods.pdf"), plot = last_plot(), width = 250, height = 200, units = "mm", dpi = 300)
 
 # save plots
 ggsave("LUI_predictions.jpeg", device ="jpeg", path = outDir, width=25, height=20, units="cm", dpi = 350)
-#ggsave("LUI_predictions_diffaxes.jpeg", device ="jpeg", path = outDir, width=25, height=20, units="cm", dpi = 350)
 
 # t.end <- Sys.time()
 # 
