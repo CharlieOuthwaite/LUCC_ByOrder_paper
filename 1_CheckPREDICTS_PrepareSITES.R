@@ -1,15 +1,25 @@
-# get set up
-  
+##%######################################################%##
+#                                                          #
+####               Prepare PREDICTS data                ####
+#                                                          #
+##%######################################################%##
+
+# This script takes the 2016 release of the PREDICTS database, subsets it to insects, 
+# and organises the data by Order. 
+
+# ensure working directory is clear
+rm(list = ls())
+
 # set up directories
-dataDir <- "C:/Users/Kyra/Documents/GLITRS/Data/"
-outDir <- "C:/Users/Kyra/Documents/GLITRS/Code/1_CheckPrepareData/"
+dataDir <- "Data/"
+outDir <- "1_CheckPrepareData/"
 if(!dir.exists(outDir)) dir.create(outDir)
 
 # Load required libraries
 library(predictsFunctions)
 library(dplyr)
 library(ggplot2)
-source("C:/Users/Kyra/Documents/GLITRS/Data/0_Functions.R")
+source("0_Functions.R")
 
 packages_plot <- c("patchwork", "dplyr", "yarg", "lme4", "gt", "broom.mixed", "MASS","webshot")
 suppressWarnings(suppressMessages(lapply(packages_plot, require, character.only = TRUE)))
