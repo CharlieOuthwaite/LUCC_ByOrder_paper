@@ -31,7 +31,7 @@ model_data_sr <- na.omit(sites[,c('Species_richness','LandUse','Use_intensity','
 
 # order data
 model_data_sr$LUI <- factor(model_data_sr$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
-model_data_sr$Order <- factor(model_data_sr$Order, levels = c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera","Orthoptera"))
+model_data_sr$Order <- factor(model_data_sr$Order, levels = c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera"))
 
 # relevel
 model_data_sr$LUI <- relevel(model_data_sr$LUI, ref = "Primary vegetation")
@@ -40,8 +40,8 @@ model_data_sr$LUI <- relevel(model_data_sr$LUI, ref = "Primary vegetation")
 saveRDS(object = model_data_sr ,file = paste0(outDir,"model_data_sr.rds"))
 
 # summaries
-length(unique(model_data_sr$SS)) # 258
-length(unique(model_data_sr$SSBS)) # 6072
+length(unique(model_data_sr$SS))
+length(unique(model_data_sr$SSBS))
 
 # look at the spread of land use/use intensity categories
 print(table(model_data_sr$LUI))
@@ -53,7 +53,7 @@ print(table(model_data_sr$LUI))
 
 # null (intercept-only) model
 sm0 <-GLMER(modelData = model_data_sr,responseVar = "Species_richness",fitFamily = "poisson",
-             fixedStruct = "1",randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",REML = FALSE)
+            fixedStruct = "1",randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",REML = FALSE)
 
 # effect of Land Use
 sm1 <- GLMER(modelData = model_data_sr,responseVar = "Species_richness",fitFamily = "poisson",
@@ -159,7 +159,7 @@ model_data_ab <- na.omit(sites[,c('LogAbund','LandUse','Use_intensity','LUI','SS
 
 # order data
 model_data_ab$LUI <- factor(model_data_ab$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
-model_data_ab$Order <- factor(model_data_ab$Order, levels = c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera","Orthoptera"))
+model_data_ab$Order <- factor(model_data_ab$Order, levels = c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera"))
 
 # relevel
 model_data_ab$LUI <- relevel(model_data_ab$LUI, ref = "Primary vegetation")
@@ -253,6 +253,7 @@ am3.3 <- readRDS(file = paste0(outDir,"am3.3.rds"))
 model_data_sr <- readRDS(file = paste0(outDir,"model_data_sr.rds"))
 model_data_ab <- readRDS(file = paste0(outDir,"model_data_ab.rds"))
 
+
 # table of AICs
 # species richness and abundance together
 selection_table <- data.frame("Response" = c(rep("Species richness", 5),
@@ -274,22 +275,23 @@ selection_table <- data.frame("Response" = c(rep("Species richness", 5),
   ungroup() %>%
   select(Model,AIC,deltaAIC) %>%
   gt(rowname_col = "Model") %>%
-       tab_row_group(
-         label = "Species Richness",
-         rows = starts_with("Species richness")
-       ) %>%
-       tab_row_group(
-         label = "Abundance",
-         rows = starts_with("Abundance")
-       )%>% 
+  tab_row_group(
+    label = "Species Richness",
+    rows = starts_with("Species richness")
+  ) %>%
+  tab_row_group(
+    label = "Abundance",
+    rows = starts_with("Abundance")
+  )%>% 
   cols_align(
     align = "center",
     columns = c(Model, AIC, deltaAIC)
   )%>%
-       tab_stubhead(label = "Models")
+  tab_stubhead(label = "Models")
 
 gtsave(selection_table,"C:/Users/Kyra/Documents/GLITRS/Code/2_RunSimpleLUIModel/Output/LUIModels_Selection1.png")
 
+# species richness only
 selection_table_sr <- data.frame("Response" = c(rep("Species richness", 5)),
                                  "Model" = c("Species_richness ~ 1 + (1|SS) + (1|SSB) + (1|SSBS)",
                                              "Species_richness ~ LUI + (1|SS) + (1|SSB) + (1|SSBS)",
@@ -304,6 +306,7 @@ selection_table_sr <- data.frame("Response" = c(rep("Species richness", 5)),
 
 gtsave(selection_table_sr,"C:/Users/Kyra/Documents/GLITRS/Code/2_RunSimpleLUIModel/Output/LUIModels_Selection_Rich.png")
 
+# total abundance only
 selection_table_ab <- data.frame("Response" = c(rep("Total abundance", 5)),
                                  "Model" = c("Total_abundance ~ 1 + (1|SS) + (1|SSB)",
                                              "Total_abundance ~ LUI + (1|SS) + (1|SSB)",
@@ -321,8 +324,6 @@ gtsave(selection_table_ab,"C:/Users/Kyra/Documents/GLITRS/Code/2_RunSimpleLUIMod
 
 # save model output tables for use in supplementary information 
 # use function from sjPlot library to save neat versions of model output table
-# conditional: the conditional R2 value, i.e. the variance explained by fixed and random effects 
-# marginal: the marginal R2 value, i.e. the variance explained by the fixed effects
 tab_model(am3.3$model, transform = NULL, file = paste0(outDir,"Abun_output_table.html"))
 summary(am3.3$model) # check the table against the outputs
 R2GLMER(am3.3$model) # check the R2 values 
@@ -341,6 +342,33 @@ R2GLMER(sm3.3$model) # check the R2 values
 # $marginal
 # [1] 0.1149284
 
+# remove order Orthoptera from sites data for plotting
+sites <- sites[!sites$Order == "Orthoptera",]
+
+# remove order Orthoptera from model data for plotting
+model_data_ab <- model_data_ab[!model_data_ab$Order == "Orthoptera",]
+model_data_sr <- model_data_sr[!model_data_sr$Order == "Orthoptera",]
+
+# plot map of site distribution
+
+# plot the raster in ggplot
+map.world <- map_data('world')
+
+# map of sites, coloured by order
+p_map <-ggplot() +
+  geom_map(data=map.world, map=map.world,
+           aes(x=long, y=lat, group=group, map_id=region),
+           fill= "grey", colour="grey", size=0.2) +
+  geom_point(data = sites, aes(x = Longitude, y = Latitude, colour = factor(Order)), shape = 20) +
+  theme(axis.title = element_blank(), 
+        plot.background = element_blank(),
+        plot.margin = unit(c(0.1,3,0.1,3),'cm'),
+        panel.background = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        legend.title = element_blank())+
+  ggtitle("a")
+
 ## Species Richness Plot ##
 richness_metric <- predict_effects(iterations = 1000,
                                    model = sm3.3$model,
@@ -348,7 +376,7 @@ richness_metric <- predict_effects(iterations = 1000,
                                    response_variable = "Species_richness",
                                    fixed_number = 2,
                                    fixed_column = c("Order", "LUI"),
-                                   factor_number_1 = 6,
+                                   factor_number_1 = 5,
                                    factor_number_2 = 4,
                                    neg_binom = FALSE)
 
@@ -362,7 +390,7 @@ model_data <- function(model_plot){
   ggplot_build(model_plot)$data[[2]] %>%
     dplyr::select(y) %>%
     cbind(ggplot_build(model_plot)$data[[3]] %>% dplyr::select(ymin, ymax)) %>%
-    mutate(LUI = rep(levels(model_data_sr$LUI), 6)[1:24]) %>%
+    mutate(LUI = rep(levels(model_data_sr$LUI), 5)[1:20]) %>%
     dplyr::select(LUI, y, ymin, ymax)
 }
 
@@ -377,7 +405,7 @@ abundance_metric <- predict_effects(iterations = 1000,
                                     response_variable = "LogAbund",
                                     fixed_number = 2,
                                     fixed_column = c("Order", "LUI"),
-                                    factor_number_1 = 6,
+                                    factor_number_1 = 5,
                                     factor_number_2 = 4,
                                     neg_binom = FALSE)
 
@@ -392,7 +420,7 @@ model_data <- function(model_plot){
   ggplot_build(model_plot)$data[[2]] %>%
     dplyr::select(y) %>%
     cbind(ggplot_build(model_plot)$data[[3]] %>% dplyr::select(ymin, ymax)) %>%
-    mutate(LUI = rep(levels(model_data_ab$LUI), 6)[1:24]) %>%
+    mutate(LUI = rep(levels(model_data_ab$LUI), 5)[1:20]) %>%
     dplyr::select(LUI, y, ymin, ymax)
 }
 
@@ -401,11 +429,11 @@ model_data(abundance_metric)
 
 # combine results into a table for saving
 all_res <- rbind(result.ab, result.sr)
-all_res$measure <- c(rep("ab", 24), rep("sr", 24))
+all_res$measure <- c(rep("ab", 20), rep("sr", 20))
 
 # save as table
 percentage_change_LUI <- all_res %>% gt()
-gtsave(percentage_change_LUI,"C:/Users/Kyra/Documents/GLITRS/Code/7_Predictions/percentage_change_LUI.png")
+gtsave(percentage_change_LUI,"C:/Users/Kyra/Documents/GLITRS/Paper/Code/percentage_change_LUI.png")
 
 # save as .csv
 write.csv(all_res, file = paste0(predsDir,"percentage_change_LUI.csv"))
@@ -415,20 +443,21 @@ write.csv(all_res, file = paste0(predsDir,"percentage_change_LUI.csv"))
 richness <- richness_metric + 
   xlab(NULL) + 
   ylab("Species richness diff. (%)") + 
-  guides(scale = "none") + ggtitle("A") + 
-  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75), limits = c(-100, 75)) + 
-  #scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175,200,225,250), limits = c(-100, 250)) + 
-  theme(axis.text.x = element_blank(), 
+  guides(scale = "none") +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75), limits = c(-100, 75)) +
+  theme(axis.text.x = element_text(size = 9,angle=45,margin=margin(t=20)), 
         axis.ticks = element_blank(),
-        legend.position = "none")
+        legend.position = "none")+
+  ggtitle("b")
 
 
 abundance <- abundance_metric + xlab(NULL) + 
-  ylab("Total abundance diff. (%)") + ggtitle("B") + 
-  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175,200,225,250), limits = c(-100, 250)) + 
+  ylab("Total abundance diff. (%)") +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75), limits = c(-100, 75)) + 
   theme(axis.text.x = element_text(size = 9,angle=45,margin=margin(t=20)), 
         axis.ticks = element_blank(), 
-        legend.position = "none")
+        legend.position = "none")+
+  ggtitle("c")
 
 
 # get the legend
@@ -441,11 +470,12 @@ legend <- get_legend(
           legend.title = element_blank())
 )
 
-LUI_predictions <- cowplot::plot_grid(richness, abundance, legend,ncol=1, rel_heights = c(1,1.25,0.2))
+plot_figure <- cowplot::plot_grid(p_map, cowplot::plot_grid(richness, abundance), legend, ncol = 1, rel_heights = c(1.3, 1,0.1))
+
+ggsave(filename = paste0(outDir, "Figure1_map_simplemods.pdf"), plot = last_plot(), width = 250, height = 200, units = "mm", dpi = 300)
 
 # save plots
-#ggsave("LUI_predictions.jpeg", device ="jpeg", path = outDir, width=25, height=20, units="cm", dpi = 350)
-ggsave("LUI_predictions_diffaxes.jpeg", device ="jpeg", path = outDir, width=25, height=20, units="cm", dpi = 350)
+ggsave("LUI_predictions.jpeg", device ="jpeg", path = outDir, width=25, height=20, units="cm", dpi = 350)
 
 # t.end <- Sys.time()
 # 
