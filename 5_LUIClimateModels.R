@@ -1,9 +1,20 @@
-## Get set up ##
+##%######################################################%##
+#                                                          #
+####    Run models for climate land use interactions    ####
+#                                                          #
+##%######################################################%##
 
-# directories 
-inDir<- "C:/Users/Kyra/Documents/GLITRS/Code/4_PREDICTSMatchClimateIndex/"
-outDir <- "C:/Users/Kyra/Documents/GLITRS/Code/5_RunLUIClimateModels/"
-plotDir <- "C:/Users/Kyra/Documents/GLITRS/Code/5_RunLUIClimateModels/Plots/"
+# in this script, models are run to assess the response of insect 
+# biodiversity to the land use intensity metric and to the climate
+# anomalies and their interaction. 
+
+# clear working environment
+rm(list = ls())
+
+# set directories 
+inDir<- "4_PREDICTSMatchClimateIndex/"
+outDir <- "5_RunLUIClimateModels/"
+plotDir <- "5_RunLUIClimateModels/Plots/"
 if(!dir.exists(outDir)) dir.create(outDir)
 if(!dir.exists(plotDir)) dir.create(plotDir)
 
@@ -21,7 +32,7 @@ packages_plot <- c("patchwork", "dplyr", "yarg", "lme4", "gt", "broom.mixed", "M
 suppressWarnings(suppressMessages(lapply(packages_plot, require, character.only = TRUE)))
 
 # source in additional functions
-source("C:/Users/Kyra/Documents/GLITRS/Data/0_Functions.R")
+source("0_Functions.R")
 
 ###Create Models for all insect orders in predicts for standardised climate anomaly and Land interactions ###
 
