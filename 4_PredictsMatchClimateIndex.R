@@ -1,8 +1,20 @@
-# Get Set Up
+##%######################################################%##
+#                                                          #
+####          Extract site level climate data           ####
+#                                                          #
+##%######################################################%##
 
-dataDir <- "C:/Users/Kyra/Documents/GLITRS/Data/"
-inDir <- "C:/Users/Kyra/Documents/GLITRS/Code/1_CheckPrepareData/"
-outDir <- "C:/Users/Kyra/Documents/GLITRS/Code/4_PREDICTSMatchClimateIndex/"
+# in this script, the climate anomalies are determined for each of the 
+# predicts sites. 
+
+# clear environment
+rm(list = ls())
+
+
+# set directories
+dataDir <- "Data/"
+inDir <- "1_CheckPrepareData/"
+outDir <- "4_PREDICTSMatchClimateIndex/"
 if(!dir.exists(outDir)) dir.create(outDir)
 
 # load libraries
@@ -13,21 +25,21 @@ library(rgdal)
 library(predictsFunctions)
 library(Rfast)
 library(snow)
-source("C:/Users/Kyra/Documents/GLITRS/Data/0_Functions.R")
+source("0_Functions.R")
 
 
 # Preparing site and climate data
 
 # Path for monthly mean temperature from CRUv4.03
-tmp.path <- "GLITRS/Data/cru_ts4.03.1901.2018.tmp.dat.nc"
+tmp.path <- "Data/cru_ts4.03.1901.2018.tmp.dat.nc"
 
 #Path for mean monthly maximum from CRUv4.03
-tmx.path <- "GLITRS/Data/cru_ts4.03.1901.2018.tmx.dat.nc"
+tmx.path <- "Data/cru_ts4.03.1901.2018.tmx.dat.nc"
 
-output <- "Outputs/predicts_climate_info.rds"
+#output <- "Outputs/predicts_climate_info.rds"
 
 #Read in average temperature data from CRU v4.03
-tmp <- stack(paste0(dataDir,"cru_ts4.03.1901.2018.tmp.dat.nc"),varname = "tmp")
+tmp <- stack(tmp.path,varname = "tmp")
 
 #Both cru data and predicts is in WGS84
 wgs84 <- crs(tmp) # wgs84: World Geodetic System 1984 & crs: retrieve coordinate reference system from object
@@ -47,7 +59,7 @@ sites_sp <- SpatialPointsDataFrame(
 tmp1901_1930 <- tmp[[names(tmp)[1:360]]] # 'names' can be used to give the names of columns in the data table of the raster
 
 #Read in tmax data
-tmx <- stack(paste0(dataDir,"cru_ts4.03.1901.2018.tmx.dat.nc"),varname = "tmx")
+tmx <- stack(tmx.path,varname = "tmx")
 
 #Create raster stack for 1901 to 1930
 tmx1901_1930 <- tmx[[names(tmx)[1:360]]] 
