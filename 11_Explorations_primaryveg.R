@@ -70,4 +70,25 @@ for(i in site_tab$Var1){
 }
 
 
-# make a change
+
+#### look at range of anomaly values for each study. ####
+
+
+
+# subset to studies with sites in primary vegetation
+prim <- pred[pred$Predominant_land_use == "Primary vegetation", ]
+prim <- droplevels(prim)
+
+library(dplyr)
+
+prim_sum <- prim %>% group_by(SS) %>% summarise(min = min(StdTmeanAnomaly), max = max(StdTmeanAnomaly), dif = (max(StdTmeanAnomaly- min(StdTmeanAnomaly))) )
+
+View(prim_sum)
+
+# there are two studies which have a very large difference across site anomaly values
+# AD1_2010__Davis 1 (sites spread across the UK), SC1_2006__Benedick 1 (some sites in Borneo)
+
+View(prim[prim$SS %in% c("AD1_2010__Davis 1", "SC1_2006__Benedick 1"), ]) # 22 sites
+
+
+# suggest a sensitivity test where these two are removed. 
