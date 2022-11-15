@@ -117,9 +117,11 @@ predicts_summary_all
 # these are the orders: Psocodea, Dermaptera, Archaeognatha Mantodea, Odonata, Embioptera, Ephemeroptera, Mecoptera, Zoraptera, Siphonaptera, Zygentoma, Phasmida, Thysanoptera, Trichoptera, Blattodea, Neuroptera
 # remaining orders are: Hymenoptera, Coleoptera, Lepidoptera, Diptera, Orthoptera, Hemiptera
 
-predicts <- predicts %>% filter(Order %in% c("Hymenoptera", "Coleoptera", "Lepidoptera", "Diptera", "Orthoptera", "Hemiptera")) %>% droplevels()
+predicts <- predicts %>% filter(Order %in% c("Hymenoptera", "Coleoptera", "Lepidoptera", "Diptera", "Hemiptera")) %>% droplevels()
 
 # 814738 obs. of 67 variables
+
+# Charlie 915987 rows
 
 # summarize predicts statistics by order
 predicts_summary <- predicts %>%
@@ -129,11 +131,20 @@ predicts_summary <- predicts %>%
             Unique_Species = n_distinct(Taxon_name_entered))%>% arrange(desc(Unique_Sites))
 predicts_summary
 
+
+# Order       Count_Sites Unique_Sites Unique_Species
+# <fct>             <int>        <int>          <int>
+#   1 Hymenoptera      206165         5510           4896
+# 2 Coleoptera       457507         3625           6190
+# 3 Lepidoptera      168417         2004           3908
+# 4 Hemiptera         52187         1304           1458
+# 5 Diptera           31711         1218           1549
+
 # convert Order to a "factor"
 predicts$Order <- as.factor(predicts$Order)
 
 # save as csv
-write.csv(predicts_summary,"C:/Users/Kyra/Documents/GLITRS/Code/1_CheckPrepareData/predicts_summary.csv", row.names = TRUE)
+write.csv(predicts_summary,"1_CheckPrepareData/predicts_summary.csv", row.names = TRUE)
 
 
 # Split predicts into separate data frames according to insect Order 
@@ -147,13 +158,6 @@ by_Order <- split(predicts,OrderName)
 list2env(by_Order,globalenv())
 
 # Calculate site metrics of diversity for each order, include extra columns:
-  # Predominant_land_use
-  # SSB
-  # SSBS
-  # Biome
-  # Order
-
-# droplevels() drops unused factor levels. This is particularly useful if we want to drop factor levels that are no longer used due to subsetting a vector or a data frame (as we did with split()). 
 
 Coleoptera <- droplevels(Coleoptera)
 Coleoptera <- SiteMetrics(diversity = Coleoptera,
@@ -175,15 +179,10 @@ Lepidoptera <- droplevels(Lepidoptera)
 Lepidoptera <- SiteMetrics(diversity = Lepidoptera,
                            extra.cols = c("Predominant_land_use",
                                           "SSB","SSBS", "Biome","Order"))
-Orthoptera <- droplevels(Orthoptera)
-Orthoptera <- SiteMetrics(diversity = Orthoptera,
-                          extra.cols = c("Predominant_land_use",
-                                         "SSB","SSBS", "Biome","Order"))
-
 
 # merge all sites_Order data frames into one called "sites"
 # merge using rbind()
-sites <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera,Orthoptera)
+sites <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera)
 
 
 # First, we will rearrange the land-use classification a bit
@@ -235,21 +234,23 @@ sites$LUI <- dplyr::recode(sites$LUI,
                            'Intermediate secondary vegetation_Light use' = 'Secondary vegetation')
 
 # 11410 obs. of 25 variables
+# CHarlie 13661 of 27
 
 # ...not sure, but it looks like we are re-classifying all secondary vegetation as "Light use"
 # but why after we have already re-coded the land use type and intensity at all sites?
-sites$Use_intensity[((sites$LandUse=="Mature secondary vegetation") & 
-                       (sites$Use_intensity=="Intense use"))] <- "Light use"
-sites$Use_intensity[((sites$LandUse=="Intermediate secondary vegetation") & 
-                       (sites$Use_intensity=="Intense use"))] <- "Light use"
-sites$Use_intensity[((sites$LandUse=="Young secondary vegetation") & 
-                       (sites$Use_intensity=="Intense use"))] <- "Light use"
+# sites$Use_intensity[((sites$LandUse=="Mature secondary vegetation") & 
+#                        (sites$Use_intensity=="Intense use"))] <- "Light use"
+# sites$Use_intensity[((sites$LandUse=="Intermediate secondary vegetation") & 
+#                        (sites$Use_intensity=="Intense use"))] <- "Light use"
+# sites$Use_intensity[((sites$LandUse=="Young secondary vegetation") & 
+#                        (sites$Use_intensity=="Intense use"))] <- "Light use"
 
 # remove the urban sites and sites that are NA in LUI
 sites <- sites[!sites$LUI == "Urban", ]
 sites <- sites[!is.na(sites$LUI), ]
 
 # 9461 obs. of 25 variables
+# Charlie 11154 of 27
 
 sites <- droplevels(sites)
 
@@ -260,6 +261,7 @@ sites$LogAbund <- log(sites$Total_abundance+1)
 sites <- sites[!is.na(sites$Latitude), ]
 
 # sites: 9455 obs. of 26 variables
+# Charlie 11127 of 28
 
 # create a new variable designating sites as Tropical or Non-tropical
 # assign new variable for tropical/temperate, convert to factor, and filter out NA
@@ -268,8 +270,8 @@ sites$Realm <- factor(sites$Realm, levels = c("NonTropical", "Tropical"))
 sites <- sites %>%
   filter(!is.na(Realm))
 
-# save as csv
-write.csv(sites_summary,"C:/Users/Kyra/Documents/GLITRS/Code/1_CheckPrepareData/sites_summary.csv", row.names = TRUE)
+# # save as csv
+# write.csv(sites_summary, paste0(outDir, "sites_summary.csv"), row.names = TRUE)
 
 # summarize sites by order
 # summarize sites_all
@@ -318,7 +320,7 @@ gt() %>%
 
 sites_summary
 
-gtsave(sites_summary,"C:/Users/Kyra/Documents/GLITRS/Code/1_CheckPrepareData/sites_summary.png")
+gtsave(sites_summary, paste0(outDir, "sites_summary.html"))
 
 # save the prepared dataset
 saveRDS(object = sites,file = paste0(outDir,"PREDICTSSiteData.rds")) 
@@ -338,7 +340,8 @@ p_points_colour <-ggplot() +
         plot.background = element_blank(), 
         panel.background = element_blank(),
         axis.text = element_blank(),
-        axis.ticks = element_blank())
+        axis.ticks = element_blank(),
+        legend.title = element_blank())
 
 
 # save plot
