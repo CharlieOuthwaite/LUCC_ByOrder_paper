@@ -8,14 +8,14 @@
 # This script can also be used to generate datasets of the anomaly using different
 # temperature thresholds. The threshold used in the paper is 10 degrees C. 
 
+# ensure working directory is clear
+rm(list = ls())
 
 # directories
-dataDir <- "C:/Users/kyras/Documents/GLITRS/Code/Data/"
-# dataDir <- "0_data/"
-outDir <- "C:/Users/kyras/Documents/GLITRS/Code/3_PrepareClimateIndexMaps/"
+dataDir <- "Data/"
+outDir <- "3_PrepareClimateIndexMaps/"
 # outDir <- "C:/Users/kyras/Documents/GLITRS/Code/10_SCA_Baseline_testing/"
 # outDir <- "C:/Users/kyras/Documents/GLITRS/Code/14_Additional_Tests/"
-
 if(!dir.exists(outDir)) dir.create(outDir)
 
 sink(paste0(outDir,"log.txt"))
@@ -39,6 +39,8 @@ library(ggplot2)
 library(viridis)
 library(snow)
 
+
+##### 1. organise data ####
 
 # load in the mean temperature data from CRU
 tmp <- stack(paste0(dataDir,"cru_ts4.03.1901.2018.tmp.dat.nc"),varname="tmp")
@@ -89,7 +91,7 @@ snow::clusterExport(
   cl = cl,
   list = c('pre_ras', 'values', 'names', 'length', 'mean', 'sd',
            'tmp', 'SP','rasterize','crop','trim', 'grep', 'sapply', 'strsplit',
-           'cellStats', 'thresh', 'tmp1901_1930', 'tmp1901_1905', 'tmp1901_1910', 'tmp1901_1920'),envir = environment())
+           'cellStats', 'thresh', 'tmp1901_1930'),envir = environment())
 
 temperatureVars <- data.frame(t(parSapply(
   cl = cl,X = (1:length(SP)),FUN = function(i){
@@ -217,25 +219,25 @@ print(st2 - st1) # Time difference of 1.013413 hours
 # save
 #save(temperatureVars, file = paste0(outDir, "Map_data_tempvars_2004_06_thresh_ALLMonths.rdata"))
 #save(temperatureVars, file = paste0(outDir, "Map_data_tempvars_2004_06_thresh_", thresh, ".rdata"))
-#save(temperatureVars, file = paste0(outDir, "Map_data_tempvars_2016_18_thresh_", thresh, ".rdata"))
+save(temperatureVars, file = paste0(outDir, "Map_data_tempvars_2016_18_thresh_", thresh, ".rdata"))
 #save(temperatureVars, file = paste0(outDir, "Map_data_tempvars_2004_06_thresh_", thresh, "_baseline5.rdata"))
 #save(temperatureVars, file = paste0(outDir, "Map_data_tempvars_2004_06_thresh_", thresh, "_baseline10.rdata"))
 #save(temperatureVars, file = paste0(outDir, "Map_data_tempvars_2004_06_thresh_", thresh, "_baseline20.rdata"))
 
 
-#### take a look at correlations between the different metrics ####
+#### 2. take a look at correlations between the different metrics ####
 
 # load(file = paste0(outDir, "Map_data_tempvars_2004_06.rdata"))
-load(file = paste0(outDir, "Map_data_tempvars_2016_18.rdata"))
+load(file = paste0(outDir, "Map_data_tempvars_2016_18_thresh_10.rdata"))
 
 # Using the 2016_18 data here
 
 temperatureVars <- as.data.frame(temperatureVars) # 67420 rows
 
 # remove the NAs
-temp_data <- temperatureVars[!is.na(temperatureVars$avg_temp), ] # 58319 rows
+temp_data <- temperatureVars[!is.na(temperatureVars$avg_temp), ] # 58546 rows
 
-cor(temp_data$avg_temp, temp_data$Anom) # ????, 2016-18 version, thresh 10
+cor(temp_data$avg_temp, temp_data$Anom) # -0.262161, 2016-18 version, thresh 10
 
 ggplot(data = temp_data, aes(x = avg_temp, y = Anom)) + 
   geom_point( size = 0.5) + 
@@ -248,10 +250,10 @@ ggplot(data = temp_data, aes(x = avg_temp, y = Anom)) +
 ggsave(filename = paste0(outDir, "Correlation_global_avgtemp_Anom.pdf"),width = 20, height = 20, units = "cm")
 
 # remove the few outliers, some Infs
-nrow(temp_data[temp_data$StdAnom >12, ]) # 6 rows
+nrow(temp_data[temp_data$StdAnom >12, ]) # 10 rows
 temp_data <- temp_data[temp_data$StdAnom < 12, ] # 58313 rows
 
-cor(temp_data$avg_temp, temp_data$StdAnom) # ????, 2004-06, thresh 10
+cor(temp_data$avg_temp, temp_data$StdAnom) # -0.1456393, 2004-06, thresh 10
 
 ggplot(data = temp_data, aes(x = avg_temp, y = StdAnom)) + 
   geom_point( size = 0.5) + 
@@ -275,7 +277,7 @@ ggplot(data = temp_data[temp_data$StdAnom <=3, ], aes(x = avg_temp, y = StdAnom)
 ggsave(filename = paste0(outDir, "Correlation_global_avgtemp_StdAnom_outliersrem.pdf"),width = 20, height = 20, units = "cm")
 
 
-cor(temp_data$Anom, temp_data$StdAnom) # ????, 2016-18, thresh 10
+cor(temp_data$Anom, temp_data$StdAnom) # 0.3188901, 2016-18, thresh 10
 
 # now take a look at the realms
 # add in the lat/lons
@@ -294,13 +296,14 @@ SP_df <- SP_df[!is.na(SP_df$avg_temp), ]
 
 table(SP_df$Tropical)
 # Temperate  Tropical 
-# 40042     18277
+# 40259     18287 
 
-cor_temp <- round(cor(SP_df[SP_df$Tropical == "Temperate", "avg_temp"], SP_df[SP_df$Tropical == "Temperate", "Anom"]), digits = 2) # 0.02
-cor_trop <- round(cor(SP_df[SP_df$Tropical == "Tropical", "avg_temp"], SP_df[SP_df$Tropical == "Tropical", "Anom"]), digits = 2) # 0.14
+cor_temp <- round(cor(SP_df[SP_df$Tropical == "Temperate", "avg_temp"], SP_df[SP_df$Tropical == "Temperate", "Anom"]), digits = 2) # 0.11
+cor_trop <- round(cor(SP_df[SP_df$Tropical == "Tropical", "avg_temp"], SP_df[SP_df$Tropical == "Tropical", "Anom"]), digits = 2) # 0.15
 
-SP_df$Tropical <- sub("Temperate", paste0("Temperate, cor = ", cor_temp), SP_df$Tropical)
-SP_df$Tropical <- sub("Tropical", paste0("Tropical, cor = ", cor_trop), SP_df$Tropical)
+SP_df$Tropical[SP_df$Tropical == "Temperate"] <- paste0("Temperate, cor = ", cor_temp)
+SP_df$Tropical[SP_df$Tropical == "Tropical"] <- paste0("Tropical, cor = ", cor_trop)
+
 
 ggplot(data = SP_df, aes(x = avg_temp, y = Anom)) + 
   geom_point( size = 0.5) + 
@@ -321,17 +324,18 @@ SP_df[is.na(SP_df$Tropical), 'Tropical'] <- "Temperate"
 # remove the few outliers
 SP_df <- SP_df[SP_df$StdAnom < 12, ] # 58313 rows
 
-cor_temp <- round(cor(SP_df[SP_df$Tropical == "Temperate", "avg_temp"], SP_df[SP_df$Tropical == "Temperate", "StdAnom"]), digits = 2) # -0.55
-cor_trop <- round(cor(SP_df[SP_df$Tropical == "Tropical", "avg_temp"], SP_df[SP_df$Tropical == "Tropical", "StdAnom"]), digits = 2) # 0.08
+cor_temp <- round(cor(SP_df[SP_df$Tropical == "Temperate", "avg_temp"], SP_df[SP_df$Tropical == "Temperate", "StdAnom"]), digits = 2) # -0.51
+cor_trop <- round(cor(SP_df[SP_df$Tropical == "Tropical", "avg_temp"], SP_df[SP_df$Tropical == "Tropical", "StdAnom"]), digits = 2) # 0.07
 
-SP_df$Tropical2 <- sub("Temperate", paste0("Temperate, cor = ", cor_temp), SP_df$Tropical)
-SP_df$Tropical2 <- sub("Tropical", paste0("Tropical, cor = ", cor_trop), SP_df$Tropical)
+SP_df$Tropical[SP_df$Tropical == "Temperate"] <- paste0("Temperate, cor = ", cor_temp)
+SP_df$Tropical[SP_df$Tropical == "Tropical"] <- paste0("Tropical, cor = ", cor_trop)
+
 
 
 ggplot(data = SP_df, aes(x = avg_temp, y = StdAnom)) + 
   geom_point( size = 0.5) + 
   geom_smooth(method = "lm", size = 2) +
-  facet_wrap(~ Tropical2, scales = "free") +
+  facet_wrap(~ Tropical, scales = "free") +
   theme_bw() + 
   xlab("Average temperature of the location\n (2016-2018, active months)") +
   ylab("Standardised climate anomaly") 
@@ -344,7 +348,7 @@ cor_temp <- round(cor(SP_df[SP_df$Tropical == "Temperate", "Anom"], SP_df[SP_df$
 
 ##%######################################################%##
 #                                                          #
-####                 Manuscript Figures                 ####
+####              3. Manuscript Figures                 ####
 #                                                          #
 ##%######################################################%##
 
