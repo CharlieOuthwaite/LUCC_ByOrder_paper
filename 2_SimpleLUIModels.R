@@ -17,6 +17,7 @@ inDir <- "1_CheckPrepareData/"
 outDir <- "2_RunSimpleLUIModel/"
 predsDir <- "7_Predictions/"
 if(!dir.exists(outDir)) dir.create(outDir)
+if(!dir.exists(predsDir)) dir.create(predsDir)
 
 # load libraries
 packages_model <- c("StatisticalModels", "predictsFunctions", "ggplot2", "cowplot", "sjPlot","dplyr")
@@ -28,13 +29,16 @@ suppressWarnings(suppressMessages(lapply(packages_plot, require, character.only 
 # source in additional functions
 source("0_Functions.R")
 
+
+#### 1. Organise data ####
+
 # read in the Site data
-sites <- readRDS(file = paste0(inDir,"PREDICTSSiteData.rds")) # 11918 rows
+sites <- readRDS(file = paste0(inDir,"PREDICTSSiteData.rds")) # 11127 rows
 
 ## Species Richness Model ##
 
 # remove NAs in the specified columns
-model_data_sr <- na.omit(sites[,c('Species_richness','LandUse','Use_intensity','LUI','SS','SSB','SSBS','Order')]) # 11918 rows
+model_data_sr <- na.omit(sites[,c('Species_richness','LandUse','Use_intensity','LUI','SS','SSB','SSBS','Order')]) # 11127 rows
 
 # order data
 model_data_sr$LUI <- factor(model_data_sr$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
@@ -47,8 +51,8 @@ model_data_sr$LUI <- relevel(model_data_sr$LUI, ref = "Primary vegetation")
 saveRDS(object = model_data_sr ,file = paste0(outDir,"model_data_sr.rds"))
 
 # summaries
-length(unique(model_data_sr$SS)) # 258
-length(unique(model_data_sr$SSBS)) # 7252
+length(unique(model_data_sr$SS)) # 254
+length(unique(model_data_sr$SSBS)) # 7186
 
 # look at the spread of land use/use intensity categories
 print(table(model_data_sr$LUI))
@@ -58,10 +62,10 @@ print(table(model_data_sr$LUI))
 
 # Charlie running code, get a different set of values
 # Primary vegetation Secondary vegetation      Agriculture_Low     Agriculture_High 
-#               3106                 3116                 2295                 3401 
+# 2849                 2919                 2126                 3233  
 
 
-#### Species Richness models ####
+#### 2. Species Richness models ####
 
 
 # Run species richness models using GLMER function from StatisticalModels
@@ -167,7 +171,7 @@ g_sm2.3_all <-allFit(g_sm2.3)
 g_sm3.3_all <-allFit(g_sm3.3)
 g_sm4.3_all <-allFit(g_sm4.3)
 
-#### Abundance Models  #####
+#### 3. Abundance Models  #####
 
 # remove NAs in the specified columns
 model_data_ab <- na.omit(sites[,c('LogAbund','LandUse','Use_intensity','LUI','SS','SSB','SSBS','Order')])
@@ -184,13 +188,13 @@ saveRDS(object = model_data_ab ,file = paste0(outDir,"model_data_ab.rds"))
 
 # summaries
 length(unique(model_data_ab$SS)) # 238 Studies
-length(unique(model_data_ab$SSBS))# 6884 sites
+length(unique(model_data_ab$SSBS))# 6854
 
 # look at the spread of land use/use intensity categories
 print(table(model_data_ab$LUI))
 
 # Primary vegetation Secondary vegetation      Agriculture_Low     Agriculture_High 
-#               2984                 2955                 2272                 3239 
+#               2745                 2770                 2109                 3091
 
 # Run abundance models using 'GLMER' function from StatisticalModels
 
@@ -255,7 +259,7 @@ saveRDS(object = am0.2 ,file = paste0(outDir,"am0.2.rds"))
 saveRDS(object = am3.2 ,file = paste0(outDir,"am3.2.rds"))
 saveRDS(object = am3.3 ,file = paste0(outDir,"am3.3.rds"))
 
-#### Plot Figures ####
+
 
 # read in model data
 sm0 <- readRDS(file = paste0(outDir,"sm0.rds"))
@@ -377,17 +381,10 @@ R2GLMER(sm3.3$model) # check the R2 values
 # $marginal
 # [1] 0.05291188
 
-# # remove order Orthoptera from sites data for plotting
-# sites <- sites[!sites$Order == "Orthoptera",]
-# # might want to change this to before running the models so data summaries are correct
-# 
-# # remove order Orthoptera from model data for plotting
-# model_data_ab <- model_data_ab[!model_data_ab$Order == "Orthoptera",]
-# model_data_sr <- model_data_sr[!model_data_sr$Order == "Orthoptera",]
 
 ##%######################################################%##
 #                                                          #
-####           plot map of site distribution            ####
+####        4a. plot map of site distribution           ####
 #                                                          #
 ##%######################################################%##
 
@@ -413,11 +410,9 @@ p_map <-ggplot() +
 
 ##%######################################################%##
 #                                                          #
-####            Richness and abundance plots            ####
+####         4b. Richness and abundance plots           ####
 #                                                          #
 ##%######################################################%##
-
-
 
 
 ## Species Richness Plot ##
@@ -433,7 +428,7 @@ richness_metric <- predict_effects(iterations = 1000,
 
 # rename prediction data frame and drop "Species_richness" column
 result.sr <- fin_conf
-result.sr <- select(result.sr,-c(Species_richness))
+result.sr <- dplyr::select(result.sr,-c(Species_richness))
 
 richness_metric
 
@@ -462,7 +457,7 @@ abundance_metric <- predict_effects(iterations = 1000,
 
 # rename prediction data frame and drop "Abundance" column
 result.ab <- fin_conf
-result.ab <- select(result.ab,-c(LogAbund))
+result.ab <- dplyr::select(result.ab,-c(LogAbund))
 
 
 abundance_metric
@@ -484,7 +479,7 @@ all_res$measure <- c(rep("ab", 20), rep("sr", 20))
 
 # save as table
 percentage_change_LUI <- all_res %>% gt()
-gtsave(percentage_change_LUI, paste0(predsDir, "percentage_change_LUI.png"))
+gtsave(percentage_change_LUI, paste0(predsDir, "percentage_change_LUI.html"))
 
 # save as .csv
 write.csv(all_res, file = paste0(predsDir,"percentage_change_LUI.csv"))
