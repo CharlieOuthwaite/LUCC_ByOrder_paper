@@ -21,8 +21,8 @@ library(dplyr)
 library(ggplot2)
 source("0_Functions.R")
 
-packages_plot <- c("patchwork", "dplyr", "yarg", "lme4", "gt", "broom.mixed", "MASS","webshot")
-suppressWarnings(suppressMessages(lapply(packages_plot, require, character.only = TRUE)))
+packages <- c("patchwork", "dplyr", "yarg", "lme4", "gt", "broom.mixed", "MASS","webshot")
+suppressWarnings(suppressMessages(lapply(packages, require, character.only = TRUE)))
 
 # Set the path to copy of the database
 predicts.path <- paste0(dataDir,"database.rds")
@@ -162,23 +162,23 @@ list2env(by_Order,globalenv())
 Coleoptera <- droplevels(Coleoptera)
 Coleoptera <- SiteMetrics(diversity = Coleoptera,
                           extra.cols = c("Predominant_land_use",
-                                         "SSB","SSBS", "Biome","Order"))
+                                         "SSB","SSBS", "Biome","Order","UN_subregion"))
 Diptera <- droplevels(Diptera)
 Diptera <- SiteMetrics(diversity = Diptera,
                        extra.cols = c("Predominant_land_use",
-                                      "SSB","SSBS", "Biome","Order"))
+                                      "SSB","SSBS", "Biome","Order","UN_subregion"))
 Hemiptera <- droplevels(Hemiptera)
 Hemiptera <- SiteMetrics(diversity = Hemiptera,
                          extra.cols = c("Predominant_land_use",
-                                        "SSB","SSBS", "Biome","Order"))
+                                        "SSB","SSBS", "Biome","Order","UN_subregion"))
 Hymenoptera <- droplevels(Hymenoptera)
 Hymenoptera <- SiteMetrics(diversity = Hymenoptera,
                            extra.cols = c("Predominant_land_use",
-                                          "SSB","SSBS", "Biome","Order"))
+                                          "SSB","SSBS", "Biome","Order","UN_subregion"))
 Lepidoptera <- droplevels(Lepidoptera)
 Lepidoptera <- SiteMetrics(diversity = Lepidoptera,
                            extra.cols = c("Predominant_land_use",
-                                          "SSB","SSBS", "Biome","Order"))
+                                          "SSB","SSBS", "Biome","Order","UN_subregion"))
 
 # merge all sites_Order data frames into one called "sites"
 # merge using rbind()
@@ -325,7 +325,7 @@ gtsave(sites_summary, paste0(outDir, "sites_summary.html"))
 # save the prepared dataset
 saveRDS(object = sites,file = paste0(outDir,"PREDICTSSiteData.rds")) 
 
-## plot points of sites ##
+## plot points of sites (basic) ##
 
 # plot the raster in ggplot
 map.world <- map_data('world')
