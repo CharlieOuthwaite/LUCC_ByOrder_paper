@@ -25,10 +25,10 @@ if(!dir.exists(plotDir)) dir.create(plotDir)
 # print(t.start)
 
 # load libraries
-packages_model <- c("devtools","StatisticalModels", "predictsFunctions", "ggplot2", "cowplot", "sjPlot","dplyr")
+packages_model <- c("devtools","StatisticalModels", "predictsFunctions","dplyr")
 suppressWarnings(suppressMessages(lapply(packages_model, require, character.only = TRUE)))
 
-packages_plot <- c("patchwork", "dplyr", "yarg", "lme4", "gt", "broom.mixed", "MASS")
+packages_plot <- c("patchwork", "dplyr", "ggplot2", "cowplot", "sjPlot", "yarg", "lme4", "gt", "broom.mixed", "MASS")
 suppressWarnings(suppressMessages(lapply(packages_plot, require, character.only = TRUE)))
 
 # source in additional functions
@@ -354,8 +354,7 @@ p_coleoptera <- ggplot(data = nd_Coleoptera, aes(x = StdTmeanAnomaly, y = PredMe
   scale_colour_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
-  #scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
-  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500), limits = c(-100, 500)) +
+  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150), limits = c(-100, 150)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") +
   #xlim(c(-1, 5)) +
@@ -383,8 +382,7 @@ p_diptera <- ggplot(data = nd_Diptera, aes(x = StdTmeanAnomaly, y = PredMedian))
   scale_colour_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
-  #scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
-  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500), limits = c(-100, 500)) +
+  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150), limits = c(-100, 150)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") +
   #xlim(c(-1, 5)) +
@@ -412,8 +410,7 @@ p_hemiptera <- ggplot(data = nd_Hemiptera, aes(x = StdTmeanAnomaly, y = PredMedi
   scale_colour_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
-  #scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
-  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500), limits = c(-100, 500)) +
+  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150), limits = c(-100, 150)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") +
   #xlim(c(-1, 5)) +
@@ -470,8 +467,7 @@ p_lepidoptera <- ggplot(data = nd_Lepidoptera, aes(x = StdTmeanAnomaly, y = Pred
   scale_colour_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
-  #scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
-  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500), limits = c(-100, 500)) +
+  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150), limits = c(-100, 150)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") +
   #xlim(c(-1, 5)) +
