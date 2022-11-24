@@ -349,162 +349,139 @@ nd_Lepidoptera$LUI <- factor(nd_Lepidoptera$LUI, levels = c("Primary vegetation"
 p_coleoptera <- ggplot(data = nd_Coleoptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
   geom_line(aes(col = LUI), size = 0.75) +
   geom_ribbon(aes(ymin = nd_Coleoptera$PredLower, ymax = nd_Coleoptera$PredUpper, fill = LUI), alpha = 0.2) +
-  geom_hline(yintercept = 0, lty = "dashed", size = 0.2) +
-  scale_fill_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
-  scale_colour_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150), limits = c(-100, 150)) +
   ylab("Change in total abundance (%)") +
-  xlab("Standardised Temperature Anomaly") +
-  #xlim(c(-1, 5)) +
-  #ylim(c(-65, 60)) + 
+  xlab("Standardised Temperature Anomaly") + 
+  ggtitle("Coleoptera") +
   theme(aspect.ratio = 1, 
-        title = element_text(size = 8, face = "bold"),
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title.x = element_text(size = 8),
+        axis.title.y = element_text(size = 8),
         axis.text = element_text(size = 7),
-        axis.title = element_text(size = 7),
-        legend.position = "none",
-        #legend.position = c(0.2, 0.8),
-        #legend.background = element_blank(), 
-        #legend.text = element_text(size = 6), 
-        #legend.title = element_blank(), 
+        axis.ticks = element_line(size = 0.25),
+        legend.position = "none", 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.2),
-        panel.border = element_rect(size = 0.2), 
-        axis.ticks = element_line(size = 0.2)) + 
-  ggtitle("Coleoptera")
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25)) 
+  
 
 p_diptera <- ggplot(data = nd_Diptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
   geom_line(aes(col = LUI), size = 0.75) +
   geom_ribbon(aes(ymin = nd_Diptera$PredLower, ymax = nd_Diptera$PredUpper, fill = LUI), alpha = 0.2) +
-  geom_hline(yintercept = 0, lty = "dashed", size = 0.2) +
-  scale_fill_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
-  scale_colour_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
-  scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
-  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150), limits = c(-100, 150)) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") +
-  #xlim(c(-1, 5)) +
-  #ylim(c(-65, 60)) + 
+  ggtitle("Diptera") +
   theme(aspect.ratio = 1, 
-        title = element_text(size = 8, face = "bold"),
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title = element_text(size = 8),
         axis.text = element_text(size = 7),
-        axis.title = element_text(size = 7),
-        legend.position = "none",
-        #legend.position = c(0.2, 0.8),
-        #legend.background = element_blank(), 
-        #legend.text = element_text(size = 6), 
-        #legend.title = element_blank(), 
+        axis.ticks = element_line(size = 0.25),
+        legend.position = "none", 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.2),
-        panel.border = element_rect(size = 0.2), 
-        axis.ticks = element_line(size = 0.2)) + 
-  ggtitle("Diptera")
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25)) 
+  
 
 p_hemiptera <- ggplot(data = nd_Hemiptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
   geom_line(aes(col = LUI), size = 0.75) +
   geom_ribbon(aes(ymin = nd_Hemiptera$PredLower, ymax = nd_Hemiptera$PredUpper, fill = LUI), alpha = 0.2) +
-  geom_hline(yintercept = 0, lty = "dashed", size = 0.2) +
-  scale_fill_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
-  scale_colour_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
-  scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
-  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150), limits = c(-100, 150)) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") +
-  #xlim(c(-1, 5)) +
-  #ylim(c(-65, 60)) + 
+  ggtitle("Hemiptera") +
   theme(aspect.ratio = 1, 
-        title = element_text(size = 8, face = "bold"),
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title = element_text(size = 8),
         axis.text = element_text(size = 7),
-        axis.title = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
         legend.position = "none",
-        #legend.position = c(0.2, 0.8),
-        #legend.background = element_blank(), 
-        #legend.text = element_text(size = 6), 
-        #legend.title = element_blank(), 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.2),
-        panel.border = element_rect(size = 0.2), 
-        axis.ticks = element_line(size = 0.2)) + 
-  ggtitle("Hemiptera")
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25))
+  
 
 p_hymenoptera <- ggplot(data = nd_Hymenoptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
   geom_line(aes(col = LUI), size = 0.75) +
   geom_ribbon(aes(ymin = nd_Hymenoptera$PredLower, ymax = nd_Hymenoptera$PredUpper, fill = LUI), alpha = 0.2) +
-  geom_hline(yintercept = 0, lty = "dashed", size = 0.2) +
-  scale_fill_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
-  scale_colour_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   #scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
   scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500), limits = c(-100, 500)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") +
-  #xlim(c(-1, 5)) +
-  #ylim(c(-65, 60)) + 
+  ggtitle("Hymenoptera") +
   theme(aspect.ratio = 1, 
-        title = element_text(size = 8, face = "bold"),
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title = element_text(size = 8),
         axis.text = element_text(size = 7),
-        axis.title = element_text(size = 7),
-        legend.position = "none",
-        #legend.position = c(0.2, 0.8),
-        #legend.background = element_blank(), 
-        #legend.text = element_text(size = 6), 
-        #legend.title = element_blank(), 
+        axis.ticks = element_line(size = 0.25),
+        legend.position = "none", 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.2),
-        panel.border = element_rect(size = 0.2), 
-        axis.ticks = element_line(size = 0.2)) + 
-  ggtitle("Hymenoptera")
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25))
 
 p_lepidoptera <- ggplot(data = nd_Lepidoptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
   geom_line(aes(col = LUI), size = 0.75) +
   geom_ribbon(aes(ymin = nd_Lepidoptera$PredLower, ymax = nd_Lepidoptera$PredUpper, fill = LUI), alpha = 0.2) +
-  geom_hline(yintercept = 0, lty = "dashed", size = 0.2) +
-  scale_fill_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
-  scale_colour_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150), limits = c(-100, 150)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") +
-  #xlim(c(-1, 5)) +
-  #ylim(c(-65, 60)) + 
+  ggtitle("Lepidoptera") +
   theme(aspect.ratio = 1, 
-        title = element_text(size = 8, face = "bold"),
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title = element_text(size = 8),
         axis.text = element_text(size = 7),
-        axis.title = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
         legend.position = "none",
-        #legend.position = c(0.2, 0.8),
-        #legend.background = element_blank(), 
-        #legend.text = element_text(size = 6), 
-        #legend.title = element_blank(), 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.2),
-        panel.border = element_rect(size = 0.2), 
-        axis.ticks = element_line(size = 0.2)) + 
-  ggtitle("Lepidoptera")
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25)) 
+  
 
 # get the legend
 legend <- get_legend(
   p_coleoptera +
-    guides(color = guide_legend(nrow = 1)) +
-    theme(legend.position = "bottom",
+    guides(color = guide_legend(ncol = 1)) +
+    theme(legend.position = "right",
           legend.background = element_blank(), 
-          legend.text = element_text(size = 11), 
-          legend.title = element_blank())
+          legend.text = element_text(size = 7), 
+          legend.title = element_text(size = 8))
 )
 
 
 # put them all together to save them
-MeanAnomAbund <- cowplot::plot_grid(p_coleoptera,p_diptera,p_hemiptera,p_hymenoptera,p_lepidoptera)
-MeanAnomAbund <- cowplot::plot_grid(MeanAnomAbund,legend,ncol=1, rel_heights = c(1,0.1))
+MeanAnomAbund <- cowplot::plot_grid(p_coleoptera,p_diptera,p_hemiptera,p_hymenoptera,p_lepidoptera,legend, ncol=3)
 
-# save the ggplots
+# save plot (pdf)
 ggsave(filename = paste0(plotDir, "MeanAnomAbund.pdf"), plot = MeanAnomAbund, width = 200, height = 150, units = "mm", dpi = 300)
-# ggsave(filename = paste0(plotDir, "MeanAnomAbund_extended yaxis.pdf"), plot = MeanAnomAbund, width = 200, height = 150, units = "mm", dpi = 300)
+
+# save plot (jpeg)
+ggsave("MeanAnomAbund.jpeg", device ="jpeg", path = plotDir, width=20, height=15, units="cm", dpi = 350)
+
 
 ## Richness, Mean Anomaly ##
 
@@ -671,167 +648,140 @@ nd2_Lepidoptera$LUI <- factor(nd2_Lepidoptera$LUI, levels = c("Primary vegetatio
 p_coleoptera <- ggplot(data = nd2_Coleoptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
   geom_line(aes(col = LUI), size = 0.75) +
   geom_ribbon(aes(ymin = nd2_Coleoptera$PredLower, ymax = nd2_Coleoptera$PredUpper, fill = LUI), alpha = 0.2) +
-  geom_hline(yintercept = 0, lty = "dashed", size = 0.2) +
-  scale_fill_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
-  scale_colour_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
-  #scale_y_continuous(breaks = c(-100, 0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000), limits = c(-100, 1000)) +
   ylab("Change in species richness (%)") +
   xlab("Standardised Temperature Anomaly") +
-  #xlim(c(-1, 5)) +
-  #ylim(c(-65, 60)) + 
+  ggtitle("Coleoptera") +
   theme(aspect.ratio = 1, 
-        title = element_text(size = 8, face = "bold"),
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title.x = element_text(size = 8),
+        axis.title.y = element_text(size = 8),
         axis.text = element_text(size = 7),
-        axis.title = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
         legend.position = "none",
-        #legend.position = c(0.2, 0.8),
-        #legend.background = element_blank(), 
-        #legend.text = element_text(size = 6), 
-        #legend.title = element_blank(), 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.2),
-        panel.border = element_rect(size = 0.2), 
-        axis.ticks = element_line(size = 0.2)) + 
-  ggtitle("Coleoptera")
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25)) 
 
 p_diptera <- ggplot(data = nd2_Diptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
   geom_line(aes(col = LUI), size = 0.75) +
   geom_ribbon(aes(ymin = nd2_Diptera$PredLower, ymax = nd2_Diptera$PredUpper, fill = LUI), alpha = 0.2) +
-  geom_hline(yintercept = 0, lty = "dashed", size = 0.2) +
-  scale_fill_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
-  scale_colour_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
-  #scale_y_continuous(breaks = c(-100, 0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000), limits = c(-100, 1000)) +
   ylab("Change in species richness (%)") +
   xlab("Standardised Temperature Anomaly") +
-  #xlim(c(-1, 5)) +
-  #ylim(c(-65, 60)) + 
+  ggtitle("Diptera") +
   theme(aspect.ratio = 1, 
-        title = element_text(size = 8, face = "bold"),
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title = element_text(size = 8),
         axis.text = element_text(size = 7),
-        axis.title = element_text(size = 7),
-        legend.position = "none",
-        #legend.position = c(0.2, 0.8),
-        #legend.background = element_blank(), 
-        #legend.text = element_text(size = 6), 
-        #legend.title = element_blank(), 
+        axis.ticks = element_line(size = 0.25),
+        legend.position = "none", 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.2),
-        panel.border = element_rect(size = 0.2), 
-        axis.ticks = element_line(size = 0.2)) + 
-  ggtitle("Diptera")
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25))
 
 p_hemiptera <- ggplot(data = nd2_Hemiptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
   geom_line(aes(col = LUI), size = 0.75) +
   geom_ribbon(aes(ymin = nd2_Hemiptera$PredLower, ymax = nd2_Hemiptera$PredUpper, fill = LUI), alpha = 0.2) +
-  geom_hline(yintercept = 0, lty = "dashed", size = 0.2) +
-  scale_fill_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
-  scale_colour_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
   #scale_y_continuous(breaks = c(-100, 0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000), limits = c(-100, 1000)) +
   ylab("Change in species richness (%)") +
   xlab("Standardised Temperature Anomaly") +
-  #xlim(c(-1, 5)) +
-  #ylim(c(-65, 60)) + 
+  ggtitle("Hemiptera") +
   theme(aspect.ratio = 1, 
-        title = element_text(size = 8, face = "bold"),
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title = element_text(size = 8),
         axis.text = element_text(size = 7),
-        axis.title = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
         legend.position = "none",
-        #legend.position = c(0.2, 0.8),
-        #legend.background = element_blank(), 
-        #legend.text = element_text(size = 6), 
-        #legend.title = element_blank(), 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.2),
-        panel.border = element_rect(size = 0.2), 
-        axis.ticks = element_line(size = 0.2)) + 
-  ggtitle("Hemiptera")
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25))
 
 p_hymenoptera <- ggplot(data = nd2_Hymenoptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
   geom_line(aes(col = LUI), size = 0.75) +
   geom_ribbon(aes(ymin = nd2_Hymenoptera$PredLower, ymax = nd2_Hymenoptera$PredUpper, fill = LUI), alpha = 0.2) +
-  geom_hline(yintercept = 0, lty = "dashed", size = 0.2) +
-  scale_fill_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
-  scale_colour_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
   #scale_y_continuous(breaks = c(-100, 0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000), limits = c(-100, 1000)) +
   ylab("Change in species richness (%)") +
   xlab("Standardised Temperature Anomaly") +
-  #xlim(c(-1, 5)) +
-  #ylim(c(-65, 60)) + 
+  ggtitle("Hymenoptera") +
   theme(aspect.ratio = 1, 
-        title = element_text(size = 8, face = "bold"),
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title = element_text(size = 8),
         axis.text = element_text(size = 7),
-        axis.title = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
         legend.position = "none",
         #legend.position = c(0.2, 0.8),
         #legend.background = element_blank(), 
         #legend.text = element_text(size = 6), 
         #legend.title = element_blank(), 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.2),
-        panel.border = element_rect(size = 0.2), 
-        axis.ticks = element_line(size = 0.2)) + 
-  ggtitle("Hymenoptera")
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25))
 
 p_lepidoptera <- ggplot(data = nd2_Lepidoptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
   geom_line(aes(col = LUI), size = 0.75) +
   geom_ribbon(aes(ymin = nd2_Lepidoptera$PredLower, ymax = nd2_Lepidoptera$PredUpper, fill = LUI), alpha = 0.2) +
-  geom_hline(yintercept = 0, lty = "dashed", size = 0.2) +
-  scale_fill_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
-  scale_colour_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
   #scale_y_continuous(breaks = c(-100, 0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000), limits = c(-100, 1000)) +
   ylab("Change in species richness (%)") +
   xlab("Standardised Temperature Anomaly") +
-  #xlim(c(-1, 5)) +
-  #ylim(c(-65, 60)) + 
+  ggtitle("Lepidoptera") +
   theme(aspect.ratio = 1, 
-        title = element_text(size = 8, face = "bold"),
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title = element_text(size = 8),
         axis.text = element_text(size = 7),
-        axis.title = element_text(size = 7),
-        legend.position = "none",
-        #legend.position = c(0.2, 0.8),
-        #legend.background = element_blank(), 
-        #legend.text = element_text(size = 6), 
-        #legend.title = element_blank(), 
+        axis.ticks = element_line(size = 0.25),
+        legend.position = "none", 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.2),
-        panel.border = element_rect(size = 0.2), 
-        axis.ticks = element_line(size = 0.2)) + 
-  ggtitle("Lepidoptera")
-
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25)) 
 
 # get the legend
 legend <- get_legend(
   p_coleoptera +
-    guides(color = guide_legend(nrow = 1)) +
-    theme(legend.position = "bottom",
+    guides(color = guide_legend(ncol = 1)) +
+    theme(legend.position = "right",
           legend.background = element_blank(), 
-          legend.text = element_text(size = 11), 
-          legend.title = element_blank())
+          legend.text = element_text(size = 7), 
+          legend.title = element_text(size = 8))
 )
 
 
 # put them all together to save them
-MeanAnomRich <- cowplot::plot_grid(p_coleoptera,p_diptera,p_hemiptera,p_hymenoptera,p_lepidoptera)
-MeanAnomRich <- cowplot::plot_grid(MeanAnomRich,legend,ncol=1, rel_heights = c(1,0.1))
+MeanAnomRich <- cowplot::plot_grid(p_coleoptera,p_diptera,p_hemiptera,p_hymenoptera,p_lepidoptera,legend, ncol=3)
 
-# save the ggplots
+# save plot (pdf)
 ggsave(filename = paste0(plotDir, "MeanAnomRich.pdf"), plot = MeanAnomRich, width = 200, height = 150, units = "mm", dpi = 300)
-# ggsave(filename = paste0(plotDir, "MeanAnomRich_extended yaxis.pdf"), plot = MeanAnomRich, width = 200, height = 150, units = "mm", dpi = 300)
+
+# save plot (jpeg)
+ggsave("MeanAnomRich.jpeg", device ="jpeg", path = plotDir, width=20, height=15, units="cm", dpi = 350)
 
 ## Abundance, Max Anomaly ##
 
@@ -997,38 +947,33 @@ nd3_Lepidoptera$LUI <- factor(nd3_Lepidoptera$LUI, levels = c("Primary vegetatio
 p_coleoptera <- ggplot(data = nd3_Coleoptera, aes(x = StdTmaxAnomaly, y = PredMedian)) + 
   geom_line(aes(col = LUI), size = 0.75) +
   geom_ribbon(aes(ymin = nd3_Coleoptera$PredLower, ymax = nd3_Coleoptera$PredUpper, fill = LUI), alpha = 0.2) +
-  geom_hline(yintercept = 0, lty = "dashed", size = 0.2) +
-  scale_fill_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
-  scale_colour_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   scale_y_continuous(breaks = c(-100, -75, -50, -25, 0, 25, 50, 75, 100, 125, 150), limits = c(-100, 150)) +
   #scale_y_continuous(breaks = c(-100, -75, -50, -25, 0, 25, 50, 75, 100, 125, 150,175, 200), limits = c(-100, 200)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Maximum Temperature Anomaly") +
-  #xlim(c(-1, 5)) +
-  #ylim(c(-65, 60)) + 
+  ggtitle("Coleoptera") +
   theme(aspect.ratio = 1, 
-        title = element_text(size = 8, face = "bold"),
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title.x = element_text(size = 8),
+        axis.title.y = element_text(size = 8),
         axis.text = element_text(size = 7),
-        axis.title = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
         legend.position = "none",
-        #legend.position = c(0.2, 0.8),
-        #legend.background = element_blank(), 
-        #legend.text = element_text(size = 6), 
-        #legend.title = element_blank(), 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.2),
-        panel.border = element_rect(size = 0.2), 
-        axis.ticks = element_line(size = 0.2)) + 
-  ggtitle("Coleoptera")
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25)) 
 
 p_diptera <- ggplot(data = nd3_Diptera, aes(x = StdTmaxAnomaly, y = PredMedian)) + 
   geom_line(aes(col = LUI), size = 0.75) +
   geom_ribbon(aes(ymin = nd3_Diptera$PredLower, ymax = nd3_Diptera$PredUpper, fill = LUI), alpha = 0.2) +
-  geom_hline(yintercept = 0, lty = "dashed", size = 0.2) +
-  scale_fill_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
-  scale_colour_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   scale_y_continuous(breaks = c(-100, -75, -50, -25, 0, 25, 50, 75, 100, 125, 150), limits = c(-100, 150)) +
@@ -1037,125 +982,108 @@ p_diptera <- ggplot(data = nd3_Diptera, aes(x = StdTmaxAnomaly, y = PredMedian))
   xlab("Standardised Maximum Temperature Anomaly") +
   #xlim(c(-1, 5)) +
   #ylim(c(-65, 60)) + 
+  ggtitle("Diptera") +
   theme(aspect.ratio = 1, 
-        title = element_text(size = 8, face = "bold"),
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title = element_text(size = 8),
         axis.text = element_text(size = 7),
-        axis.title = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
         legend.position = "none",
-        #legend.position = c(0.2, 0.8),
-        #legend.background = element_blank(), 
-        #legend.text = element_text(size = 6), 
-        #legend.title = element_blank(), 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.2),
-        panel.border = element_rect(size = 0.2), 
-        axis.ticks = element_line(size = 0.2)) + 
-  ggtitle("Diptera")
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25))
 
 p_hemiptera <- ggplot(data = nd3_Hemiptera, aes(x = StdTmaxAnomaly, y = PredMedian)) + 
   geom_line(aes(col = LUI), size = 0.75) +
   geom_ribbon(aes(ymin = nd3_Hemiptera$PredLower, ymax = nd3_Hemiptera$PredUpper, fill = LUI), alpha = 0.2) +
-  geom_hline(yintercept = 0, lty = "dashed", size = 0.2) +
-  scale_fill_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
-  scale_colour_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   scale_y_continuous(breaks = c(-100, -75, -50, -25, 0, 25, 50, 75, 100, 125, 150), limits = c(-100, 150)) +
   #scale_y_continuous(breaks = c(-100, -75, -50, -25, 0, 25, 50, 75, 100, 125, 150,175, 200), limits = c(-100, 200)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Maximum Temperature Anomaly") +
-  #xlim(c(-1, 5)) +
-  #ylim(c(-65, 60)) + 
+  ggtitle("Hemiptera") +
   theme(aspect.ratio = 1, 
-        title = element_text(size = 8, face = "bold"),
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title = element_text(size = 8),
         axis.text = element_text(size = 7),
-        axis.title = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
         legend.position = "none",
-        #legend.position = c(0.2, 0.8),
-        #legend.background = element_blank(), 
-        #legend.text = element_text(size = 6), 
-        #legend.title = element_blank(), 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.2),
-        panel.border = element_rect(size = 0.2), 
-        axis.ticks = element_line(size = 0.2)) + 
-  ggtitle("Hemiptera")
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25))
 
 p_hymenoptera <- ggplot(data = nd3_Hymenoptera, aes(x = StdTmaxAnomaly, y = PredMedian)) + 
   geom_line(aes(col = LUI), size = 0.75) +
   geom_ribbon(aes(ymin = nd3_Hymenoptera$PredLower, ymax = nd3_Hymenoptera$PredUpper, fill = LUI), alpha = 0.2) +
-  geom_hline(yintercept = 0, lty = "dashed", size = 0.2) +
-  scale_fill_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
-  scale_colour_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   scale_y_continuous(breaks = c(-100, -75, -50, -25, 0, 25, 50, 75, 100, 125, 150), limits = c(-100, 150)) +
   #scale_y_continuous(breaks = c(-100, -75, -50, -25, 0, 25, 50, 75, 100, 125, 150,175, 200), limits = c(-100, 200)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Maximum Temperature Anomaly") +
-  #xlim(c(-1, 5)) +
-  #ylim(c(-65, 60)) + 
+  ggtitle("Hymenoptera") +
   theme(aspect.ratio = 1, 
-        title = element_text(size = 8, face = "bold"),
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title = element_text(size = 8),
         axis.text = element_text(size = 7),
-        axis.title = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
         legend.position = "none",
         #legend.position = c(0.2, 0.8),
         #legend.background = element_blank(), 
         #legend.text = element_text(size = 6), 
         #legend.title = element_blank(), 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.2),
-        panel.border = element_rect(size = 0.2), 
-        axis.ticks = element_line(size = 0.2)) + 
-  ggtitle("Hymenoptera")
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25))
 
 p_lepidoptera <- ggplot(data = nd3_Lepidoptera, aes(x = StdTmaxAnomaly, y = PredMedian)) + 
   geom_line(aes(col = LUI), size = 0.75) +
   geom_ribbon(aes(ymin = nd3_Lepidoptera$PredLower, ymax = nd3_Lepidoptera$PredUpper, fill = LUI), alpha = 0.2) +
-  geom_hline(yintercept = 0, lty = "dashed", size = 0.2) +
-  scale_fill_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
-  scale_colour_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   scale_y_continuous(breaks = c(-100, -75, -50, -25, 0, 25, 50, 75, 100, 125, 150), limits = c(-100, 150)) +
   #scale_y_continuous(breaks = c(-100, -75, -50, -25, 0, 25, 50, 75, 100, 125, 150,175, 200), limits = c(-100, 200)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Maximum Temperature Anomaly") +
-  #xlim(c(-1, 5)) +
-  #ylim(c(-65, 60)) + 
+  ggtitle("Lepidoptera") +
   theme(aspect.ratio = 1, 
-        title = element_text(size = 8, face = "bold"),
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title = element_text(size = 8),
         axis.text = element_text(size = 7),
-        axis.title = element_text(size = 7),
-        legend.position = "none",
-        #legend.position = c(0.2, 0.8),
-        #legend.background = element_blank(), 
-        #legend.text = element_text(size = 6), 
-        #legend.title = element_blank(), 
+        axis.ticks = element_line(size = 0.25),
+        legend.position = "none", 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.2),
-        panel.border = element_rect(size = 0.2), 
-        axis.ticks = element_line(size = 0.2)) + 
-  ggtitle("Lepidoptera")
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25))
 
 # get the legend
 legend <- get_legend(
   p_coleoptera +
-    guides(color = guide_legend(nrow = 1)) +
-    theme(legend.position = "bottom",
+    guides(color = guide_legend(ncol = 1)) +
+    theme(legend.position = "right",
           legend.background = element_blank(), 
-          legend.text = element_text(size = 11), 
-          legend.title = element_blank())
+          legend.text = element_text(size = 7), 
+          legend.title = element_text(size = 8))
 )
 
-
 # put them all together to save them
-MaxAnomAbund <- cowplot::plot_grid(p_coleoptera,p_diptera,p_hemiptera,p_hymenoptera,p_lepidoptera)
-MaxAnomAbund <- cowplot::plot_grid(MaxAnomAbund,legend,ncol=1, rel_heights = c(1,0.1))
+MaxAnomAbund <- cowplot::plot_grid(p_coleoptera,p_diptera,p_hemiptera,p_hymenoptera,p_lepidoptera,legend, ncol=3)
 
-# save the ggplots
+# save plot (pdf)
 ggsave(filename = paste0(plotDir, "MaxAnomAbund.pdf"), plot = MaxAnomAbund, width = 200, height = 150, units = "mm", dpi = 300)
+
+# save plot (jpeg)
+ggsave("MaxAnomAbund.jpeg", device ="jpeg", path = plotDir, width=20, height=15, units="cm", dpi = 350)
 
 ## Richness, Max Anomaly ##
 
@@ -1317,167 +1245,142 @@ nd4_Lepidoptera$LUI <- factor(nd4_Lepidoptera$LUI, levels = c("Primary vegetatio
 p_coleoptera <- ggplot(data = nd4_Coleoptera, aes(x = StdTmaxAnomaly, y = PredMedian)) + 
   geom_line(aes(col = LUI), size = 0.75) +
   geom_ribbon(aes(ymin = nd4_Coleoptera$PredLower, ymax = nd4_Coleoptera$PredUpper, fill = LUI), alpha = 0.2) +
-  geom_hline(yintercept = 0, lty = "dashed", size = 0.2) +
-  scale_fill_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
-  scale_colour_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150, 200, 250), limits = c(-100, 200)) +
   #scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500), limits = c(-100, 500)) +
   ylab("Change in species richness (%)") +
   xlab("Standardised Maximum Temperature Anomaly") +
-  #xlim(c(-1, 5)) +
-  #ylim(c(-65, 60)) + 
+  ggtitle("Coleoptera") +
   theme(aspect.ratio = 1, 
-        title = element_text(size = 8, face = "bold"),
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title.x = element_text(size = 8),
+        axis.title.y = element_text(size = 8),
         axis.text = element_text(size = 7),
-        axis.title = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
         legend.position = "none",
-        #legend.position = c(0.2, 0.8),
-        #legend.background = element_blank(), 
-        #legend.text = element_text(size = 6), 
-        #legend.title = element_blank(), 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.2),
-        panel.border = element_rect(size = 0.2), 
-        axis.ticks = element_line(size = 0.2)) + 
-  ggtitle("Coleoptera")
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25)) 
 
 p_diptera <- ggplot(data = nd4_Diptera, aes(x = StdTmaxAnomaly, y = PredMedian)) + 
   geom_line(aes(col = LUI), size = 0.75) +
   geom_ribbon(aes(ymin = nd4_Diptera$PredLower, ymax = nd4_Diptera$PredUpper, fill = LUI), alpha = 0.2) +
-  geom_hline(yintercept = 0, lty = "dashed", size = 0.2) +
-  scale_fill_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
-  scale_colour_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150, 200, 250), limits = c(-100, 200)) +
   #scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500), limits = c(-100, 500)) +
   ylab("Change in species richness (%)") +
   xlab("Standardised Maximum Temperature Anomaly") +
-  #xlim(c(-1, 5)) +
-  #ylim(c(-65, 60)) + 
+  ggtitle("Diptera") +
   theme(aspect.ratio = 1, 
-        title = element_text(size = 8, face = "bold"),
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title = element_text(size = 8),
         axis.text = element_text(size = 7),
-        axis.title = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
         legend.position = "none",
-        #legend.position = c(0.2, 0.8),
-        #legend.background = element_blank(), 
-        #legend.text = element_text(size = 6), 
-        #legend.title = element_blank(), 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.2),
-        panel.border = element_rect(size = 0.2), 
-        axis.ticks = element_line(size = 0.2)) + 
-  ggtitle("Diptera")
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25)) 
 
 p_hemiptera <- ggplot(data = nd4_Hemiptera, aes(x = StdTmaxAnomaly, y = PredMedian)) + 
   geom_line(aes(col = LUI), size = 0.75) +
   geom_ribbon(aes(ymin = nd4_Hemiptera$PredLower, ymax = nd4_Hemiptera$PredUpper, fill = LUI), alpha = 0.2) +
-  geom_hline(yintercept = 0, lty = "dashed", size = 0.2) +
-  scale_fill_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
-  scale_colour_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150, 200, 250), limits = c(-100, 200)) +
   #scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500), limits = c(-100, 500)) +
   ylab("Change in species richness (%)") +
   xlab("Standardised Maximum Temperature Anomaly") +
-  #xlim(c(-1, 5)) +
-  #ylim(c(-65, 60)) + 
+  ggtitle("Hemiptera") +
   theme(aspect.ratio = 1, 
-        title = element_text(size = 8, face = "bold"),
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title = element_text(size = 8),
         axis.text = element_text(size = 7),
-        axis.title = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
         legend.position = "none",
-        #legend.position = c(0.2, 0.8),
-        #legend.background = element_blank(), 
-        #legend.text = element_text(size = 6), 
-        #legend.title = element_blank(), 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.2),
-        panel.border = element_rect(size = 0.2), 
-        axis.ticks = element_line(size = 0.2)) + 
-  ggtitle("Hemiptera")
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25))
 
 p_hymenoptera <- ggplot(data = nd4_Hymenoptera, aes(x = StdTmaxAnomaly, y = PredMedian)) + 
   geom_line(aes(col = LUI), size = 0.75) +
   geom_ribbon(aes(ymin = nd4_Hymenoptera$PredLower, ymax = nd4_Hymenoptera$PredUpper, fill = LUI), alpha = 0.2) +
-  geom_hline(yintercept = 0, lty = "dashed", size = 0.2) +
-  scale_fill_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
-  scale_colour_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150, 200, 250), limits = c(-100, 200)) +
   #scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500), limits = c(-100, 500)) +
   ylab("Change in species richness (%)") +
   xlab("Standardised Maximum Temperature Anomaly") +
-  #xlim(c(-1, 5)) +
-  #ylim(c(-65, 60)) + 
+  ggtitle("Hymenoptera") +
   theme(aspect.ratio = 1, 
-        title = element_text(size = 8, face = "bold"),
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title = element_text(size = 8),
         axis.text = element_text(size = 7),
-        axis.title = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
         legend.position = "none",
         #legend.position = c(0.2, 0.8),
         #legend.background = element_blank(), 
         #legend.text = element_text(size = 6), 
         #legend.title = element_blank(), 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.2),
-        panel.border = element_rect(size = 0.2), 
-        axis.ticks = element_line(size = 0.2)) + 
-  ggtitle("Hymenoptera")
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25))
 
 p_lepidoptera <- ggplot(data = nd4_Lepidoptera, aes(x = StdTmaxAnomaly, y = PredMedian)) + 
   geom_line(aes(col = LUI), size = 0.75) +
   geom_ribbon(aes(ymin = nd4_Lepidoptera$PredLower, ymax = nd4_Lepidoptera$PredUpper, fill = LUI), alpha = 0.2) +
-  geom_hline(yintercept = 0, lty = "dashed", size = 0.2) +
-  scale_fill_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
-  scale_colour_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150, 200, 250), limits = c(-100, 200)) +
   #scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500), limits = c(-100, 500)) +
   ylab("Change in species richness (%)") +
   xlab("Standardised Maximum Temperature Anomaly") +
-  #xlim(c(-1, 5)) +
-  #ylim(c(-65, 60)) + 
+  ggtitle("Lepidoptera") +
   theme(aspect.ratio = 1, 
-        title = element_text(size = 8, face = "bold"),
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title = element_text(size = 8),
         axis.text = element_text(size = 7),
-        axis.title = element_text(size = 7),
-        legend.position = "none",
-        #legend.position = c(0.2, 0.8),
-        #legend.background = element_blank(), 
-        #legend.text = element_text(size = 6), 
-        #legend.title = element_blank(), 
+        axis.ticks = element_line(size = 0.25),
+        legend.position = "none", 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.2),
-        panel.border = element_rect(size = 0.2), 
-        axis.ticks = element_line(size = 0.2)) + 
-  ggtitle("Lepidoptera")
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25)) 
 
 # get the legend
 legend <- get_legend(
   p_coleoptera +
-    guides(color = guide_legend(nrow = 1)) +
-    theme(legend.position = "bottom",
+    guides(color = guide_legend(ncol = 1)) +
+    theme(legend.position = "right",
           legend.background = element_blank(), 
-          legend.text = element_text(size = 11), 
-          legend.title = element_blank())
+          legend.text = element_text(size = 7), 
+          legend.title = element_text(size = 8))
 )
 
 
 # put them all together to save them
-MaxAnomRich <- cowplot::plot_grid(p_coleoptera,p_diptera,p_hemiptera,p_hymenoptera,p_lepidoptera)
-MaxAnomRich <- cowplot::plot_grid(MaxAnomRich,legend,ncol=1, rel_heights = c(1,0.1))
+MaxAnomRich <- cowplot::plot_grid(p_coleoptera,p_diptera,p_hemiptera,p_hymenoptera,p_lepidoptera,legend, ncol=3)
 
-# save the ggplots
+# save plot (pdf)
 ggsave(filename = paste0(plotDir, "MaxAnomRich.pdf"), plot = MaxAnomRich, width = 200, height = 150, units = "mm", dpi = 300)
-#ggsave(filename = paste0(plotDir, "MaxAnomRich_extended yaxis.pdf"), plot = MaxAnomRich, width = 200, height = 150, units = "mm", dpi = 300)
 
+# save plot (jpeg)
+ggsave("MaxAnomRich.jpeg", device ="jpeg", path = plotDir, width=20, height=15, units="cm", dpi = 350)
 
 # t.end <- Sys.time()
 # 

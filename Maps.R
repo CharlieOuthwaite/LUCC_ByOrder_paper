@@ -25,6 +25,7 @@ sites <- readRDS(file = paste0(outDir,"PREDICTSSiteData.rds"))
 ## plot map of site distribution: scatterplot ##
 
 # plot the raster in ggplot
+
 map.world <- map_data('world')
 
 # map of sites, coloured by order
@@ -33,17 +34,16 @@ p_map <-ggplot() +
            aes(x=long, y=lat, group=group, map_id=region),
            fill= "grey", colour="grey", size=0.2) +
   coord_fixed() +
-  labs(x = "Longitude", 
-       y = "Latitude",
-       fill = "Order") +
-  geom_point(data = sites, aes(x = Longitude, y = Latitude, colour = factor(Order)), shape = 20, size=1) +
-  theme(axis.title = element_text(), 
+  labs(x = "Longitude", y = "Latitude", fill = "Order") +
+  geom_point(data = sites, aes(x = Longitude, y = Latitude, color = Order), shape = 20, size=1) +
+  scale_color_manual(values=c("#2271B2","#F0E442","#359B73","#E69F00","#F748A5"))+
+  theme(axis.title = element_text(size = 8), 
+        axis.text = element_text(size = 7),
         plot.background = element_blank(),
         panel.background = element_blank(),
-        axis.text = element_text(),
-      # legend.title = element_text()
-        legend.position = "none") +
-  ggtitle("a")
+        legend.position = "right",
+        legend.title = element_text(size = 8),
+        legend.text = element_text(size =7))
 
 #save map
 ggsave("map_sites.jpeg", device ="jpeg", path = outDir, width=25, height=15, units="cm", dpi = 350)
@@ -75,6 +75,7 @@ mapdf$long[mapdf$UN_subregion == "Southern Europe"] <- -5
 mapdf$lat[mapdf$UN_subregion == "Northern Europe"] <- 68
 mapdf$long[mapdf$UN_subregion == "Northern Europe"] <- 4
 
+# map showing proportion of each order by UN subregion
 p_map2 <-ggplot() +
   geom_map(data=map.world, map=map.world,
            aes(x=long, y=lat, group=group, map_id=region),
@@ -83,40 +84,17 @@ p_map2 <-ggplot() +
                   data=mapdf, cols=c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera"), color=NA, alpha=.8) +
   scale_fill_manual(values=c("#2271B2","#F0E442","#359B73","#E69F00","#F748A5"))+
   coord_fixed() +
-  labs(x = "Longitude", 
-       y = "Latitude",
-       fill = "Order") +
-  theme(axis.title = element_text(), 
+  labs(x = "Longitude", y = "Latitude", fill = "Order") +
+  theme(axis.title = element_text(size = 8), 
+        axis.text = element_text(size = 7),
         plot.background = element_blank(),
         panel.background = element_blank(),
-        axis.text = element_text(),
-        legend.position = "none") +
-  ggtitle("b")
+        legend.position = "right",
+        legend.title = element_text(size = 8),
+        legend.text = element_text(size =7))
 
 # save map
 ggsave("map_proportionate.jpeg", device ="jpeg", path = outDir, width=25, height=15, units="cm", dpi = 350)
-
-# get the legend
-legend <- get_legend(
-  p_map +
-    guides(color = guide_legend(title = "Order", override.aes = list(size = 2, shape = 16)))+
-    theme(legend.position = "left",
-          legend.background = element_blank(), 
-          legend.text = element_text(size = 10), 
-          legend.title = element_text())
-  )
-
-# plot together
-plot_figure <- plot_grid(
-  plot_grid(p_map, p_map2, ncol = 1, rel_heights = c(1,1)),
-  plot_grid(NULL,legend,NULL, ncol = 1, rel_heights = c(0.5,1,0.5)),
-  nrow=1, rel_widths = c(1,0.2))
-
-# save map (pdf)
-ggsave(filename = paste0(outDir, "maps.pdf"), plot = last_plot(), width = 250, height = 200, units = "mm", dpi = 300)
-
-# save maps (jpeg)
-ggsave("maps.jpeg", device ="jpeg", path = outDir, width=25, height=20, units="cm", dpi = 350)
 
 ## layer maps of sites and by proportion: scatterplot + scatterpie ##
 p_map3 <-ggplot() +
@@ -124,18 +102,17 @@ p_map3 <-ggplot() +
            aes(x=long, y=lat, group=group, map_id=region),
            fill= "grey", colour="grey", size=0.2) +
   coord_fixed() +
-  labs(x = "Longitude", 
-       y = "Latitude",
-       fill = "Order") +
+  labs(x = "Longitude", y = "Latitude", fill = "Order") +
   geom_point(data = sites, aes(x = Longitude, y = Latitude), shape = 20, size=1) +
   geom_scatterpie(aes(x=long, y=lat, group=UN_subregion, r=radius),
                   data=mapdf, cols=c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera"), color=NA, alpha=.8) +
   scale_fill_manual(values=c("#2271B2","#F0E442","#359B73","#E69F00","#F748A5"))+
-  theme(axis.title = element_text(), 
+  theme(axis.title = element_text(size = 8),
+        axis.text = element_text(size = 7),
         plot.background = element_blank(),
         panel.background = element_blank(),
-        axis.text = element_text(),
-        legend.title = element_text())
+        legend.title = element_text(size = 8),
+        legend.text = element_text(size = 7))
 
 # save maps (jpeg)
-ggsave("maps_layered.jpeg", device ="jpeg", path = outDir, width=25, height=20, units="cm", dpi = 350)
+ggsave("maps_layered.jpeg", device ="jpeg", path = outDir, width=25, height=10, units="cm", dpi = 350)

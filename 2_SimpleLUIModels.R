@@ -384,33 +384,7 @@ R2GLMER(sm3.3$model) # check the R2 values
 
 ##%######################################################%##
 #                                                          #
-####        4a. plot map of site distribution           ####
-#                                                          #
-##%######################################################%##
-
-
-# plot the raster in ggplot
-map.world <- map_data('world')
-
-# map of sites, coloured by order
-p_map <-ggplot() +
-  geom_map(data=map.world, map=map.world,
-           aes(x=long, y=lat, group=group, map_id=region),
-           fill= "grey", colour="grey", size=0.2) +
-  geom_point(data = sites, aes(x = Longitude, y = Latitude, colour = factor(Order)), shape = 20) +
-  theme(axis.title = element_blank(), 
-        plot.background = element_blank(),
-        plot.margin = unit(c(0.1,3,0.1,3),'cm'),
-        panel.background = element_blank(),
-        axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        legend.title = element_blank())+
-  ggtitle("a")
-
-
-##%######################################################%##
-#                                                          #
-####         4b. Richness and abundance plots           ####
+####         4a. Richness and abundance plots           ####
 #                                                          #
 ##%######################################################%##
 
@@ -487,41 +461,67 @@ write.csv(all_res, file = paste0(predsDir,"percentage_change_LUI.csv"))
 
 # plot
 richness <- richness_metric + 
-  xlab(NULL) + 
-  ylab("Species richness diff. (%)") + 
+  labs(y ="Species richness diff. (%)", x = NULL) +
   guides(scale = "none") +
   scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75), limits = c(-100, 75)) +
-  theme(axis.text.x = element_text(size = 9,angle=45,margin=margin(t=20)), 
-        axis.ticks = element_blank(),
+  theme(axis.title = element_text(size = 8),
+        axis.text.x = element_text(size = 7,angle=45,margin=margin(t=20)),
+        axis.text.y = element_text(size = 7),
+        legend.position = "none")+
+  ggtitle("a")
+
+
+abundance <- abundance_metric +
+  labs(y ="Total abundance diff. (%)", x = "Order") +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75), limits = c(-100, 75)) + 
+  theme(axis.title = element_text(size = 8),
+        axis.text.x = element_text(size = 7,angle=45,margin=margin(t=20)),
+        axis.text.y = element_text(size = 7),
         legend.position = "none")+
   ggtitle("b")
-
-
-abundance <- abundance_metric + xlab(NULL) + 
-  ylab("Total abundance diff. (%)") +
-  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75), limits = c(-100, 75)) + 
-  theme(axis.text.x = element_text(size = 9,angle=45,margin=margin(t=20)), 
-        axis.ticks = element_blank(), 
-        legend.position = "none")+
-  ggtitle("c")
 
 
 # get the legend
 legend <- get_legend(
   abundance +
-    guides(color = guide_legend(nrow = 1)) +
-    theme(legend.position = "bottom",
-          legend.background = element_blank(), 
-          legend.text = element_text(size = 11), 
-          legend.title = element_blank())
+    guides(color = guide_legend(ncol = 1)) +
+    theme(legend.position = "right",
+          legend.box = "vertical", 
+          legend.text = element_text(size = 7), 
+          legend.title = element_text(size = 8))
 )
 
-plot_figure <- cowplot::plot_grid(p_map, cowplot::plot_grid(richness, abundance), legend, ncol = 1, rel_heights = c(1.3, 1,0.1))
+# plot together
+plot_figure <- cowplot::plot_grid(richness, abundance, ncol = 1, rel_heights = c(1,1))
+legend <- cowplot::plot_grid(NULL,legend,NULL, ncol = 1, rel_heights = c(0.5,1,0.5))
+plot_figure <- cowplot::plot_grid(plot_figure, legend, ncol = 2, rel_widths = c(1,0.2))
 
-ggsave(filename = paste0(outDir, "Figure1_map_simplemods.pdf"), plot = last_plot(), width = 250, height = 200, units = "mm", dpi = 300)
+# save plot (pdf)
+ggsave(filename = paste0(outDir, "Figure1_simplemods.pdf"), plot = last_plot(), width = 250, height = 200, units = "mm", dpi = 300)
 
-# save plots
-ggsave("LUI_predictions.jpeg", device ="jpeg", path = outDir, width=25, height=20, units="cm", dpi = 350)
+# save plot (jpeg)
+ggsave("Figure1_simplemods.jpeg", device ="jpeg", path = outDir, width=20, height=15, units="cm", dpi = 350)
+
+# plot abundance alone
+
+abundance <- abundance_metric + xlab(NULL) + 
+  labs(y ="Total abundance diff. (%)", x = "Order") +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75), limits = c(-100, 75)) + 
+  theme(axis.title = element_text(size = 8),
+        axis.text.x = element_text(size = 7,angle=45,margin=margin(t=20)),
+        axis.text.y = element_text(size = 7),
+        axis.ticks = element_blank(), 
+        legend.position = "right",
+        legend.box = "vertical",
+        legend.text = element_text(size = 7),
+        legend.title = element_text(size = 8))
+
+# save plot (pdf)
+ggsave(filename = paste0(outDir, "Figure1_simplemods_abund.pdf"), plot = last_plot(), width = 250, height = 100, units = "mm", dpi = 300)
+
+# save plot (jpeg)
+ggsave("Figure1_simplemods_abund.jpeg", device ="jpeg", path = outDir, width=25, height=10, units="cm", dpi = 350)
+
 
 # t.end <- Sys.time()
 # 

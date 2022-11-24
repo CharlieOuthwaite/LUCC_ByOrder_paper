@@ -1,12 +1,25 @@
-## Get set up ##
+############################################################
+#                                                          #
+#     Land use only models - Tropical vs Nontropical       #
+#                                                          #
+############################################################
 
-inDir <- "C:/Users/Kyra/Documents/GLITRS/Code/1_CheckPrepareData/"
-outDir <- "C:/Users/Kyra/Documents/GLITRS/Code/6_TropicalModels/Output/"
-predsDir <- "C:/Users/Kyra/Documents/GLITRS/Code/7_Predictions/"
+# This script takes the processed PREDICTS data, split by latitudinal realm 
+# and runs models of the impact of land use and Order on insect biodiversity
+# in tropical vs non-tropical realms. 
+
+# clear working environment
+rm(list = ls())
+
+# set directories 
+inDir<- "1_CheckPrepareData/"
+outDir <- "6_TropicalModels/"
+predsDir <- "7_Predictions/"
 if(!dir.exists(outDir)) dir.create(outDir)
+if(!dir.exists(predsDir)) dir.create(predsDir)
 
-# sink(paste0(outDir,"log_SimpleLUIModels_Tropical.txt"))
-
+# sink(paste0(outDir,"log_LUI_Models_Trop.txt"))
+# 
 # t.start <- Sys.time()
 # 
 # print(t.start)
@@ -16,13 +29,16 @@ packages_model <- c("StatisticalModels", "predictsFunctions", "ggplot2", "cowplo
 suppressWarnings(suppressMessages(lapply(packages_model, require, character.only = TRUE)))
 
 # source in additional functions
-source("C:/Users/Kyra/Documents/GLITRS/Data/0_Functions.R")
+source("0_Functions.R")
 
 packages_plot <- c("patchwork", "dplyr", "yarg", "lme4", "gt", "broom.mixed", "MASS")
 suppressWarnings(suppressMessages(lapply(packages_plot, require, character.only = TRUE)))
 
 # read in the PREDICTS Site data
 sites <- readRDS(file = paste0(inDir,"PREDICTSSiteData.rds"))
+
+# keep only Coleoptera, Hymenoptera, and Lepidoptera
+sites <- filter(sites, Order %in% c('Coleoptera', 'Hymenoptera', 'Lepidoptera'))
 
 # abundance data subset
 table(sites[!is.na(sites$LogAbund), 'Realm'])
@@ -257,30 +273,14 @@ saveRDS(object = model_data_ab_nontrop ,file = paste0(outDir,"model_data_ab_nont
 
 ## Plot Figures ##
 # read in model data
-# sm0_trop <- readRDS(file = paste0("C:/Users/Kyra/Documents/GLITRS/Code/6_TropicalModels/Output/sm0_trop.rds"))
-# sm3_trop <- readRDS(file = paste0("C:/Users/Kyra/Documents/GLITRS/Code/6_TropicalModels/Output/sm3_trop.rds"))
-# sm0.2_trop <- readRDS(file = paste0("C:/Users/Kyra/Documents/GLITRS/Code/6_TropicalModels/Output/sm0.2_trop.rds"))
-# sm3.2_trop <- readRDS(file = paste0("C:/Users/Kyra/Documents/GLITRS/Code/6_TropicalModels/Output/sm3.2_trop.rds"))
-sm3.3_trop <- readRDS(file = paste0("C:/Users/Kyra/Documents/GLITRS/Code/6_TropicalModels/Output/sm3.3_trop.rds"))
-# am0_trop <- readRDS(file = paste0("C:/Users/Kyra/Documents/GLITRS/Code/6_TropicalModels/Output/am0_trop.rds"))
-# am3_trop <- readRDS(file = paste0("C:/Users/Kyra/Documents/GLITRS/Code/6_TropicalModels/Output/am3_trop.rds"))
-# am0.2_trop <- readRDS(file = paste0("C:/Users/Kyra/Documents/GLITRS/Code/6_TropicalModels/Output/am0.2_trop.rds"))
-# am3.2_trop <- readRDS(file = paste0("C:/Users/Kyra/Documents/GLITRS/Code/6_TropicalModels/Output/am3.2_trop.rds"))
-am3.3_trop <- readRDS(file = paste0("C:/Users/Kyra/Documents/GLITRS/Code/6_TropicalModels/Output/am3.3_trop.rds"))
-# sm0_nontrop <- readRDS(file = paste0("C:/Users/Kyra/Documents/GLITRS/Code/6_TropicalModels/Output/sm0_nontrop.rds"))
-# sm3_nontrop <- readRDS(file = paste0("C:/Users/Kyra/Documents/GLITRS/Code/6_TropicalModels/Output/sm3_nontrop.rds"))
-# sm0.2_nontrop <- readRDS(file = paste0("C:/Users/Kyra/Documents/GLITRS/Code/6_TropicalModels/Output/sm0.2_nontrop.rds"))
-# sm3.2_nontrop <- readRDS(file = paste0("C:/Users/Kyra/Documents/GLITRS/Code/6_TropicalModels/Output/sm3.2_nontrop.rds"))
-sm3.3_nontrop <- readRDS(file = paste0("C:/Users/Kyra/Documents/GLITRS/Code/6_TropicalModels/Output/sm3.3_nontrop.rds"))
-# am0_nontrop <- readRDS(file = paste0("C:/Users/Kyra/Documents/GLITRS/Code/6_TropicalModels/Output/am0_nontrop.rds"))
-# am3_nontrop <- readRDS(file = paste0("C:/Users/Kyra/Documents/GLITRS/Code/6_TropicalModels/Output/am3_nontrop.rds"))
-# am0.2_nontrop <- readRDS(file = paste0("C:/Users/Kyra/Documents/GLITRS/Code/6_TropicalModels/Output/am0.2_nontrop.rds"))
-# am3.2_nontrop <- readRDS(file = paste0("C:/Users/Kyra/Documents/GLITRS/Code/6_TropicalModels/Output/am3.2_nontrop.rds"))
-am3.3_nontrop <- readRDS(file = paste0("C:/Users/Kyra/Documents/GLITRS/Code/6_TropicalModels/Output/am3.3_nontrop.rds"))
-model_data_sr_trop <- readRDS(file = paste0("C:/Users/Kyra/Documents/GLITRS/Code/6_TropicalModels/Output/model_data_sr_trop.rds"))
-model_data_ab_trop <- readRDS(file = paste0("C:/Users/Kyra/Documents/GLITRS/Code/6_TropicalModels/Output/model_data_ab_trop.rds"))
-model_data_sr_nontrop <- readRDS(file = paste0("C:/Users/Kyra/Documents/GLITRS/Code/6_TropicalModels/Output/model_data_sr_nontrop.rds"))
-model_data_ab_nontrop <- readRDS(file = paste0("C:/Users/Kyra/Documents/GLITRS/Code/6_TropicalModels/Output/model_data_ab_nontrop.rds"))
+sm3.3_trop <- readRDS(file = paste0(outDir,"sm3.3_trop.rds"))
+am3.3_trop <- readRDS(file = paste0(ourDir,"am3.3_trop.rds"))
+sm3.3_nontrop <- readRDS(file = paste0(outDir,"sm3.3_nontrop.rds"))
+am3.3_nontrop <- readRDS(file = paste0(outDir,"am3.3_nontrop.rds"))
+model_data_sr_trop <- readRDS(file = paste0(outDir,"model_data_sr_trop.rds"))
+model_data_ab_trop <- readRDS(file = paste0(outDir,"model_data_ab_trop.rds"))
+model_data_sr_nontrop <- readRDS(file = paste0(outDir,"model_data_sr_nontrop.rds"))
+model_data_ab_nontrop <- readRDS(file = paste0(outDir,"model_data_ab_nontrop.rds"))
 
 # select model_data for only three orders (Coleoptera, Hymenoptera, and Lepidoptera)
 model_data_sr_trop <- filter(model_data_sr_trop, Order %in% c('Coleoptera', 'Hymenoptera', 'Lepidoptera'))
@@ -455,89 +455,95 @@ gtsave(percentage_change_LUI_tropical,"C:/Users/Kyra/Documents/GLITRS/Paper/Code
 # save table
 write.csv(all_res, file = paste0(predsDir,"percentage_change_LUI_tropical.csv"))
 
-
-# plot realms separately
-
-(richness_metric_trop + xlab(NULL) + guides(colour = FALSE) + ggtitle("A") + scale_y_continuous("Species richness diff. (%)") + theme(axis.text.x = element_blank(), axis.ticks = element_blank())) + 
-  (abundance_metric_trop + xlab(NULL) + ggtitle("B") + scale_y_continuous("Total abundance diff. (%)") + theme(axis.text.x = element_text(size = 10,angle=45,margin=margin(t=20)), axis.ticks = element_blank(), legend.position = "bottom",legend.text = element_text(size = 10), legend.title = element_text(size = 11)) + guides(colour = guide_legend("Land-use intensity")))+ plot_layout(ncol = 1) 
-
-ggsave("LUI_predictions_tropical.jpeg", device ="jpeg", path = outDir, width=25, height=15, units="cm", dpi = 350)
-
-(richness_metric_nontrop + xlab(NULL) + guides(colour = FALSE) + ggtitle("A") + scale_y_continuous("Species richness diff. (%)") + theme(axis.text.x = element_blank(), axis.ticks = element_blank())) + 
-  (abundance_metric_nontrop + xlab(NULL) + ggtitle("B") + scale_y_continuous("Total abundance diff. (%)") + theme(axis.text.x = element_text(size = 10,angle=45,margin=margin(t=20)), axis.ticks = element_blank(), legend.position = "bottom",legend.text = element_text(size = 10), legend.title = element_text(size = 11)) + guides(colour = guide_legend("Land-use intensity")))+ plot_layout(ncol = 1) 
-
-ggsave("LUI_predictions_nontropical.jpeg", device ="jpeg", path = outDir, width=25, height=15, units="cm", dpi = 350)
-
-# plot realms together
-
-title_nontrop <- ggdraw() + 
-  draw_label(
-    "NonTropical",
-    fontface = 'bold',
-    size = 10)
-
-title_trop <- ggdraw() + 
-  draw_label(
-    "Tropical",
-    fontface = 'bold',
-    size = 10)
-
-richness_metric_nontrop <- richness_metric_nontrop + 
-  xlab(NULL) + 
-  ylab("Species richness diff. (%)")+
-  ggtitle("A") + 
-  scale_y_continuous(breaks = c(-100,-50, 0, 50, 100, 150, 200), limits = c(-100, 200)) + 
-  theme(axis.text.x = element_blank(),
-        axis.title.y = element_text(angle=90),
-        legend.position = "none")
-
-richness_metric_trop <- richness_metric_trop + 
-  xlab(NULL) + 
-  ylab(NULL)+
-  guides(colour = "none") + 
-  ggtitle("B") + 
-  scale_y_continuous(breaks = c(-100,-50, 0, 50, 100, 150, 200), limits = c(-100, 200)) + 
-  theme(axis.text.x = element_blank())
-
-abundance_metric_nontrop <- abundance_metric_nontrop + 
-  xlab(NULL) +
-  ylab("Total abundance diff. (%)")+
-  ggtitle("C") + 
-  scale_y_continuous(breaks = c(-100,-50, 0, 50, 100, 150, 200), limits = c(-100, 200)) + 
-  theme(axis.text.x = element_text(size = 10,
-                                   angle=45,
-                                   margin=margin(t=20)), 
-        legend.position = "none") + 
-  guides(colour = guide_legend("Land-use intensity"))
-
-abundance_metric_trop <- abundance_metric_trop + 
-  xlab(NULL) + 
-  ylab(NULL)+
-  ggtitle("D") + 
+## plot abundance responses from both realms ##
+abundance_nontrop <- abundance_metric_nontrop + 
+  labs(y ="Total abundance diff. (%)", x = "Order") +
   scale_y_continuous(breaks = c(-100,-50, 0, 50, 100, 150, 200), limits = c(-100, 200)) +
-  theme(axis.text.x = element_text(size = 10,
-                                   angle=45,
-                                   margin=margin(t=20)), 
-        legend.position = "none")
+  theme(axis.title = element_text(size = 8),
+        axis.text.x = element_text(size = 7,angle=45,margin=margin(t=20)),
+        axis.text.y = element_text(size = 7),
+        legend.position = "none") +
+  ggtitle("a") + 
+  guides(colour = guide_legend("Land-use"))
+
+abundance_trop <- abundance_metric_trop +
+  labs(y ="Total abundance diff. (%)", x = "Order") +
+  scale_y_continuous(breaks = c(-100,-50, 0, 50, 100, 150, 200), limits = c(-100, 200)) +
+  theme(axis.title = element_text(size = 8),
+        axis.text.x = element_text(size = 7,angle=45,margin=margin(t=20)),
+        axis.text.y = element_text(size = 7),
+        legend.position = "none") +
+  ggtitle("b")
 
 legend <- get_legend(
-  richness_metric_nontrop +
-    guides(color = guide_legend(nrow = 1)) +
-    theme(legend.position = "bottom",
-          legend.background = element_blank(),
-          legend.text = element_text(size = 10),
-          legend.title = element_blank())
+  abundance_nontrop +
+    guides(color = guide_legend(ncol = 1)) +
+    theme(legend.position = "right",
+          legend.box = "vertical", 
+          legend.text = element_text(size = 7), 
+          legend.title = element_text(size = 8))
 )
 
-LUI_predictions_realm<-cowplot::plot_grid(title_nontrop, title_trop, richness_metric_nontrop, richness_metric_trop,abundance_metric_nontrop,abundance_metric_trop,
-                                          ncol=2,
-                                          rel_heights = c(0.1,1,1.4))
+abundance_realms <- cowplot::plot_grid(abundance_nontrop, abundance_trop, ncol = 1, rel_heights = c(1,1))
+legend <- cowplot::plot_grid(NULL,legend,NULL, ncol = 1, rel_heights = c(0.5,1,0.5))
+abundance_realms <- cowplot::plot_grid(abundance_realms, legend, ncol = 2, rel_widths = c(1,0.2))
 
-LUI_predictions_realm <- cowplot::plot_grid(LUI_predictions_realm, legend, 
-                                            ncol = 1,
-                                            rel_heights = c(1,0.1))
+# save plot (pdf)
+ggsave(filename = paste0(outDir, "abundance_realms.pdf"), plot = abundance_realms, width = 200, height = 150, units = "mm", dpi = 300)
 
-ggsave("LUI_predictions_realms.jpeg", device ="jpeg", path = outDir, width=40, height=24, units="cm", dpi = 350)
+# save plot (jpeg)
+ggsave("abundance_realms.jpeg", device ="jpeg", path = outDir, width=20, height=15, units="cm", dpi = 350)
+
+
+## plot species richness responses from both realms ##
+richness_nontrop <- richness_metric_nontrop + 
+  labs(y ="Species richness diff. (%)", x = "Order") +
+  scale_y_continuous(breaks = c(-100,-50, 0, 50, 100, 150, 200), limits = c(-100, 200)) +
+  theme(axis.title = element_text(size = 8),
+        axis.text.x = element_text(size = 7,angle=45,margin=margin(t=20)),
+        axis.text.y = element_text(size = 7),
+        legend.position = "none") +
+  ggtitle("a") +
+  guides(colour = guide_legend("Land-use"))
+
+richness_trop <- richness_metric_trop +
+  labs(y ="Species richness diff. (%)", x = "Order") +
+  scale_y_continuous(breaks = c(-100,-50, 0, 50, 100, 150, 200), limits = c(-100, 200)) +
+  theme(axis.title = element_text(size = 8),
+        axis.text.x = element_text(size = 7,angle=45,margin=margin(t=20)),
+        axis.text.y = element_text(size = 7),
+        legend.position = "none") +
+  ggtitle("b")
+
+legend <- get_legend(
+  richness_nontrop +
+    guides(color = guide_legend(ncol = 1)) +
+    theme(legend.position = "right",
+          legend.box = "vertical", 
+          legend.text = element_text(size = 7), 
+          legend.title = element_text(size = 8))
+)
+
+richness_realms <- cowplot::plot_grid(richness_nontrop, richness_trop, ncol = 1, rel_heights = c(1,1))
+legend <- cowplot::plot_grid(NULL,legend,NULL, ncol = 1, rel_heights = c(0.5,1,0.5))
+richness_realms <- cowplot::plot_grid(richness_realms, legend, ncol = 2, rel_widths = c(1,0.2))
+
+# save plot (pdf)
+ggsave(filename = paste0(outDir, "richness_realms.pdf"), plot = richness_realms, width = 200, height = 150, units = "mm", dpi = 300)
+
+# save plot (jpeg)
+ggsave("richness_realms.jpeg", device ="jpeg", path = outDir, width=20, height=15, units="cm", dpi = 350)
+
+## plot species richness and abundance responses from both realms together ##
+simplemods_realms<-cowplot::plot_grid(richness_nontrop, richness_trop,abundance_nontrop,abundance_trop, ncol=2, rel_widths = c(1,1))
+
+simplemods_realms <- cowplot::plot_grid(simplemods_realms, legend, ncol = 2, rel_widths = c(1,0.2))
+
+# save plot (pdf)
+ggsave(filename = paste0(outDir, "simplemods_realms.pdf"), plot = simplemods_realms, width = 200, height = 150, units = "mm", dpi = 300)
+
+# save plot (jpeg)
+ggsave("simplemods_realms.jpeg", device ="jpeg", path = outDir, width=40, height=20, units="cm", dpi = 350)
 
 
 # t.end <- Sys.time()
