@@ -1,6 +1,7 @@
 ##%######################################################%##
 #                                                          #
 ####    Run models for climate land use interactions    ####
+#                         Global                           #
 #                                                          #
 ##%######################################################%##
 
@@ -34,7 +35,7 @@ suppressWarnings(suppressMessages(lapply(packages_plot, require, character.only 
 # source in additional functions
 source("0_Functions.R")
 
-###Create Models for all insect orders in predicts for standardised climate anomaly and Land interactions ###
+#### 1. Organise data ####
 
 # read in the predicts data
 predictsSites <- readRDS(paste0(inDir,"PREDICTSSites_Climate.rds"))
@@ -42,7 +43,7 @@ predictsSites <- predictsSites@data
 
 # remove groups Blattodea, Neuroptera, Other, Thysanoptera, Trichoptera 
 # only necessary if these were not already removed when preparing the dataset
-predictsSites <- predictsSites %>% filter(Order %in% c("Hymenoptera", "Coleoptera", "Lepidoptera", "Diptera", "Orthoptera", "Hemiptera")) %>% droplevels()
+predictsSites <- predictsSites %>% filter(Order %in% c("Hymenoptera", "Coleoptera", "Lepidoptera", "Diptera", "Hemiptera")) %>% droplevels()
 
 # set LUI as factor and set reference level
 predictsSites$LUI <- factor(predictsSites$LUI)
@@ -80,9 +81,9 @@ saveRDS(object = predictsSites,file = paste0(outDir,"PREDICTSSitesClimate_Data.r
 # predictsSites <- readRDS(file = paste0(outDir,"PREDICTSSitesClimate_Data.rds"))
 
 
-## Model Selection ##
+#### 2. Create models of climate land use interactions ####
 
-# 1. Abundance, mean anomaly
+# i. Abundance, mean anomaly
 
 model_data <- predictsSites[!is.na(predictsSites$LogAbund), ]
 model_data <- model_data[!is.na(model_data$StdTmeanAnomalyRS), ]
@@ -101,7 +102,7 @@ summary(MeanAnomalyModelAbund$model)
 save(MeanAnomalyModelAbund, file = paste0(outDir, "MeanAnomalyModelAbund.rdata"))
 
 
-# 2. Richness, mean anomaly
+# ii. Richness, mean anomaly
 
 model_data <- predictsSites[!is.na(predictsSites$StdTmeanAnomalyRS), ]
 
@@ -114,7 +115,7 @@ summary(MeanAnomalyModelRich$model)
 
 save(MeanAnomalyModelRich, file = paste0(outDir, "MeanAnomalyModelRich.rdata"))
 
-# 3. Abundance, max anomaly
+# iii. Abundance, max anomaly
 
 model_data <- predictsSites[!is.na(predictsSites$LogAbund), ]
 model_data <- model_data[!is.na(model_data$StdTmeanAnomalyRS), ]
@@ -129,7 +130,7 @@ summary(MaxAnomalyModelAbund$model)
 
 save(MaxAnomalyModelAbund, file = paste0(outDir, "MaxAnomalyModelAbund.rdata"))
 
-# 4. Richness, max anomaly
+# iv. Richness, max anomaly
 
 model_data <- predictsSites[!is.na(predictsSites$StdTmeanAnomalyRS),]
 
@@ -142,10 +143,10 @@ MaxAnomalyModelRich <- GLMER(modelData = model_data,responseVar = "Species_richn
 save(MaxAnomalyModelRich, file = paste0(outDir, "MaxAnomalyModelRich.rdata"))
 
 
-#### save model output tables for use in supplementary information ####
-# use function from sjPlot library to save neat versions of model output table
-# conditional: the conditional R2 value, i.e. the variance explained by fixed and random effects 
-# marginal: the marginal R2 value, i.e. the variance explained by the fixed effects
+# save model output tables for use in supplementary information
+  # use function from sjPlot library to save neat versions of model output table
+  # conditional: the conditional R2 value, i.e. the variance explained by fixed and random effects 
+  # marginal: the marginal R2 value, i.e. the variance explained by the fixed effects
 
 tab_model(MeanAnomalyModelAbund$model, transform = NULL, file = paste0(outDir,"Tables/AbunMeanAnom_output_table.html"))
 summary(MeanAnomalyModelAbund$model) # check the table against the outputs
@@ -163,7 +164,12 @@ tab_model(MaxAnomalyModelRich$model, transform = NULL, file = paste0(outDir,"Tab
 summary(MaxAnomalyModelRich$model) # check the table against the outputs
 R2GLMER(MaxAnomalyModelRich$model) # check the R2 values 
 
-## Plot results ##
+##%######################################################%##
+#                                                          #
+####           Richness and abundance plots             ####
+#                          Global                          #
+#                                                          #
+##%######################################################%##
 
 # load models
 predictsSites <- readRDS(file = paste0(outDir,"PREDICTSSitesClimate_Data.rds"))
@@ -176,7 +182,7 @@ load(paste0(outDir, "MaxAnomalyModelRich.rdata"))
 # set quantiles of predicted result to be presented in the plots
 exclQuantiles <- c(0.025,0.975)
 
-## Abundance, Mean Anomaly ##
+#### 3. Abundance, Mean Anomaly ####
 
 nd <- expand.grid(
   StdTmeanAnomalyRS=seq(from = min(MeanAnomalyModelAbund$data$StdTmeanAnomalyRS),
@@ -377,8 +383,8 @@ p_diptera <- ggplot(data = nd_Diptera, aes(x = StdTmeanAnomaly, y = PredMedian))
   scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
-  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
-  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
+  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150), limits = c(-100, 150)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") +
   ggtitle("Diptera") +
@@ -400,8 +406,8 @@ p_hemiptera <- ggplot(data = nd_Hemiptera, aes(x = StdTmeanAnomaly, y = PredMedi
   scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
-  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
-  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
+  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150), limits = c(-100, 150)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") +
   ggtitle("Hemiptera") +
@@ -483,7 +489,7 @@ ggsave(filename = paste0(plotDir, "MeanAnomAbund.pdf"), plot = MeanAnomAbund, wi
 ggsave("MeanAnomAbund.jpeg", device ="jpeg", path = plotDir, width=20, height=15, units="cm", dpi = 350)
 
 
-## Richness, Mean Anomaly ##
+#### 4. Richness, Mean Anomaly ####
 
 nd2 <- expand.grid(
   StdTmeanAnomalyRS=seq(from = min(MeanAnomalyModelRich$data$StdTmeanAnomalyRS),
@@ -783,7 +789,7 @@ ggsave(filename = paste0(plotDir, "MeanAnomRich.pdf"), plot = MeanAnomRich, widt
 # save plot (jpeg)
 ggsave("MeanAnomRich.jpeg", device ="jpeg", path = plotDir, width=20, height=15, units="cm", dpi = 350)
 
-## Abundance, Max Anomaly ##
+#### 5. Abundance, Max Anomaly ####
 
 nd3 <- expand.grid(
   StdTmaxAnomalyRS=seq(from = min(MaxAnomalyModelAbund$data$StdTmaxAnomalyRS),
@@ -1085,7 +1091,7 @@ ggsave(filename = paste0(plotDir, "MaxAnomAbund.pdf"), plot = MaxAnomAbund, widt
 # save plot (jpeg)
 ggsave("MaxAnomAbund.jpeg", device ="jpeg", path = plotDir, width=20, height=15, units="cm", dpi = 350)
 
-## Richness, Max Anomaly ##
+#### 6. Richness, Max Anomaly ####
 
 nd4 <- expand.grid(
   StdTmaxAnomalyRS=seq(from = min(MaxAnomalyModelRich$data$StdTmaxAnomalyRS),

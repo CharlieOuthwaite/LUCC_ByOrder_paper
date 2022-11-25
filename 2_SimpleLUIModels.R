@@ -1,6 +1,7 @@
 ############################################################
 #                                                          #
 #                   Land use only models                   #
+#                         Global                           #
 #                                                          #
 ############################################################
 
@@ -66,7 +67,6 @@ print(table(model_data_sr$LUI))
 
 
 #### 2. Species Richness models ####
-
 
 # Run species richness models using GLMER function from StatisticalModels
 
@@ -276,7 +276,7 @@ model_data_sr <- readRDS(file = paste0(outDir,"model_data_sr.rds"))
 model_data_ab <- readRDS(file = paste0(outDir,"model_data_ab.rds"))
 
 
-#### table of AICs ####
+#### 4. Table of AICs ####
 
 # species richness and abundance together
 selection_table <- data.frame("Response" = c(rep("Species richness", 5),
@@ -384,12 +384,13 @@ R2GLMER(sm3.3$model) # check the R2 values
 
 ##%######################################################%##
 #                                                          #
-####         4a. Richness and abundance plots           ####
+####           Richness and abundance plots             ####
+#                          Global                          #
 #                                                          #
 ##%######################################################%##
 
 
-## Species Richness Plot ##
+####  5. Species Richness Plot ####
 richness_metric <- predict_effects(iterations = 1000,
                                    model = sm3.3$model,
                                    model_data = model_data_sr,
@@ -417,7 +418,26 @@ model_data <- function(model_plot){
 # richness data
 model_data(richness_metric)
 
-## Abundance Plot ##
+# plot species richness alone
+richness <- richness_metric + xlab(NULL) + 
+  labs(y ="Species Richness diff. (%)", x = "Order") +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75), limits = c(-100, 75)) + 
+  theme(axis.title = element_text(size = 8),
+        axis.text.x = element_text(size = 7,angle=45,margin=margin(t=20)),
+        axis.text.y = element_text(size = 7),
+        axis.ticks = element_blank(), 
+        legend.position = "right",
+        legend.box = "vertical",
+        legend.text = element_text(size = 7),
+        legend.title = element_text(size = 8))
+
+# save plot (pdf)
+ggsave(filename = paste0(outDir, "Figure1_simplemods_rich.pdf"), plot = last_plot(), width = 250, height = 100, units = "mm", dpi = 300)
+
+# save plot (jpeg)
+ggsave("Figure1_simplemods_rich.jpeg", device ="jpeg", path = outDir, width=25, height=10, units="cm", dpi = 350)
+
+####  6. Abundance Plot ####
 
 abundance_metric <- predict_effects(iterations = 1000,
                                     model = am3.3$model,
@@ -447,19 +467,27 @@ model_data <- function(model_plot){
 # abundance data
 model_data(abundance_metric)
 
-# combine results into a table for saving
-all_res <- rbind(result.ab, result.sr)
-all_res$measure <- c(rep("ab", 20), rep("sr", 20))
+# plot abundance alone
+abundance <- abundance_metric + xlab(NULL) + 
+  labs(y ="Total abundance diff. (%)", x = "Order") +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75), limits = c(-100, 75)) + 
+  theme(axis.title = element_text(size = 8),
+        axis.text.x = element_text(size = 7,angle=45,margin=margin(t=20)),
+        axis.text.y = element_text(size = 7),
+        axis.ticks = element_blank(), 
+        legend.position = "right",
+        legend.box = "vertical",
+        legend.text = element_text(size = 7),
+        legend.title = element_text(size = 8))
 
-# save as table
-percentage_change_LUI <- all_res %>% gt()
-gtsave(percentage_change_LUI, paste0(predsDir, "percentage_change_LUI.html"))
+# save plot (pdf)
+ggsave(filename = paste0(outDir, "Figure1_simplemods_abund.pdf"), plot = last_plot(), width = 250, height = 100, units = "mm", dpi = 300)
 
-# save as .csv
-write.csv(all_res, file = paste0(predsDir,"percentage_change_LUI.csv"))
+# save plot (jpeg)
+ggsave("Figure1_simplemods_abund.jpeg", device ="jpeg", path = outDir, width=25, height=10, units="cm", dpi = 350)
 
+####  7. Plot Together  ####
 
-# plot
 richness <- richness_metric + 
   labs(y ="Species richness diff. (%)", x = NULL) +
   guides(scale = "none") +
@@ -502,26 +530,18 @@ ggsave(filename = paste0(outDir, "Figure1_simplemods.pdf"), plot = last_plot(), 
 # save plot (jpeg)
 ggsave("Figure1_simplemods.jpeg", device ="jpeg", path = outDir, width=20, height=15, units="cm", dpi = 350)
 
-# plot abundance alone
+#### 8. Table of predicted values ####
 
-abundance <- abundance_metric + xlab(NULL) + 
-  labs(y ="Total abundance diff. (%)", x = "Order") +
-  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75), limits = c(-100, 75)) + 
-  theme(axis.title = element_text(size = 8),
-        axis.text.x = element_text(size = 7,angle=45,margin=margin(t=20)),
-        axis.text.y = element_text(size = 7),
-        axis.ticks = element_blank(), 
-        legend.position = "right",
-        legend.box = "vertical",
-        legend.text = element_text(size = 7),
-        legend.title = element_text(size = 8))
+# combine results into a table for saving
+all_res <- rbind(result.ab, result.sr)
+all_res$measure <- c(rep("ab", 20), rep("sr", 20))
 
-# save plot (pdf)
-ggsave(filename = paste0(outDir, "Figure1_simplemods_abund.pdf"), plot = last_plot(), width = 250, height = 100, units = "mm", dpi = 300)
+# save as table
+percentage_change_LUI <- all_res %>% gt()
+gtsave(percentage_change_LUI, paste0(predsDir, "percentage_change_LUI.html"))
 
-# save plot (jpeg)
-ggsave("Figure1_simplemods_abund.jpeg", device ="jpeg", path = outDir, width=25, height=10, units="cm", dpi = 350)
-
+# save as .csv
+write.csv(all_res, file = paste0(predsDir,"percentage_change_LUI.csv"))
 
 # t.end <- Sys.time()
 # 
