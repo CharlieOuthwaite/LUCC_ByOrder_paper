@@ -1,7 +1,7 @@
 ##%######################################################%##
 #                                                          #
 ####        Predicting values from model outputs        ####
-#                                                          #
+#                         Global                           #
 ##%######################################################%##
 
 # Here, values for certain fixed effect combinations are predicted and 
