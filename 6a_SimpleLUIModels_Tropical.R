@@ -168,7 +168,7 @@ model_data_ab_nontrop <- na.omit(nontrop[,c('LogAbund','LandUse','Use_intensity'
 
 # order data
 model_data_ab_nontrop$LUI <- factor(model_data_ab_nontrop$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
-model_data_ab_nontrop$Order <- factor(model_data_ab_nontrop$Order, levels = c("Coleoptera","Hymenoptera","Lepidoptera","Orthoptera"))
+model_data_ab_nontrop$Order <- factor(model_data_ab_nontrop$Order, levels = c("Coleoptera","Hymenoptera","Lepidoptera"))
 
 # relevel
 model_data_ab_nontrop$LUI <- relevel(model_data_ab_nontrop$LUI, ref = "Primary vegetation")
@@ -206,7 +206,7 @@ model_data_ab_trop <- na.omit(trop[,c('LogAbund','LandUse','Use_intensity','LUI'
 
 # order data
 model_data_ab_trop$LUI <- factor(model_data_ab_trop$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
-model_data_ab_trop$Order <- factor(model_data_ab_trop$Order, levels = c("Coleoptera","Hymenoptera","Lepidoptera","Orthoptera"))
+model_data_ab_trop$Order <- factor(model_data_ab_trop$Order, levels = c("Coleoptera","Hymenoptera","Lepidoptera"))
 
 # relevel
 model_data_ab_trop$LUI <- relevel(model_data_ab_trop$LUI, ref = "Primary vegetation")
