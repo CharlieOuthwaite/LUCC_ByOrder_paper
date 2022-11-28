@@ -267,7 +267,8 @@ sites <- sites %>%
 #### 3a. Summarise data by order ####
 
 sites_summary <- sites %>%
-  group_by(Order) %>%
+  group_by(Order) %>% 
+  mutate(LogAbund = ifelse(is.na(LogAbund), 0, LogAbund)) %>% # replace NA values with 0 for ease of summarising
   summarise(Sites = length(SSBS),
             Studies = n_distinct(SS),
             sites_1 = length(LUI[LUI == "Primary vegetation"]) ,
@@ -277,7 +278,9 @@ sites_summary <- sites %>%
             sites_low = length(LUI[LUI == "Agriculture_Low"]),
             studies_low = n_distinct(SS[LUI == "Agriculture_Low"]),
             sites_high = length(LUI[LUI == "Agriculture_High"]),
-            studies_high = n_distinct(SS[LUI == "Agriculture_High"])) %>%
+            studies_high = n_distinct(SS[LUI == "Agriculture_High"]),
+            Abundance = sum(LogAbund>0) ,
+            SpeciesRichness = sum(Species_richness>0)) %>%
   ungroup() %>%  
   arrange(desc(Sites))%>%
   gt() %>%
@@ -303,10 +306,14 @@ sites_summary <- sites %>%
     label = "High-intensity agriculture",
     columns = c(sites_high,studies_high)
   )  %>%
+  tab_spanner(
+    label = "Diversity Metric",
+    columns = c(Abundance,SpeciesRichness)
+    )  %>% 
   cols_align(
     align = "center",
-    columns = c(Order,Sites,Studies,sites_1,studies_1,sites_2,studies_2,sites_low,studies_low,sites_high,studies_high)
-  )%>%
+    columns = c(Order,Sites,Studies,sites_1,studies_1,sites_2,studies_2,sites_low,studies_low,sites_high,studies_high,Abundance,SpeciesRichness)
+  ) %>%
   cols_label(
     Order = "Order",
     Sites = "Sites",
@@ -319,6 +326,8 @@ sites_summary <- sites %>%
     studies_low = "Studies",
     sites_high = "Sites",
     studies_high = "Studies",
+    Abundance = "Abundance",
+    SpeciesRichness = "Species richness"
   )
 
 # save table
@@ -331,6 +340,7 @@ write.csv(sites_summary,"C:/Users/Kyra/Documents/GLITRS/Paper/Code/sites_summary
 
 lat_summary <- sites %>%
   group_by(Order,Realm) %>%
+  mutate(LogAbund = ifelse(is.na(LogAbund), 0, LogAbund)) %>% # replace NA values with 0 for ease of summarising
   summarise(Sites = length(SSBS),
             Studies = n_distinct(SS),
             sites_1 = length(LUI[LUI == "Primary vegetation"]) ,
@@ -340,9 +350,10 @@ lat_summary <- sites %>%
             sites_low = length(LUI[LUI == "Agriculture_Low"]),
             studies_low = n_distinct(SS[LUI == "Agriculture_Low"]),
             sites_high = length(LUI[LUI == "Agriculture_High"]),
-            studies_high = n_distinct(SS[LUI == "Agriculture_High"])) %>%
-  ungroup() %>%  
-  arrange(desc(Sites))%>%
+            studies_high = n_distinct(SS[LUI == "Agriculture_High"]),
+            Abundance = sum(LogAbund>0) ,
+            SpeciesRichness = sum(Species_richness>0)) %>%
+  ungroup() %>%
   gt() %>%
   tab_header(title = "Data spread across land-uses, by latitudinal realm"
   ) %>%
@@ -366,9 +377,13 @@ lat_summary <- sites %>%
     label = "High-intensity agriculture",
     columns = c(sites_high,studies_high)
   )  %>%
+  tab_spanner(
+    label = "Diversity Metric",
+    columns = c(Abundance,SpeciesRichness)
+    )  %>% 
   cols_align(
     align = "center",
-    columns = c(Order,Realm,Sites,Studies,sites_1,studies_1,sites_2,studies_2,sites_low,studies_low,sites_high,studies_high)
+    columns = c(Order,Realm,Sites,Studies,sites_1,studies_1,sites_2,studies_2,sites_low,studies_low,sites_high,studies_high,Abundance,SpeciesRichness)
   )%>%
   cols_label(
     Order = "Order",
@@ -383,6 +398,8 @@ lat_summary <- sites %>%
     studies_low = "Studies",
     sites_high = "Sites",
     studies_high = "Studies",
+    Abundance = "Abundance",
+    SpeciesRichness = "Species richness"
   )
 
 # save table
@@ -397,3 +414,4 @@ sites <- sites %>% filter(Order %in% c("Hymenoptera", "Coleoptera", "Lepidoptera
 # save the prepared dataset
 saveRDS(object = sites,file = paste0(outDir,"PREDICTSSiteData.rds")) 
 
+# can re-run lines 269-390 on the new dataset for summaries of just the top five orders
