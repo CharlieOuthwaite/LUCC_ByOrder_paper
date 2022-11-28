@@ -22,8 +22,9 @@ library(ggplot2)
 library(gt)
 source("0_Functions.R")
 
-packages <- c("patchwork", "dplyr", "yarg", "lme4", "gt", "broom.mixed", "MASS","webshot")
+packages <- c("patchwork", "dplyr", "yarg", "lme4", "gt", "broom.mixed", "MASS","webshot", "ggplot2","scatterpie","sjPlot")
 suppressWarnings(suppressMessages(lapply(packages, require, character.only = TRUE)))
+
 
 #### 1. Organise data ####
 
