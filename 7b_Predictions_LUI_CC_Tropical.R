@@ -58,7 +58,7 @@ BackTransformCentreredPredictor(transformedX = -1.58, originalX = trop$StdTmeanA
 # reference is primary with 0 climate change so have 0 for that row
 
 data_tab <- expand.grid(LUI = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High","Primary vegetation","Secondary vegetation", "Agriculture_Low", "Agriculture_High"),
-                        Order = c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera","Orthoptera"),
+                        Order = c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera"),
                         LogAbund = 0,
                         Species_richness = 0)
 
@@ -96,10 +96,9 @@ Diptera$perc <- ((Diptera$y/Diptera$y[1]) * 100) - 100
 Hemiptera$perc <- ((Hemiptera$y/Hemiptera$y[1]) * 100) - 100
 Hymenoptera$perc <- ((Hymenoptera$y/Hymenoptera$y[1]) * 100) - 100
 Lepidoptera$perc <- ((Lepidoptera$y/Lepidoptera$y[1]) * 100) - 100
-Orthoptera$perc <- ((Orthoptera$y/Orthoptera$y[1]) * 100) - 100
 
 # put it back together
-result.ab.trop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera,Orthoptera)
+result.ab.trop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera)
 
 # add in SCA vals
 result.ab.trop$SCA <- rep(c(0,0,0,0,1, 1, 1, 1),times=6)
@@ -132,10 +131,9 @@ Diptera$perc <- ((Diptera$y/Diptera$y[1]) * 100) - 100
 Hemiptera$perc <- ((Hemiptera$y/Hemiptera$y[1]) * 100) - 100
 Hymenoptera$perc <- ((Hymenoptera$y/Hymenoptera$y[1]) * 100) - 100
 Lepidoptera$perc <- ((Lepidoptera$y/Lepidoptera$y[1]) * 100) - 100
-Orthoptera$perc <- ((Orthoptera$y/Orthoptera$y[1]) * 100) - 100
 
 # put it back together
-result.sr.trop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera,Orthoptera)
+result.sr.trop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera)
 
 # add in SCA vals
 result.sr.trop$SCA <- rep(c(0,0,0,0,1, 1, 1, 1),times=6)
@@ -159,7 +157,7 @@ BackTransformCentreredPredictor(transformedX = -1.77, originalX = nontrop$StdTme
 # reference is primary with 0 climate change so have 0 for that row
 
 data_tab <- expand.grid(LUI = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High","Primary vegetation","Secondary vegetation", "Agriculture_Low", "Agriculture_High"),
-                        Order = c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera","Orthoptera"),
+                        Order = c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera"),
                         LogAbund = 0,
                         Species_richness = 0)
 
@@ -198,10 +196,9 @@ Diptera$perc <- ((Diptera$y/Diptera$y[1]) * 100) - 100
 Hemiptera$perc <- ((Hemiptera$y/Hemiptera$y[1]) * 100) - 100
 Hymenoptera$perc <- ((Hymenoptera$y/Hymenoptera$y[1]) * 100) - 100
 Lepidoptera$perc <- ((Lepidoptera$y/Lepidoptera$y[1]) * 100) - 100
-Orthoptera$perc <- ((Orthoptera$y/Orthoptera$y[1]) * 100) - 100
 
 # put it back together
-result.ab.nontrop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera,Orthoptera)
+result.ab.nontrop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera)
 
 # add in SCA vals
 result.ab.nontrop$SCA <- rep(c(0,0,0,0,1, 1, 1, 1),times=6)
@@ -234,10 +231,9 @@ Diptera$perc <- ((Diptera$y/Diptera$y[1]) * 100) - 100
 Hemiptera$perc <- ((Hemiptera$y/Hemiptera$y[1]) * 100) - 100
 Hymenoptera$perc <- ((Hymenoptera$y/Hymenoptera$y[1]) * 100) - 100
 Lepidoptera$perc <- ((Lepidoptera$y/Lepidoptera$y[1]) * 100) - 100
-Orthoptera$perc <- ((Orthoptera$y/Orthoptera$y[1]) * 100) - 100
 
 # put it back together
-result.sr.nontrop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera,Orthoptera)
+result.sr.nontrop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera)
 
 # add in SCA vals
 result.sr.nontrop$SCA <- rep(c(0,0,0,0,1, 1, 1, 1),times=6)
@@ -272,7 +268,7 @@ BackTransformCentreredPredictor(transformedX = -1.035, originalX = trop$StdTmaxA
 # reference is primary with 0 climate change so have 0 for that row
 
 data_tab <- expand.grid(LUI = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High","Primary vegetation","Secondary vegetation", "Agriculture_Low", "Agriculture_High"),
-                        Order = c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera","Orthoptera"),
+                        Order = c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera"),
                         LogAbund = 0,
                         Species_richness = 0)
 
@@ -310,10 +306,9 @@ Diptera$perc <- ((Diptera$y/Diptera$y[1]) * 100) - 100
 Hemiptera$perc <- ((Hemiptera$y/Hemiptera$y[1]) * 100) - 100
 Hymenoptera$perc <- ((Hymenoptera$y/Hymenoptera$y[1]) * 100) - 100
 Lepidoptera$perc <- ((Lepidoptera$y/Lepidoptera$y[1]) * 100) - 100
-Orthoptera$perc <- ((Orthoptera$y/Orthoptera$y[1]) * 100) - 100
 
 # put it back together
-result.ab.trop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera,Orthoptera)
+result.ab.trop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera)
 
 # add in SCA vals
 result.ab.trop$SCA <- rep(c(0,0,0,0,1, 1, 1, 1),times=6)
@@ -346,10 +341,9 @@ Diptera$perc <- ((Diptera$y/Diptera$y[1]) * 100) - 100
 Hemiptera$perc <- ((Hemiptera$y/Hemiptera$y[1]) * 100) - 100
 Hymenoptera$perc <- ((Hymenoptera$y/Hymenoptera$y[1]) * 100) - 100
 Lepidoptera$perc <- ((Lepidoptera$y/Lepidoptera$y[1]) * 100) - 100
-Orthoptera$perc <- ((Orthoptera$y/Orthoptera$y[1]) * 100) - 100
 
 # put it back together
-result.sr.trop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera,Orthoptera)
+result.sr.trop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera)
 
 # add in SCA vals
 result.sr.trop$SCA <- rep(c(0,0,0,0,1, 1, 1, 1),times=6)
@@ -371,7 +365,7 @@ BackTransformCentreredPredictor(transformedX = -1.02, originalX = nontrop$StdTma
 # reference is primary with 0 climate change so have 0 for that row
 
 data_tab <- expand.grid(LUI = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High","Primary vegetation","Secondary vegetation", "Agriculture_Low", "Agriculture_High"),
-                        Order = c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera","Orthoptera"),
+                        Order = c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera"),
                         LogAbund = 0,
                         Species_richness = 0)
 
@@ -409,10 +403,9 @@ Diptera$perc <- ((Diptera$y/Diptera$y[1]) * 100) - 100
 Hemiptera$perc <- ((Hemiptera$y/Hemiptera$y[1]) * 100) - 100
 Hymenoptera$perc <- ((Hymenoptera$y/Hymenoptera$y[1]) * 100) - 100
 Lepidoptera$perc <- ((Lepidoptera$y/Lepidoptera$y[1]) * 100) - 100
-Orthoptera$perc <- ((Orthoptera$y/Orthoptera$y[1]) * 100) - 10
 
 # put it back together
-result.ab.nontrop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera,Orthoptera)
+result.ab.nontrop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera)
 
 # add in SCA vals
 result.ab.nontrop$SCA <- rep(c(0,0,0,0,1, 1, 1, 1),times=6)
@@ -446,10 +439,9 @@ Diptera$perc <- ((Diptera$y/Diptera$y[1]) * 100) - 100
 Hemiptera$perc <- ((Hemiptera$y/Hemiptera$y[1]) * 100) - 100
 Hymenoptera$perc <- ((Hymenoptera$y/Hymenoptera$y[1]) * 100) - 100
 Lepidoptera$perc <- ((Lepidoptera$y/Lepidoptera$y[1]) * 100) - 100
-Orthoptera$perc <- ((Orthoptera$y/Orthoptera$y[1]) * 100) - 100
 
 # put it back together
-result.sr.nontrop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera,Orthoptera)
+result.sr.nontrop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera)
 
 # add in SCA vals
 result.sr.nontrop$SCA <- rep(c(0,0,0,0,1, 1, 1, 1),times=6)
