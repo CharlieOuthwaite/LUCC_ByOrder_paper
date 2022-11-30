@@ -10,6 +10,9 @@
 # biodiversity to the land use intensity metric and to the climate
 # anomalies and their interaction.
 
+# clear environment
+rm(list = ls())
+
 # set directories 
 predictsDir<- "5_RunLUIClimateModels/"
 outDir <- "6_TropicalModels/"
@@ -45,28 +48,28 @@ nontrop <- predictsSites[predictsSites$Realm == "NonTropical", ]
 # Tropical
 cor(trop$avg_temp, trop$TmeanAnomaly)
 
-# 0.07376417
+# 0.01349527
 
 cor(trop$avg_temp, trop$StdTmeanAnomaly)
 
-#0.2118244
+# 0.2865458
 
 cor(trop$TmeanAnomaly, trop$StdTmeanAnomaly)
 
-# -0.1501622
+# 0.2865458
 
 # NonTropical
 cor(nontrop$avg_temp, nontrop$TmeanAnomaly)
 
-# -0.246491
+# -0.112796
 
 cor(nontrop$avg_temp, nontrop$StdTmeanAnomaly)
 
-#0.2118244
+# -0.6327842
 
 cor(nontrop$TmeanAnomaly, nontrop$StdTmeanAnomaly)
 
-# 0.2639987
+# 0.6392614
 
 # save the datasets
 saveRDS(object = trop,file = paste0(outDir,"trop.rds"))
