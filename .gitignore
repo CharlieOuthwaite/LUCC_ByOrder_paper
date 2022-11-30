@@ -11,6 +11,7 @@ LUCC_ByOrder_paper.Rproj
 Data/
 1_CheckPrepareData
 2_RunSimpleLUIModel/
+3_PrepareClimateIndexMaps/
 4_PREDICTSMatchClimateIndex
 5_RunLUIClimateModels
 11_Explore_primveg/
