@@ -46,20 +46,20 @@ sites <- filter(sites, Order %in% c('Coleoptera', 'Hymenoptera', 'Lepidoptera'))
 # abundance data subset
 table(sites[!is.na(sites$LogAbund), 'Realm'])
 # NonTropical    Tropical 
-#        6005        3014 
+#        4674        2270 
 
 # species richness data subset
 table(sites[!is.na(sites$Species_richness), 'Realm'])
 # NonTropical    Tropical 
-#        6288        3167 
+#        4887        2405 
 
 # split by land use classes
 table(sites$LUI, sites$Realm)
-#                       NonTropical Tropical
-# Agriculture_High            1820      822
-# Agriculture_Low             1455      576
-# Primary vegetation          1412      810
-# Secondary vegetation        1601      959
+#                      NonTropical Tropical
+# Agriculture_High            1478      613
+# Agriculture_Low             1014      418
+# Primary vegetation          1113      725
+# Secondary vegetation        1282      649
 
 # create separate data sets for Tropical and NonTropical sites
 trop <- sites[sites$Realm == "Tropical", ]
@@ -79,13 +79,13 @@ model_data_sr_nontrop$Order <- factor(model_data_sr_nontrop$Order, levels = c("C
 model_data_sr_nontrop$LUI <- relevel(model_data_sr_nontrop$LUI, ref = "Primary vegetation")
 
 # summaries
-length(unique(model_data_sr_nontrop$SS)) # 162
-length(unique(model_data_sr_nontrop$SSBS)) # 4353
+length(unique(model_data_sr_nontrop$SS)) # 153
+length(unique(model_data_sr_nontrop$SSBS)) # 4040
 
 # look at the spread of land use/use intensity categories
 print(table(model_data_sr_nontrop$LUI))
 # Primary vegetation Secondary vegetation      Agriculture_Low     Agriculture_High 
-#               1412                 1601                 1455                 1820 
+#               1113                 1282                 1014                 1478 
 
 # effect of land use (the null (intercept-only) model)
 sm0_nontrop <-GLMER (modelData = model_data_sr_nontrop,responseVar = "Species_richness",fitFamily = "poisson",
@@ -107,15 +107,7 @@ sm3.2_nontrop <- GLMER(modelData = model_data_sr_nontrop,responseVar = "Species_
 sm3.3_nontrop <- GLMER(modelData = model_data_sr_nontrop,responseVar = "Species_richness",fitFamily = "poisson",
                        fixedStruct = "Order*LUI",randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",REML = FALSE)
 
-# take a look at the AICs
-AIC_sm_realm<-print(AIC(sm0_trop$model,sm3_trop$model,sm0.2_trop$model,sm3.2_trop$model,sm3.3_trop$model,
-                        sm0_nontrop$model,sm3_nontrop$model,sm0.2_nontrop$model,sm3.2_nontrop$model,sm3.3_nontrop$model))
 
-# Warning message:
-#   In AIC.default(sm0_trop$model, sm3_trop$model, sm0.2_trop$model,  :
-#                    models are not all fitted to the same number of observations
-
-write.csv(AIC_sm_realm,outDir,"AIC_sm_realm.csv", row.names = TRUE)
 
 #### 2b. Species richness models, Tropical ####
 
@@ -130,14 +122,14 @@ model_data_sr_trop$Order <- factor(model_data_sr_trop$Order, levels = c("Coleopt
 model_data_sr_trop$LUI <- relevel(model_data_sr_trop$LUI, ref = "Primary vegetation")
 
 # summaries
-length(unique(model_data_sr_trop$SS)) # 96
-length(unique(model_data_sr_trop$SSBS)) # 1719
+length(unique(model_data_sr_trop$SS)) # 91
+length(unique(model_data_sr_trop$SSBS)) # 1683
 
 # look at the spread of land use/use intensity categories
 print(table(model_data_sr_trop$LUI)) 
 
 # Primary vegetation Secondary vegetation      Agriculture_Low     Agriculture_High 
-#                810                  959                  576                  822
+#                725                  649                  418                  613 
 
 # Run species richness models using GLMER function from StatisticalModels
 # effect of land use (the null (intercept-only) model)
@@ -161,6 +153,16 @@ sm3.3_trop <- GLMER(modelData = model_data_sr_trop,responseVar = "Species_richne
                     fixedStruct = "Order*LUI",randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",REML = FALSE)
 
 
+# take a look at the AICs
+AIC_sm_realm<-print(AIC(sm0_trop$model,sm3_trop$model,sm0.2_trop$model,sm3.2_trop$model,sm3.3_trop$model,
+                        sm0_nontrop$model,sm3_nontrop$model,sm0.2_nontrop$model,sm3.2_nontrop$model,sm3.3_nontrop$model))
+
+# Warning message:
+#   In AIC.default(sm0_trop$model, sm3_trop$model, sm0.2_trop$model,  :
+#                    models are not all fitted to the same number of observations
+
+write.csv(AIC_sm_realm,paste0(outDir,"AIC_sm_realm.csv"), row.names = TRUE)
+
 #### 3a. Abundance models, Nontropical ####
 
 # remove NAs in the specified columns
@@ -174,13 +176,13 @@ model_data_ab_nontrop$Order <- factor(model_data_ab_nontrop$Order, levels = c("C
 model_data_ab_nontrop$LUI <- relevel(model_data_ab_nontrop$LUI, ref = "Primary vegetation")
 
 # summaries
-length(unique(model_data_ab_nontrop$SS)) # 153
-length(unique(model_data_ab_nontrop$SSBS)) # 4170
+length(unique(model_data_ab_nontrop$SS)) # 145
+length(unique(model_data_ab_nontrop$SSBS)) # 3867
 
 # look at the spread of land use/use intensity categories
 print(table(model_data_ab_nontrop$LUI))
 # Primary vegetation Secondary vegetation      Agriculture_Low     Agriculture_High 
-#               1367                 1507                 1439                 1692
+#               1072                 1188                 1004                 1410 
 
 # Run abundance models using 'GLMER' function from StatisticalModels
 
@@ -212,13 +214,13 @@ model_data_ab_trop$Order <- factor(model_data_ab_trop$Order, levels = c("Coleopt
 model_data_ab_trop$LUI <- relevel(model_data_ab_trop$LUI, ref = "Primary vegetation")
 
 # summaries
-length(unique(model_data_ab_trop$SS)) # 85
-length(unique(model_data_ab_trop$SSBS)) #1566
+length(unique(model_data_ab_trop$SS)) # 81
+length(unique(model_data_ab_trop$SSBS)) # 1548
 
 # look at the spread of land use/use intensity categories
 print(table(model_data_ab_trop$LUI))
 # Primary vegetation Secondary vegetation      Agriculture_Low     Agriculture_High 
-#                749                  908                  569                  788
+#                674                  606                  411                  579 
 
 # Run abundance models using 'GLMER' function from StatisticalModels
 
@@ -246,7 +248,7 @@ AIC_am_realm<-print(AIC(am0_trop$model,am3_trop$model,am0.2_trop$model,am3.2_tro
 #                    models are not all fitted to the same number of observations
 
 # save as .csv
-write.csv(AIC_am_realm, outDir, "AIC_am_realm.csv", row.names = TRUE)
+write.csv(AIC_am_realm, paste0(outDir, "AIC_am_realm.csv"), row.names = TRUE)
 
 # save model data
 saveRDS(object = sm0_trop ,file = paste0(outDir,"sm0_trop.rds"))
@@ -293,12 +295,6 @@ model_data_ab_nontrop <- readRDS(file = paste0(outDir,"model_data_ab_nontrop.rds
 
 #### 4. Model selection tables ####
 
-# remove this chunk later
-# # select model_data for only three orders (Coleoptera, Hymenoptera, and Lepidoptera)
-# model_data_sr_trop <- filter(model_data_sr_trop, Order %in% c('Coleoptera', 'Hymenoptera', 'Lepidoptera'))
-# model_data_ab_trop <- filter(model_data_ab_trop, Order %in% c('Coleoptera', 'Hymenoptera', 'Lepidoptera'))
-# model_data_sr_nontrop <- filter(model_data_sr_nontrop, Order %in% c('Coleoptera', 'Hymenoptera', 'Lepidoptera'))
-# model_data_ab_nontrop <- filter(model_data_sr_nontrop, Order %in% c('Coleoptera', 'Hymenoptera', 'Lepidoptera'))
 
 # table of AICs
 selection_table_trop <- data.frame("Realm" = c(rep("Tropical", 10)),
@@ -344,8 +340,8 @@ selection_table_nontrop <- data.frame("Realm" = c(rep("NonTropical", 10)),
   gt()
 
 # save the tables
-gtsave(selection_table_trop,outDir,"LUIModels_Selection_trop.png")
-gtsave(selection_table_nontrop,outDir,"LUIModels_Selection_nontrop.png")
+gtsave(selection_table_trop,paste0(outDir,"LUIModels_Selection_trop.html"))
+gtsave(selection_table_nontrop,paste0(outDir,"LUIModels_Selection_nontrop.html"))
 
 ####  5a. Species Richness Plot, Nontropical ####
 
