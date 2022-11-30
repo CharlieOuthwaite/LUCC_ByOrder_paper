@@ -14,6 +14,7 @@ rm(list = ls())
 # set directories 
 inDir<- "6_TropicalModels/"
 outDir <- "6_TropicalModels/Plots/"
+predictsDir<- "5_RunLUIClimateModels/"
 if(!dir.exists(outDir)) dir.create(outDir)
 
 # load libraries
@@ -95,7 +96,7 @@ a.preds.tmean.trop <- PredictGLMERRandIter(model = MeanAnomalyModelAbund_trop$mo
 a.preds.tmean.trop <- exp(a.preds.tmean.trop)-0.01
 
 # split by order into matrices, then name them
-number_of_chunks = 6
+number_of_chunks = 3
 list_a.preds.tmean.trop <- lapply(seq(1, NROW(a.preds.tmean.trop), ceiling(NROW(a.preds.tmean.trop)/number_of_chunks)),
                                   function(i) a.preds.tmean.trop[i:min(i + ceiling(NROW(a.preds.tmean.trop)/number_of_chunks) - 1, NROW(a.preds.tmean.trop)),])
 
@@ -315,7 +316,7 @@ a.preds.tmean.nontrop <- exp(a.preds.tmean.nontrop)-0.01
 
 
 # split by order into matrices, then name them
-number_of_chunks = 6
+number_of_chunks = 3
 list_a.preds.tmean.nontrop <- lapply(seq(1, NROW(a.preds.tmean.nontrop), ceiling(NROW(a.preds.tmean.nontrop)/number_of_chunks)),
                                      function(i) a.preds.tmean.nontrop[i:min(i + ceiling(NROW(a.preds.tmean.nontrop)/number_of_chunks) - 1, NROW(a.preds.tmean.nontrop)),])
 
@@ -548,7 +549,7 @@ s.preds.tmean.trop <- PredictGLMERRandIter(model = MeanAnomalyModelRich_trop$mod
 s.preds.tmean.trop <- exp(s.preds.tmean.trop)-0.01
 
 # split by order into matrices, then name them
-number_of_chunks = 6
+number_of_chunks = 3
 list_s.preds.tmean.trop <- lapply(seq(1, NROW(s.preds.tmean.trop), ceiling(NROW(s.preds.tmean.trop)/number_of_chunks)),
                                   function(i) s.preds.tmean.trop[i:min(i + ceiling(NROW(s.preds.tmean.trop)/number_of_chunks) - 1, NROW(s.preds.tmean.trop)),])
 
@@ -771,7 +772,7 @@ s.preds.tmean.nontrop <- exp(s.preds.tmean.nontrop)-0.01
 
 
 # split by order into matrices, then name them
-number_of_chunks = 6
+number_of_chunks = 3
 list_s.preds.tmean.nontrop <- lapply(seq(1, NROW(s.preds.tmean.nontrop), ceiling(NROW(s.preds.tmean.nontrop)/number_of_chunks)),
                                      function(i) s.preds.tmean.nontrop[i:min(i + ceiling(NROW(s.preds.tmean.nontrop)/number_of_chunks) - 1, NROW(s.preds.tmean.nontrop)),])
 
@@ -1013,7 +1014,7 @@ a.preds.tmax.trop <- PredictGLMERRandIter(model = MaxAnomalyModelAbund_trop$mode
 a.preds.tmax.trop <- exp(a.preds.tmax.trop)-0.01
 
 # split by order into matrices, then name them
-number_of_chunks = 6
+number_of_chunks = 3
 list_a.preds.tmax.trop <- lapply(seq(1, NROW(a.preds.tmax.trop), ceiling(NROW(a.preds.tmax.trop)/number_of_chunks)),
                                  function(i) a.preds.tmax.trop[i:min(i + ceiling(NROW(a.preds.tmax.trop)/number_of_chunks) - 1, NROW(a.preds.tmax.trop)),])
 
@@ -1236,7 +1237,7 @@ a.preds.tmax.nontrop <- exp(a.preds.tmax.nontrop)-0.01
 
 
 # split by order into matrices, then name them
-number_of_chunks = 6
+number_of_chunks = 3
 list_a.preds.tmax.nontrop <- lapply(seq(1, NROW(a.preds.tmax.nontrop), ceiling(NROW(a.preds.tmax.nontrop)/number_of_chunks)),
                                     function(i) a.preds.tmax.nontrop[i:min(i + ceiling(NROW(a.preds.tmax.nontrop)/number_of_chunks) - 1, NROW(a.preds.tmax.nontrop)),])
 
@@ -1475,7 +1476,7 @@ s.preds.tmax.trop <- PredictGLMERRandIter(model = MaxAnomalyModelRich_trop$model
 s.preds.tmax.trop <- exp(s.preds.tmax.trop)-0.01
 
 # split by order into matrices, then name them
-number_of_chunks = 6
+number_of_chunks = 3
 list_s.preds.tmax.trop <- lapply(seq(1, NROW(s.preds.tmax.trop), ceiling(NROW(s.preds.tmax.trop)/number_of_chunks)),
                                  function(i) s.preds.tmax.trop[i:min(i + ceiling(NROW(s.preds.tmax.trop)/number_of_chunks) - 1, NROW(s.preds.tmax.trop)),])
 
@@ -1698,7 +1699,7 @@ s.preds.tmax.nontrop <- exp(s.preds.tmax.nontrop)-0.01
 
 
 # split by order into matrices, then name them
-number_of_chunks = 6
+number_of_chunks = 3
 list_s.preds.tmax.nontrop <- lapply(seq(1, NROW(s.preds.tmax.nontrop), ceiling(NROW(s.preds.tmax.nontrop)/number_of_chunks)),
                                     function(i) s.preds.tmax.nontrop[i:min(i + ceiling(NROW(s.preds.tmax.nontrop)/number_of_chunks) - 1, NROW(s.preds.tmax.nontrop)),])
 
