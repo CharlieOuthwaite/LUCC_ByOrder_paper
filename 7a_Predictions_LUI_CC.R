@@ -1,7 +1,7 @@
 ##%######################################################%##
 #                                                          #
 ####        Predicting values from model outputs        ####
-#                                                          #
+#                         Global                           #
 ##%######################################################%##
 
 # Here, values for certain fixed effect combinations are predicted and 
@@ -9,8 +9,8 @@
 
 
 # directories
-inDir <- "C:/Users/Kyra/Documents/GLITRS/Code/5_RunLUIClimateModels/"
-outDir <- "C:/Users/Kyra/Documents/GLITRS/Code/7_Predictions/"
+inDir <- "5_RunLUIClimateModels/"
+outDir <- "7_Predictions/"
 
 if(!dir.exists(outDir)) dir.create(outDir)
 
@@ -26,7 +26,7 @@ library(StatisticalModels)
 library(predictsFunctions)
 library(webshot)
 library(gt)
-source('C:/Users/Kyra/Documents/GLITRS/Data/0_Functions.R')
+source('0_Functions.R')
 
 
 # read in the predicts data
@@ -61,12 +61,12 @@ BackTransformCentreredPredictor(transformedX = -1.32, originalX = predictsSites$
 # reference is primary with 0 climate change so have 0 for that row
 
 data_tab <- expand.grid(LUI = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High","Primary vegetation","Secondary vegetation", "Agriculture_Low", "Agriculture_High"),
-                       Order = c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera","Orthoptera"),
+                       Order = c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera"),
                        LogAbund = 0,
                        Species_richness = 0)
 
-# add column with STA, values repeating 6 times
-StdTmeanAnomalyRS = rep(c(-1.32,-1.32,-1.32,-1.32,0.97,0.97,0.97,0.97),times=6)
+# add column with STA, values repeating 5 times
+StdTmeanAnomalyRS = rep(c(-1.32,-1.32,-1.32,-1.32,0.97,0.97,0.97,0.97),times=5)
 
 # add STA to the data_tab
 data_tab<-cbind(data_tab,StdTmeanAnomalyRS)
@@ -99,13 +99,12 @@ Diptera$perc <- ((Diptera$y/Diptera$y[1]) * 100) - 100
 Hemiptera$perc <- ((Hemiptera$y/Hemiptera$y[1]) * 100) - 100
 Hymenoptera$perc <- ((Hymenoptera$y/Hymenoptera$y[1]) * 100) - 100
 Lepidoptera$perc <- ((Lepidoptera$y/Lepidoptera$y[1]) * 100) - 100
-Orthoptera$perc <- ((Orthoptera$y/Orthoptera$y[1]) * 100) - 100
 
 # put it back together
-result.ab <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera,Orthoptera)
+result.ab <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera)
 
 # add in STA vals
-result.ab$STA <- rep(c(0,0,0,0,1, 1, 1, 1),times=6)
+result.ab$STA <- rep(c(0,0,0,0,1, 1, 1, 1),times=5)
 
 ## Species Richness ##
 
@@ -132,25 +131,24 @@ Diptera$perc <- ((Diptera$y/Diptera$y[1]) * 100) - 100
 Hemiptera$perc <- ((Hemiptera$y/Hemiptera$y[1]) * 100) - 100
 Hymenoptera$perc <- ((Hymenoptera$y/Hymenoptera$y[1]) * 100) - 100
 Lepidoptera$perc <- ((Lepidoptera$y/Lepidoptera$y[1]) * 100) - 100
-Orthoptera$perc <- ((Orthoptera$y/Orthoptera$y[1]) * 100) - 100
 
 # put it back together
-result.sr <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera,Orthoptera)
+result.sr <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera)
 
 # add in STA vals
-result.sr$STA <- rep(c(0,0,0,0,1, 1, 1, 1),times=6)
+result.sr$STA <- rep(c(0,0,0,0,1, 1, 1, 1),times=5)
 
 # combine results into a table for saving
 all_res <- rbind(result.ab, result.sr)
 
-all_res$measure <- c(rep("ab", 48), rep("sr", 48))
+all_res$measure <- c(rep("ab", 40), rep("sr", 40))
 
 # save as png
 percentage_change_LUI_CC <- all_res %>% gt()
-gtsave(percentage_change_LUI_CC,"C:/Users/Kyra/Documents/GLITRS/Code/7_Predictions/MeanAnom_PercentageChange_LUI_CC.png")
+gtsave(percentage_change_LUI_CC,outDir,"MeanAnom_PercentageChange_LUI_CC.png")
 
 # save table
-write.csv(all_res, file = paste0(outDir, "/MeanAnom_PercentageChange_LU_CC.csv"))
+write.csv(all_res, file = paste0(outDir,"MeanAnom_PercentageChange_LU_CC.csv"))
 
 ## Max Anomaly ##
 #create matrix for predictions 
@@ -166,12 +164,12 @@ BackTransformCentreredPredictor(transformedX = -0.89, originalX = predictsSites$
 # reference is primary with 0 climate change so have 0 for that row
 
 data_tab <- expand.grid(LUI = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High","Primary vegetation","Secondary vegetation", "Agriculture_Low", "Agriculture_High"),
-                        Order = c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera","Orthoptera"),
+                        Order = c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera"),
                         LogAbund = 0,
                         Species_richness = 0)
 
-# add column with STA, values repeating 6 times
-StdTmaxAnomalyRS = rep(c(-0.89,-0.89,-0.89,-0.89,-0.14,-0.14,-0.14,-0.14),times=6)
+# add column with STA, values repeating 5 times
+StdTmaxAnomalyRS = rep(c(-0.89,-0.89,-0.89,-0.89,-0.14,-0.14,-0.14,-0.14),times=5)
 
 # add STA to the data_tab
 data_tab<-cbind(data_tab,StdTmaxAnomalyRS)
@@ -204,13 +202,12 @@ Diptera$perc <- ((Diptera$y/Diptera$y[1]) * 100) - 100
 Hemiptera$perc <- ((Hemiptera$y/Hemiptera$y[1]) * 100) - 100
 Hymenoptera$perc <- ((Hymenoptera$y/Hymenoptera$y[1]) * 100) - 100
 Lepidoptera$perc <- ((Lepidoptera$y/Lepidoptera$y[1]) * 100) - 100
-Orthoptera$perc <- ((Orthoptera$y/Orthoptera$y[1]) * 100) - 100
 
 # put it back together
-result.sr <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera,Orthoptera)
+result.sr <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera)
 
 # add in STA vals
-result.sr$STA <- rep(c(0,0,0,0,1, 1, 1, 1),times=6)
+result.sr$STA <- rep(c(0,0,0,0,1, 1, 1, 1),times=5)
 
 ### Abundance ###
 
@@ -237,26 +234,25 @@ Diptera$perc <- ((Diptera$y/Diptera$y[1]) * 100) - 100
 Hemiptera$perc <- ((Hemiptera$y/Hemiptera$y[1]) * 100) - 100
 Hymenoptera$perc <- ((Hymenoptera$y/Hymenoptera$y[1]) * 100) - 100
 Lepidoptera$perc <- ((Lepidoptera$y/Lepidoptera$y[1]) * 100) - 100
-Orthoptera$perc <- ((Orthoptera$y/Orthoptera$y[1]) * 100) - 100
 
 # put it back together
-result.ab <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera,Orthoptera)
+result.ab <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera)
 
 # add in STA vals
-result.ab$STA <- rep(c(0,0,0,0,1, 1, 1, 1),times=6)
+result.ab$STA <- rep(c(0,0,0,0,1, 1, 1, 1),times=5)
 
 # combine results into a table for saving
 all_res <- rbind(result.ab, result.sr)
 
-all_res$measure <- c(rep("ab", 48), rep("sr", 48))
+all_res$measure <- c(rep("ab", 40), rep("sr", 40))
 
 # save as png
 percentage_change_LUI_CC <- all_res %>% gt()
-gtsave(percentage_change_LUI_CC,"C:/Users/Kyra/Documents/GLITRS/Code/7_Predictions/MaxAnom_PercentageChange_LUI_CC.png")
+gtsave(percentage_change_LUI_CC,outDir,"MaxAnom_PercentageChange_LUI_CC.png")
 
 
 # save table
-write.csv(all_res, file = paste0(outDir, "/MaxAnom_PercentageChange_LUI_CC.csv"))
+write.csv(all_res, file = paste0(outDir,"/MaxAnom_PercentageChange_LUI_CC.csv"))
 
 
 # t.end <- Sys.time()

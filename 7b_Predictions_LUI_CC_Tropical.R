@@ -1,12 +1,18 @@
+##%######################################################%##
+#                                                          #
+####        Predicting values from model outputs        ####
+#                 Tropical vs NonTropical                  #
+##%######################################################%##
 
-# Here, values for certain fixed effect combinations are predicted and 
-# expressed as percentage change for use in the text of the paper. 
+# Here, values for certain fixed effect combinations 
+# in both latitudinal realms are predicted and 
+# expressed as percentage change for use in the text of the paper.
 
 
 # directories
-predictsDir <- "C:/Users/Kyra/Documents/GLITRS/Code/5_RunLUIClimateModels/"
-modDir <- "C:/Users/Kyra/Documents/GLITRS/Code/6_TropicalModels/Output/"
-outDir <- "C:/Users/Kyra/Documents/GLITRS/Code/7_Predictions/"
+predictsDir <- "5_RunLUIClimateModels/"
+modDir <- "6_TropicalModels/"
+outDir <- "7_Predictions/"
 
 if(!dir.exists(outDir)) dir.create(outDir)
 
@@ -15,7 +21,7 @@ library(StatisticalModels)
 library(predictsFunctions)
 library(webshot)
 library(gt)
-source('C:/Users/Kyra/Documents/GLITRS/Data/0_Functions.R')
+source('0_Functions.R')
 
 
 # read in the predicts data
@@ -33,14 +39,14 @@ nontrop <- readRDS(file = paste0(modDir,"nontrop.rds"))
 # first one, looking at SCA of 1
 
 # load in models
-load(file = paste0(moddir, "/MeanAnomalyModelAbund_trop.rdata"))
-load(file = paste0(moddir, "/MeanAnomalyModelAbund_nontrop.rdata"))
-load(file = paste0(moddir, "/MeanAnomalyModelRich_trop.rdata"))
-load(file = paste0(moddir, "/MeanAnomalyModelRich_nontrop.rdata"))
-load(file = paste0(moddir, "/MaxAnomalyModelAbund_trop.rdata"))
-load(file = paste0(moddir, "/MaxAnomalyModelAbund_nontrop.rdata"))
-load(file = paste0(moddir, "/MaxAnomalyModelRich_trop.rdata"))
-load(file = paste0(moddir, "/MaxAnomalyModelRich_nontrop.rdata"))
+load(file = paste0(moddir, "MeanAnomalyModelAbund_trop.rdata"))
+load(file = paste0(moddir, "MeanAnomalyModelAbund_nontrop.rdata"))
+load(file = paste0(moddir, "MeanAnomalyModelRich_trop.rdata"))
+load(file = paste0(moddir, "MeanAnomalyModelRich_nontrop.rdata"))
+load(file = paste0(moddir, "MaxAnomalyModelAbund_trop.rdata"))
+load(file = paste0(moddir, "MaxAnomalyModelAbund_nontrop.rdata"))
+load(file = paste0(moddir, "MaxAnomalyModelRich_trop.rdata"))
+load(file = paste0(moddir, "MaxAnomalyModelRich_nontrop.rdata"))
 
 ## Mean Anomaly, Trop ##
 #create matrix for predictions 
@@ -58,12 +64,12 @@ BackTransformCentreredPredictor(transformedX = -1.58, originalX = trop$StdTmeanA
 # reference is primary with 0 climate change so have 0 for that row
 
 data_tab <- expand.grid(LUI = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High","Primary vegetation","Secondary vegetation", "Agriculture_Low", "Agriculture_High"),
-                        Order = c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera","Orthoptera"),
+                        Order = c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera"),
                         LogAbund = 0,
                         Species_richness = 0)
 
-# add column with SCA, values repeating 6 times
-StdTmeanAnomalyRS = rep(c(-1.58,-1.58,-1.58,-1.58,0.27,0.27,0.27,0.27),times=6)
+# add column with SCA, values repeating 5 times
+StdTmeanAnomalyRS = rep(c(-1.58,-1.58,-1.58,-1.58,0.27,0.27,0.27,0.27),times=5)
 
 # add SCA to the data_tab
 data_tab<-cbind(data_tab,StdTmeanAnomalyRS)
@@ -96,13 +102,12 @@ Diptera$perc <- ((Diptera$y/Diptera$y[1]) * 100) - 100
 Hemiptera$perc <- ((Hemiptera$y/Hemiptera$y[1]) * 100) - 100
 Hymenoptera$perc <- ((Hymenoptera$y/Hymenoptera$y[1]) * 100) - 100
 Lepidoptera$perc <- ((Lepidoptera$y/Lepidoptera$y[1]) * 100) - 100
-Orthoptera$perc <- ((Orthoptera$y/Orthoptera$y[1]) * 100) - 100
 
 # put it back together
-result.ab.trop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera,Orthoptera)
+result.ab.trop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera)
 
 # add in SCA vals
-result.ab.trop$SCA <- rep(c(0,0,0,0,1, 1, 1, 1),times=6)
+result.ab.trop$SCA <- rep(c(0,0,0,0,1, 1, 1, 1),times=5)
 
 # add zone factor
 result.ab.trop$Zone <- as.factor("Tropical")
@@ -132,13 +137,12 @@ Diptera$perc <- ((Diptera$y/Diptera$y[1]) * 100) - 100
 Hemiptera$perc <- ((Hemiptera$y/Hemiptera$y[1]) * 100) - 100
 Hymenoptera$perc <- ((Hymenoptera$y/Hymenoptera$y[1]) * 100) - 100
 Lepidoptera$perc <- ((Lepidoptera$y/Lepidoptera$y[1]) * 100) - 100
-Orthoptera$perc <- ((Orthoptera$y/Orthoptera$y[1]) * 100) - 100
 
 # put it back together
-result.sr.trop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera,Orthoptera)
+result.sr.trop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera)
 
 # add in SCA vals
-result.sr.trop$SCA <- rep(c(0,0,0,0,1, 1, 1, 1),times=6)
+result.sr.trop$SCA <- rep(c(0,0,0,0,1, 1, 1, 1),times=5)
 
 # add zone factor
 result.sr.trop$Zone <- as.factor("Tropical")
@@ -159,12 +163,12 @@ BackTransformCentreredPredictor(transformedX = -1.77, originalX = nontrop$StdTme
 # reference is primary with 0 climate change so have 0 for that row
 
 data_tab <- expand.grid(LUI = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High","Primary vegetation","Secondary vegetation", "Agriculture_Low", "Agriculture_High"),
-                        Order = c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera","Orthoptera"),
+                        Order = c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera"),
                         LogAbund = 0,
                         Species_richness = 0)
 
-# add column with SCA, values repeating 6 times
-StdTmeanAnomalyRS = rep(c(-1.77,-1.77,-1.77,-1.77,2.2,2.2,2.2,2.2),times=6)
+# add column with SCA, values repeating 5 times
+StdTmeanAnomalyRS = rep(c(-1.77,-1.77,-1.77,-1.77,2.2,2.2,2.2,2.2),times=5)
 
 # add SCA to the data_tab
 data_tab<-cbind(data_tab,StdTmeanAnomalyRS)
@@ -198,13 +202,12 @@ Diptera$perc <- ((Diptera$y/Diptera$y[1]) * 100) - 100
 Hemiptera$perc <- ((Hemiptera$y/Hemiptera$y[1]) * 100) - 100
 Hymenoptera$perc <- ((Hymenoptera$y/Hymenoptera$y[1]) * 100) - 100
 Lepidoptera$perc <- ((Lepidoptera$y/Lepidoptera$y[1]) * 100) - 100
-Orthoptera$perc <- ((Orthoptera$y/Orthoptera$y[1]) * 100) - 100
 
 # put it back together
-result.ab.nontrop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera,Orthoptera)
+result.ab.nontrop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera)
 
 # add in SCA vals
-result.ab.nontrop$SCA <- rep(c(0,0,0,0,1, 1, 1, 1),times=6)
+result.ab.nontrop$SCA <- rep(c(0,0,0,0,1, 1, 1, 1),times=5)
 
 # add zone factor
 result.ab.nontrop$Zone <- as.factor("NonTropical")
@@ -234,13 +237,12 @@ Diptera$perc <- ((Diptera$y/Diptera$y[1]) * 100) - 100
 Hemiptera$perc <- ((Hemiptera$y/Hemiptera$y[1]) * 100) - 100
 Hymenoptera$perc <- ((Hymenoptera$y/Hymenoptera$y[1]) * 100) - 100
 Lepidoptera$perc <- ((Lepidoptera$y/Lepidoptera$y[1]) * 100) - 100
-Orthoptera$perc <- ((Orthoptera$y/Orthoptera$y[1]) * 100) - 100
 
 # put it back together
-result.sr.nontrop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera,Orthoptera)
+result.sr.nontrop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera)
 
 # add in SCA vals
-result.sr.nontrop$SCA <- rep(c(0,0,0,0,1, 1, 1, 1),times=6)
+result.sr.nontrop$SCA <- rep(c(0,0,0,0,1, 1, 1, 1),times=5)
 
 # add zone factor
 result.sr.nontrop$Zone <- as.factor("NonTropical")
@@ -248,15 +250,15 @@ result.sr.nontrop$Zone <- as.factor("NonTropical")
 # combine results into a table for saving
 all_res <- rbind(result.ab.nontrop, result.ab.trop, result.sr.nontrop, result.sr.trop)
 
-all_res$measure <- c(rep("ab", 96), rep("sr", 96))
+all_res$measure <- c(rep("ab", 80), rep("sr", 80))
 
 # save as png
 percentage_change_LUI_CC <- all_res %>% gt()
-gtsave(percentage_change_LUI_CC,"C:/Users/Kyra/Documents/GLITRS/Code/7_Predictions/MeanAnom_PercentageChange_LUI_CC_Tropical.png")
+gtsave(percentage_change_LUI_CC,outDir,"MeanAnom_PercentageChange_LUI_CC_Tropical.png")
 
 
 # save table as csv
-write.csv(all_res, file = paste0(outDir, "/MeanAnom_PercentageChange_LUI_CC_Tropical.csv"))
+write.csv(all_res, file = paste0(outDir,"MeanAnom_PercentageChange_LUI_CC_Tropical.csv"))
 
 ## Max Anomaly , Tropical ##
 #create matrix for predictions 
@@ -272,12 +274,12 @@ BackTransformCentreredPredictor(transformedX = -1.035, originalX = trop$StdTmaxA
 # reference is primary with 0 climate change so have 0 for that row
 
 data_tab <- expand.grid(LUI = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High","Primary vegetation","Secondary vegetation", "Agriculture_Low", "Agriculture_High"),
-                        Order = c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera","Orthoptera"),
+                        Order = c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera"),
                         LogAbund = 0,
                         Species_richness = 0)
 
-# add column with SCA, values repeating 6 times
-StdTmaxAnomalyRS = rep(c(-1.035,-1.035,-1.035,-1.035,-0.425,-0.425,-0.425,-0.425),times=6)
+# add column with SCA, values repeating 5 times
+StdTmaxAnomalyRS = rep(c(-1.035,-1.035,-1.035,-1.035,-0.425,-0.425,-0.425,-0.425),times=5)
 
 # add SCA to the data_tab
 data_tab<-cbind(data_tab,StdTmaxAnomalyRS)
@@ -310,13 +312,12 @@ Diptera$perc <- ((Diptera$y/Diptera$y[1]) * 100) - 100
 Hemiptera$perc <- ((Hemiptera$y/Hemiptera$y[1]) * 100) - 100
 Hymenoptera$perc <- ((Hymenoptera$y/Hymenoptera$y[1]) * 100) - 100
 Lepidoptera$perc <- ((Lepidoptera$y/Lepidoptera$y[1]) * 100) - 100
-Orthoptera$perc <- ((Orthoptera$y/Orthoptera$y[1]) * 100) - 100
 
 # put it back together
-result.ab.trop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera,Orthoptera)
+result.ab.trop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera)
 
 # add in SCA vals
-result.ab.trop$SCA <- rep(c(0,0,0,0,1, 1, 1, 1),times=6)
+result.ab.trop$SCA <- rep(c(0,0,0,0,1, 1, 1, 1),times=5)
 
 # add zone factor
 result.ab.trop$Zone <- as.factor("Tropical")
@@ -346,13 +347,12 @@ Diptera$perc <- ((Diptera$y/Diptera$y[1]) * 100) - 100
 Hemiptera$perc <- ((Hemiptera$y/Hemiptera$y[1]) * 100) - 100
 Hymenoptera$perc <- ((Hymenoptera$y/Hymenoptera$y[1]) * 100) - 100
 Lepidoptera$perc <- ((Lepidoptera$y/Lepidoptera$y[1]) * 100) - 100
-Orthoptera$perc <- ((Orthoptera$y/Orthoptera$y[1]) * 100) - 100
 
 # put it back together
-result.sr.trop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera,Orthoptera)
+result.sr.trop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera)
 
 # add in SCA vals
-result.sr.trop$SCA <- rep(c(0,0,0,0,1, 1, 1, 1),times=6)
+result.sr.trop$SCA <- rep(c(0,0,0,0,1, 1, 1, 1),times=5)
 
 # add zone factor
 result.sr.trop$Zone <- as.factor("Tropical")
@@ -371,12 +371,12 @@ BackTransformCentreredPredictor(transformedX = -1.02, originalX = nontrop$StdTma
 # reference is primary with 0 climate change so have 0 for that row
 
 data_tab <- expand.grid(LUI = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High","Primary vegetation","Secondary vegetation", "Agriculture_Low", "Agriculture_High"),
-                        Order = c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera","Orthoptera"),
+                        Order = c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera"),
                         LogAbund = 0,
                         Species_richness = 0)
 
-# add column with SCA, values repeating 6 times
-StdTmaxAnomalyRS = rep(c(-1.02,-1.02,-1.02,-1.02,0.31,0.31,0.31,0.31),times=6)
+# add column with SCA, values repeating 5 times
+StdTmaxAnomalyRS = rep(c(-1.02,-1.02,-1.02,-1.02,0.31,0.31,0.31,0.31),times=5)
 
 # add SCA to the data_tab
 data_tab<-cbind(data_tab,StdTmaxAnomalyRS)
@@ -409,13 +409,12 @@ Diptera$perc <- ((Diptera$y/Diptera$y[1]) * 100) - 100
 Hemiptera$perc <- ((Hemiptera$y/Hemiptera$y[1]) * 100) - 100
 Hymenoptera$perc <- ((Hymenoptera$y/Hymenoptera$y[1]) * 100) - 100
 Lepidoptera$perc <- ((Lepidoptera$y/Lepidoptera$y[1]) * 100) - 100
-Orthoptera$perc <- ((Orthoptera$y/Orthoptera$y[1]) * 100) - 10
 
 # put it back together
-result.ab.nontrop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera,Orthoptera)
+result.ab.nontrop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera)
 
 # add in SCA vals
-result.ab.nontrop$SCA <- rep(c(0,0,0,0,1, 1, 1, 1),times=6)
+result.ab.nontrop$SCA <- rep(c(0,0,0,0,1, 1, 1, 1),times=5)
 
 # add zone factor
 result.ab.nontrop$Zone <- as.factor("NonTropical")
@@ -446,13 +445,12 @@ Diptera$perc <- ((Diptera$y/Diptera$y[1]) * 100) - 100
 Hemiptera$perc <- ((Hemiptera$y/Hemiptera$y[1]) * 100) - 100
 Hymenoptera$perc <- ((Hymenoptera$y/Hymenoptera$y[1]) * 100) - 100
 Lepidoptera$perc <- ((Lepidoptera$y/Lepidoptera$y[1]) * 100) - 100
-Orthoptera$perc <- ((Orthoptera$y/Orthoptera$y[1]) * 100) - 100
 
 # put it back together
-result.sr.nontrop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera,Orthoptera)
+result.sr.nontrop <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera)
 
 # add in SCA vals
-result.sr.nontrop$SCA <- rep(c(0,0,0,0,1, 1, 1, 1),times=6)
+result.sr.nontrop$SCA <- rep(c(0,0,0,0,1, 1, 1, 1),times=5)
 
 # add zone factor
 result.sr.nontrop$Zone <- as.factor("NonTropical")
@@ -460,12 +458,12 @@ result.sr.nontrop$Zone <- as.factor("NonTropical")
 # combine results into a table for saving
 all_res <- rbind(result.ab.nontrop, result.ab.trop, result.sr.nontrop, result.sr.trop)
 
-all_res$measure <- c(rep("ab", 96), rep("sr", 96))
+all_res$measure <- c(rep("ab", 80), rep("sr", 80))
 
 # save as png
 percentage_change_LUI_CC <- all_res %>% gt()
-gtsave(percentage_change_LUI_CC,"C:/Users/Kyra/Documents/GLITRS/Code/7_Predictions/MaxAnom_PercentageChange_LUI_CC_Tropical.png")
+gtsave(percentage_change_LUI_CC,"MaxAnom_PercentageChange_LUI_CC_Tropical.png")
 
 
 # save table as csv
-write.csv(all_res, file = paste0(outDir, "/MaxAnom_PercentageChange_LUI_CC_Tropical.csv"))
+write.csv(all_res, file = paste0(outDir, "MaxAnom_PercentageChange_LUI_CC_Tropical.csv"))
