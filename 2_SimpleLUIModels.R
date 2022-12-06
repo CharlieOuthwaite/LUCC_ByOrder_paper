@@ -429,7 +429,7 @@ richness <- richness_metric + xlab(NULL) +
         legend.position = "right",
         legend.box = "vertical",
         legend.text = element_text(size = 7),
-        legend.title = element_text(size = 8))
+        legend.title = element_blank())
 
 # save plot (pdf)
 ggsave(filename = paste0(outDir, "Figure1_simplemods_rich.pdf"), plot = last_plot(), width = 250, height = 100, units = "mm", dpi = 300)
@@ -478,7 +478,7 @@ abundance <- abundance_metric + xlab(NULL) +
         legend.position = "right",
         legend.box = "vertical",
         legend.text = element_text(size = 7),
-        legend.title = element_text(size = 8))
+        legend.title = element_blank())
 
 # save plot (pdf)
 ggsave(filename = paste0(outDir, "Figure1_simplemods_abund.pdf"), plot = last_plot(), width = 250, height = 100, units = "mm", dpi = 300)
@@ -516,7 +516,7 @@ legend <- get_legend(
     theme(legend.position = "right",
           legend.box = "vertical", 
           legend.text = element_text(size = 7), 
-          legend.title = element_text(size = 8))
+          legend.title = element_blank())
 )
 
 # plot together

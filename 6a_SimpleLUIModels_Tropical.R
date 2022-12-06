@@ -293,12 +293,6 @@ model_data_ab_nontrop <- readRDS(file = paste0(outDir,"model_data_ab_nontrop.rds
 
 #### 4. Model selection tables ####
 
-# remove this chunk later
-# # select model_data for only three orders (Coleoptera, Hymenoptera, and Lepidoptera)
-# model_data_sr_trop <- filter(model_data_sr_trop, Order %in% c('Coleoptera', 'Hymenoptera', 'Lepidoptera'))
-# model_data_ab_trop <- filter(model_data_ab_trop, Order %in% c('Coleoptera', 'Hymenoptera', 'Lepidoptera'))
-# model_data_sr_nontrop <- filter(model_data_sr_nontrop, Order %in% c('Coleoptera', 'Hymenoptera', 'Lepidoptera'))
-# model_data_ab_nontrop <- filter(model_data_sr_nontrop, Order %in% c('Coleoptera', 'Hymenoptera', 'Lepidoptera'))
 
 # table of AICs
 selection_table_trop <- data.frame("Realm" = c(rep("Tropical", 10)),
@@ -407,9 +401,7 @@ richness_nontrop <- richness_metric_nontrop +
   theme(axis.title = element_text(size = 8),
         axis.text.x = element_text(size = 7,angle=45,margin=margin(t=20)),
         axis.text.y = element_text(size = 7),
-        legend.position = "none") +
-  ggtitle("a") +
-  guides(colour = guide_legend("Land-use"))
+        legend.position = "none") 
 
 richness_trop <- richness_metric_trop +
   labs(y ="Species richness diff. (%)", x = "Order") +
@@ -417,27 +409,30 @@ richness_trop <- richness_metric_trop +
   theme(axis.title = element_text(size = 8),
         axis.text.x = element_text(size = 7,angle=45,margin=margin(t=20)),
         axis.text.y = element_text(size = 7),
-        legend.position = "none") +
-  ggtitle("b")
+        legend.position = "none")
 
 legend <- get_legend(
   richness_nontrop +
-    guides(color = guide_legend(ncol = 1)) +
-    theme(legend.position = "right",
-          legend.box = "vertical", 
+    guides(color = guide_legend(nrow = 1)) +
+    theme(legend.position = "bottom",
+          legend.box = "horizontal", 
           legend.text = element_text(size = 7), 
-          legend.title = element_text(size = 8))
+          legend.title = element_blank())
 )
 
-richness_realms <- cowplot::plot_grid(richness_nontrop, richness_trop, ncol = 1, rel_heights = c(1,1))
-legend <- cowplot::plot_grid(NULL,legend,NULL, ncol = 1, rel_heights = c(0.5,1,0.5))
-richness_realms <- cowplot::plot_grid(richness_realms, legend, ncol = 2, rel_widths = c(1,0.2))
+# put together
+richness_realms <- cowplot::plot_grid(NULL,richness_nontrop,NULL,richness_trop, ncol = 1, rel_heights = c(0.1,1,0.1,1),labels=c('','a - Non-tropical','', 'b - Tropical'),
+                                      label_size = 10,
+                                      label_x = 0, label_y = 1,
+                                      hjust = -0.2, vjust = -0.1)
+# add legend
+richness_realms_LUI <- cowplot::plot_grid(richness_realms, legend, ncol = 1, rel_heights = c(1,0.1))
 
 # save plot (pdf)
-ggsave(filename = paste0(outDir, "richness_realms.pdf"), plot = richness_realms, width = 200, height = 150, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "richness_realms_LUI.pdf"), plot = richness_realms_LUI, width = 120, height = 150, units = "mm", dpi = 300)
 
 # save plot (jpeg)
-ggsave("richness_realms.jpeg", device ="jpeg", path = outDir, width=20, height=15, units="cm", dpi = 350)
+ggsave("richness_realms_LUI.jpeg", device ="jpeg", path = outDir, width=120, height=150, units="mm", dpi = 350)
 
 ####  6a. Abundance Plot, Nontropical ####
 
@@ -498,9 +493,7 @@ abundance_nontrop <- abundance_metric_nontrop +
   theme(axis.title = element_text(size = 8),
         axis.text.x = element_text(size = 7,angle=45,margin=margin(t=20)),
         axis.text.y = element_text(size = 7),
-        legend.position = "none") +
-  ggtitle("a") + 
-  guides(colour = guide_legend("Land-use"))
+        legend.position = "none")
 
 abundance_trop <- abundance_metric_trop +
   labs(y ="Total abundance diff. (%)", x = "Order") +
@@ -508,40 +501,46 @@ abundance_trop <- abundance_metric_trop +
   theme(axis.title = element_text(size = 8),
         axis.text.x = element_text(size = 7,angle=45,margin=margin(t=20)),
         axis.text.y = element_text(size = 7),
-        legend.position = "none") +
-  ggtitle("b")
+        legend.position = "none")
 
 legend <- get_legend(
-  abundance_nontrop +
-    guides(color = guide_legend(ncol = 1)) +
-    theme(legend.position = "right",
-          legend.box = "vertical", 
+  richness_nontrop +
+    guides(color = guide_legend(nrow = 1)) +
+    theme(legend.position = "bottom",
+          legend.box = "horizontal", 
           legend.text = element_text(size = 7), 
-          legend.title = element_text(size = 8))
+          legend.title = element_blank())
 )
 
-abundance_realms <- cowplot::plot_grid(abundance_nontrop, abundance_trop, ncol = 1, rel_heights = c(1,1))
-legend <- cowplot::plot_grid(NULL,legend,NULL, ncol = 1, rel_heights = c(0.5,1,0.5))
-abundance_realms <- cowplot::plot_grid(abundance_realms, legend, ncol = 2, rel_widths = c(1,0.2))
+# put together
+abundance_realms <- cowplot::plot_grid(NULL,abundance_nontrop,NULL,abundance_trop, ncol = 1, rel_heights = c(0.1,1,0.1,1),labels=c('','a - Non-tropical','', 'b - Tropical'),
+                                      label_size = 10,
+                                      label_x = 0, label_y = 1,
+                                      hjust = -0.2, vjust = -0.1)
+# add legend
+abundance_realms_LUI <- cowplot::plot_grid(abundance_realms, legend, ncol = 1, rel_heights = c(1,0.1))
 
 # save plot (pdf)
-ggsave(filename = paste0(outDir, "abundance_realms.pdf"), plot = abundance_realms, width = 200, height = 150, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "abundance_realms_LUI.pdf"), plot = abundance_realms_LUI, width = 120, height = 150, units = "mm", dpi = 300)
 
 # save plot (jpeg)
-ggsave("abundance_realms.jpeg", device ="jpeg", path = outDir, width=20, height=15, units="cm", dpi = 350)
+ggsave("abundance_realms_LUI.jpeg", device ="jpeg", path = outDir, width=120, height=150, units="mm", dpi = 350)
 
 ####  7. Plot all together  ####
 
 # plot species richness and abundance responses from both realms together #
-simplemods_realms<-cowplot::plot_grid(richness_nontrop, richness_trop,abundance_nontrop,abundance_trop, ncol=2, rel_widths = c(1,1))
+simplemods_realms<-cowplot::plot_grid(NULL,NULL,richness_nontrop,richness_trop,NULL,NULL,abundance_nontrop,abundance_trop, ncol=2, rel_heights = c(0.1,1,0.1,1),labels=c('','','a - Non-tropical','b - Tropical','','','c - Non-tropical','d - Tropical'),
+                                      label_size = 10,
+                                      label_x = 0, label_y = 1,
+                                      hjust = -0.2, vjust = -0.1)
 # add legend
-simplemods_realms <- cowplot::plot_grid(simplemods_realms, legend, ncol = 2, rel_widths = c(1,0.2))
+simplemods_realms <- cowplot::plot_grid(simplemods_realms, legend, ncol = 1, rel_heights = c(1,0.1))
 
 # save plot (pdf)
-ggsave(filename = paste0(outDir, "simplemods_realms.pdf"), plot = simplemods_realms, width = 200, height = 150, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "simplemods_realms.pdf"), plot = simplemods_realms, width = 200, height = 200, units = "mm", dpi = 300)
 
 # save plot (jpeg)
-ggsave("simplemods_realms.jpeg", device ="jpeg", path = outDir, width=40, height=20, units="cm", dpi = 350)
+ggsave("simplemods_realms.jpeg", device ="jpeg", path = outDir, width=200, height=200, units="mm", dpi = 350)
 
 #### 8. Table of predicted values ####
 

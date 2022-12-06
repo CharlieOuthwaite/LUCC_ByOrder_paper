@@ -12,6 +12,7 @@
 rm(list = ls())
 
 # set directories 
+predictsDir <- "5_RunLUIClimateModels/"
 inDir<- "6_TropicalModels/"
 outDir <- "6_TropicalModels/Plots/"
 if(!dir.exists(outDir)) dir.create(outDir)
@@ -56,9 +57,6 @@ nd_trop <- expand.grid(
              levels = levels(MeanAnomalyModelAbund_trop$data$LUI)),
   Order=factor(c("Coleoptera","Hymenoptera","Lepidoptera")))
 
-# have to run the first few steps with all six orders because I am still using the original 6-order models
-# will remove the extra orders later, after running predictions
-
 # back transform the predictors
 nd_trop$StdTmeanAnomaly <- BackTransformCentreredPredictor(
   transformedX = nd_trop$StdTmeanAnomalyRS,
@@ -69,9 +67,7 @@ nd_trop$LogAbund <- 0
 nd_trop$Species_richness <- 0
 
 # reference for % difference = primary vegetation and positive anomaly closest to 0
-# Record refRow for later use (see 'Values')
 refRow <- which((nd_trop$LUI=="Primary vegetation") & (nd_trop$StdTmeanAnomaly==min(abs(nd_trop$StdTmeanAnomaly))))
-# 1st row of each order
 
 # adjust plot 1: mean anomaly and abundance
 
@@ -95,24 +91,18 @@ a.preds.tmean.trop <- PredictGLMERRandIter(model = MeanAnomalyModelAbund_trop$mo
 a.preds.tmean.trop <- exp(a.preds.tmean.trop)-0.01
 
 # split by order into matrices, then name them
-number_of_chunks = 6
+number_of_chunks = 3
 list_a.preds.tmean.trop <- lapply(seq(1, NROW(a.preds.tmean.trop), ceiling(NROW(a.preds.tmean.trop)/number_of_chunks)),
                                   function(i) a.preds.tmean.trop[i:min(i + ceiling(NROW(a.preds.tmean.trop)/number_of_chunks) - 1, NROW(a.preds.tmean.trop)),])
 
 names(list_a.preds.tmean.trop) <- c("Coleoptera","Hymenoptera","Lepidoptera")
 
-# only need Coleoptera, Hymenoptera, and Lepidoptera
-list_a.preds.tmean.trop <- list_a.preds.tmean.trop[names(list_a.preds.tmean.trop) %in% c("Coleoptera","Hymenoptera", "Lepidoptera")]
-
 # sweep out refRow
 list_a.preds.tmean.trop <- lapply(list_a.preds.tmean.trop,FUN=function(x){
-  sweep (x=x, MARGIN = 2, STATS=x[1,],FUN="/") 
+  sweep (x=x, MARGIN = 2, STATS=x[refRow[1],],FUN="/") 
 })
 
 list2env(list_a.preds.tmean.trop,globalenv())
-
-# can now remove the extra orders from nd_trop
-# nd_trop <- filter(nd_trop, Order %in% c('Coleoptera', 'Hymenoptera', 'Lepidoptera'))
 
 # split nd_trop by order
 Order<- paste0("nd_trop_",nd_trop$Order)
@@ -186,7 +176,7 @@ p_coleoptera <- ggplot(data = nd_trop_Coleoptera, aes(x = StdTmeanAnomaly, y = P
   scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
-  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150), limits = c(-100, 150)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") + 
   ggtitle("Coleoptera") +
@@ -208,8 +198,8 @@ p_hymenoptera <- ggplot(data = nd_trop_Hymenoptera, aes(x = StdTmeanAnomaly, y =
   scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
-  scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
-  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
+  scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150), limits = c(-100, 150)) +
   #scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500), limits = c(-100, 500)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") +
@@ -232,7 +222,7 @@ p_lepidoptera <- ggplot(data = nd_trop_Lepidoptera, aes(x = StdTmeanAnomaly, y =
   scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
-  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150), limits = c(-100, 150)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") +
   ggtitle("Lepidoptera") +
@@ -253,7 +243,7 @@ legend <- get_legend(
     theme(legend.position = "right",
           legend.background = element_blank(), 
           legend.text = element_text(size = 7), 
-          legend.title = element_text(size = 8))
+          legend.title = element_blank())
 )
 
 # put them all together
@@ -288,9 +278,7 @@ nd_nontrop$LogAbund <- 0
 nd_nontrop$Species_richness <- 0
 
 # reference for % difference = primary vegetation and positive anomaly closest to 0
-# Record refRow for later use (see 'Values')
 refRow <- which((nd_nontrop$LUI=="Primary vegetation") & (nd_nontrop$StdTmeanAnomaly==min(abs(nd_nontrop$StdTmeanAnomaly))))
-# first row
 
 # adjust plot 1: mean anomaly and abundance
 
@@ -315,24 +303,18 @@ a.preds.tmean.nontrop <- exp(a.preds.tmean.nontrop)-0.01
 
 
 # split by order into matrices, then name them
-number_of_chunks = 6
+number_of_chunks = 3
 list_a.preds.tmean.nontrop <- lapply(seq(1, NROW(a.preds.tmean.nontrop), ceiling(NROW(a.preds.tmean.nontrop)/number_of_chunks)),
                                      function(i) a.preds.tmean.nontrop[i:min(i + ceiling(NROW(a.preds.tmean.nontrop)/number_of_chunks) - 1, NROW(a.preds.tmean.nontrop)),])
 
 names(list_a.preds.tmean.nontrop) <- c("Coleoptera","Hymenoptera","Lepidoptera")
 
-# only need Coleoptera, Hymenoptera, and Lepidoptera
-list_a.preds.tmean.nontrop <- list_a.preds.tmean.nontrop[names(list_a.preds.tmean.nontrop) %in% c( ) == FALSE]
-
 # sweep out refRow
 list_a.preds.tmean.nontrop <- lapply(list_a.preds.tmean.nontrop,FUN=function(x){
-  sweep (x=x, MARGIN = 2, STATS=x[1,],FUN="/") 
+  sweep (x=x, MARGIN = 2, STATS=x[refRow[1],],FUN="/") 
 })
 
 list2env(list_a.preds.tmean.nontrop,globalenv())
-
-# can now remove the extra orders from nd_nontrop
-nd_nontrop <- filter(nd_nontrop, Order %in% c('Coleoptera', 'Hymenoptera', 'Lepidoptera'))
 
 # split nd_nontrop by order
 Order<- paste0("nd_nontrop_",nd_nontrop$Order)
@@ -473,7 +455,7 @@ legend <- get_legend(
     theme(legend.position = "right",
           legend.background = element_blank(), 
           legend.text = element_text(size = 7), 
-          legend.title = element_text(size = 8))
+          legend.title = element_blank())
 )
 
 
@@ -490,15 +472,19 @@ MeanAnomAbund_nontrop <- cowplot::plot_grid(p_coleoptera,p_hymenoptera,p_lepidop
 # ggsave("MeanAnomAbund_nontrop.jpeg", device ="jpeg", path = outDir, width=20, height=15, units="cm", dpi = 350)
 
 # plot realms together 
-MeanAnomAbundRealms <-cowplot::plot_grid(MeanAnomAbund_nontrop, MeanAnomAbund_trop, ncol=1, rel_heights = c(1,1),labels=c('a', 'b'))
+MeanAnomAbundRealms <-cowplot::plot_grid(NULL,MeanAnomAbund_nontrop,NULL,MeanAnomAbund_trop, ncol=1, rel_heights = c(0.1,1,0.1,1),
+                                         labels=c('','a - Non-tropical','', 'b - Tropical'),
+                                         label_size = 10,
+                                         label_x = 0, label_y = 1,
+                                         hjust = -0.2, vjust = -0.05)
 # add legend
 MeanAnomAbundRealms <-cowplot::plot_grid(MeanAnomAbundRealms, legend, nrow=1, rel_widths = c(1,0.2))
 
 # save (pdf)
-ggsave(filename = paste0(outDir, "MeanAnomAbundRealms.pdf"), plot = MeanAnomAbundRealms, width = 300, height = 300, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "MeanAnomAbundRealms.pdf"), plot = MeanAnomAbundRealms, width = 300, height = 200, units = "mm", dpi = 300)
 
 # save plot (jpeg)
-ggsave("MeanAnomAbundRealms.jpeg", device ="jpeg", path = outDir, width=20, height=15, units="cm", dpi = 350)
+ggsave("MeanAnomAbundRealms.jpeg", device ="jpeg", path = outDir, width=300, height=200, units="mm", dpi = 350)
 
 #### 2. Plot Results for Species Richness, Mean Anomaly ####
 
@@ -522,9 +508,7 @@ nd2_trop$LogAbund <- 0
 nd2_trop$Species_richness <- 0
 
 # reference for % difference = primary vegetation and positive anomaly closest to 0
-# Record refRow for later use (see 'Values')
 refRow <- which((nd2_trop$LUI=="Primary vegetation") & (nd2_trop$StdTmeanAnomaly==min(abs(nd2_trop$StdTmeanAnomaly))))
-# 1st row of each order
 
 # adjust plot 1: mean anomaly and abundance
 
@@ -548,24 +532,18 @@ s.preds.tmean.trop <- PredictGLMERRandIter(model = MeanAnomalyModelRich_trop$mod
 s.preds.tmean.trop <- exp(s.preds.tmean.trop)-0.01
 
 # split by order into matrices, then name them
-number_of_chunks = 6
+number_of_chunks = 3
 list_s.preds.tmean.trop <- lapply(seq(1, NROW(s.preds.tmean.trop), ceiling(NROW(s.preds.tmean.trop)/number_of_chunks)),
                                   function(i) s.preds.tmean.trop[i:min(i + ceiling(NROW(s.preds.tmean.trop)/number_of_chunks) - 1, NROW(s.preds.tmean.trop)),])
 
 names(list_s.preds.tmean.trop) <- c("Coleoptera","Hymenoptera","Lepidoptera")
 
-# only need Coleoptera, Hymenoptera, and Lepidoptera
-list_s.preds.tmean.trop <- list_s.preds.tmean.trop[names(list_s.preds.tmean.trop) %in% c("Coleoptera","Hymenoptera", "Lepidoptera")]
-
 # sweep out refRow
 list_s.preds.tmean.trop <- lapply(list_s.preds.tmean.trop,FUN=function(x){
-  sweep (x=x, MARGIN = 2, STATS=x[1,],FUN="/") 
+  sweep (x=x, MARGIN = 2, STATS=x[refRow[1],],FUN="/") 
 })
 
 list2env(list_s.preds.tmean.trop,globalenv())
-
-# can now remove the extra orders from nd2_trop
-nd2_trop <- filter(nd2_trop, Order %in% c('Coleoptera', 'Hymenoptera', 'Lepidoptera'))
 
 # split nd2_trop by order
 Order<- paste0("nd2_trop_",nd2_trop$Order)
@@ -709,7 +687,7 @@ legend <- get_legend(
     theme(legend.position = "right",
           legend.background = element_blank(), 
           legend.text = element_text(size = 7), 
-          legend.title = element_text(size = 8))
+          legend.title = element_blank())
 )
 
 # put them all together
@@ -771,24 +749,18 @@ s.preds.tmean.nontrop <- exp(s.preds.tmean.nontrop)-0.01
 
 
 # split by order into matrices, then name them
-number_of_chunks = 6
+number_of_chunks = 3
 list_s.preds.tmean.nontrop <- lapply(seq(1, NROW(s.preds.tmean.nontrop), ceiling(NROW(s.preds.tmean.nontrop)/number_of_chunks)),
                                      function(i) s.preds.tmean.nontrop[i:min(i + ceiling(NROW(s.preds.tmean.nontrop)/number_of_chunks) - 1, NROW(s.preds.tmean.nontrop)),])
 
 names(list_s.preds.tmean.nontrop) <- c("Coleoptera","Hymenoptera","Lepidoptera")
 
-# only need Coleoptera, Hymenoptera, and Lepidoptera
-list_s.preds.tmean.nontrop <- list_s.preds.tmean.nontrop[names(list_s.preds.tmean.nontrop) %in% c( ) == FALSE]
-
 # sweep out refRow
 list_s.preds.tmean.nontrop <- lapply(list_s.preds.tmean.nontrop,FUN=function(x){
-  sweep (x=x, MARGIN = 2, STATS=x[1,],FUN="/") 
+  sweep (x=x, MARGIN = 2, STATS=x[refRow[1],],FUN="/") 
 })
 
 list2env(list_s.preds.tmean.nontrop,globalenv())
-
-# can now remove the extra orders from nd2_nontrop
-nd2_nontrop <- filter(nd2_nontrop, Order %in% c('Coleoptera', 'Hymenoptera', 'Lepidoptera'))
 
 # split nd2_nontrop by order
 Order<- paste0("nd2_nontrop_",nd2_nontrop$Order)
@@ -886,8 +858,8 @@ p_hymenoptera <- ggplot(data = nd2_nontrop_Hymenoptera, aes(x = StdTmeanAnomaly,
   scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
-  #scale_y_continuous(breaks = c(-100, 0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000), limits = c(-100, 1000)) +
-  scale_y_continuous(breaks = c(-100, 0, 100, 200, 300, 400, 500), limits = c(-100, 500)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
+  #scale_y_continuous(breaks = c(-100, 0, 100, 200, 300, 400, 500), limits = c(-100, 500)) +
   ylab("Change in species richness (%)") +
   xlab("Standardised Temperature Anomaly") +
   ggtitle("Hymenoptera") +
@@ -913,8 +885,8 @@ p_lepidoptera <- ggplot(data = nd2_nontrop_Lepidoptera, aes(x = StdTmeanAnomaly,
   scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
-  #scale_y_continuous(breaks = c(-100, 0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000), limits = c(-100, 1000)) +
-  scale_y_continuous(breaks = c(-100, 0, 100, 200, 300, 400, 500), limits = c(-100, 500)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
+  #scale_y_continuous(breaks = c(-100, 0, 100, 200, 300, 400, 500), limits = c(-100, 500)) +
   ylab("Change in species richness (%)") +
   xlab("Standardised Temperature Anomaly") +
   ggtitle("Lepidoptera") +
@@ -936,7 +908,7 @@ legend <- get_legend(
     theme(legend.position = "right",
           legend.background = element_blank(), 
           legend.text = element_text(size = 7), 
-          legend.title = element_text(size = 8))
+          legend.title = element_blank())
 )
 
 
@@ -954,16 +926,20 @@ MeanAnomRich_nontrop <- cowplot::plot_grid(p_coleoptera,p_hymenoptera,p_lepidopt
 
 ## plot realms together ##
 
-# add plots together
-MeanAnomRichRealms <-cowplot::plot_grid(MeanAnomRich_nontrop, MeanAnomRich_trop, ncol=1, rel_heights = c(1,1),labels=c('a', 'b'))
+# plot realms together 
+MeanAnomRichRealms <-cowplot::plot_grid(NULL,MeanAnomRich_nontrop,NULL,MeanAnomRich_trop, ncol=1, rel_heights = c(0.1,1,0.1,1),
+                                         labels=c('','a - Non-tropical','', 'b - Tropical'),
+                                         label_size = 10,
+                                         label_x = 0, label_y = 1,
+                                         hjust = -0.2, vjust = -0.05)
 # add legend
-MeanAnomRichRealms <-cowplot::plot_grid(MeanAnomRichRealms, legend, ncol=1, rel_heights = c(1,0.1))
+MeanAnomRichRealms <-cowplot::plot_grid(MeanAnomRichRealms, legend, nrow=1, rel_widths = c(1,0.2))
 
 # save (pdf)
-ggsave(filename = paste0(outDir, "MeanAnomRichRealms.pdf"), plot = MeanAnomRichRealms, width = 300, height = 300, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "MeanAnomRichRealms.pdf"), plot = MeanAnomRichRealms, width = 300, height = 200, units = "mm", dpi = 300)
 
 # save (jpeg)
-ggsave("MeanAnomRichRealms.jpeg", device ="jpeg", path = outDir, width=20, height=15, units="cm", dpi = 350)
+ggsave("MeanAnomRichRealms.jpeg", device ="jpeg", path = outDir, width = 300, height = 200, units = "mm", dpi = 350)
 
 #### 3. Plot Results for Abundance, Max Anomaly ####
 
@@ -1013,24 +989,18 @@ a.preds.tmax.trop <- PredictGLMERRandIter(model = MaxAnomalyModelAbund_trop$mode
 a.preds.tmax.trop <- exp(a.preds.tmax.trop)-0.01
 
 # split by order into matrices, then name them
-number_of_chunks = 6
+number_of_chunks = 3
 list_a.preds.tmax.trop <- lapply(seq(1, NROW(a.preds.tmax.trop), ceiling(NROW(a.preds.tmax.trop)/number_of_chunks)),
                                  function(i) a.preds.tmax.trop[i:min(i + ceiling(NROW(a.preds.tmax.trop)/number_of_chunks) - 1, NROW(a.preds.tmax.trop)),])
 
 names(list_a.preds.tmax.trop) <- c("Coleoptera","Hymenoptera","Lepidoptera")
 
-# only need Coleoptera, Hymenoptera, and Lepidoptera
-list_a.preds.tmax.trop <- list_a.preds.tmax.trop[names(list_a.preds.tmax.trop) %in% c("Coleoptera","Hymenoptera", "Lepidoptera")]
-
 # sweep out refRow
 list_a.preds.tmax.trop <- lapply(list_a.preds.tmax.trop,FUN=function(x){
-  sweep (x=x, MARGIN = 2, STATS=x[56,],FUN="/") 
+  sweep (x=x, MARGIN = 2, STATS=x[refRow[1],],FUN="/") 
 })
 
 list2env(list_a.preds.tmax.trop,globalenv())
-
-# can now remove the extra orders from nd3_trop
-nd3_trop <- filter(nd3_trop, Order %in% c('Coleoptera', 'Hymenoptera', 'Lepidoptera'))
 
 # split nd3_trop by order
 Order<- paste0("nd3_trop_",nd3_trop$Order)
@@ -1174,7 +1144,7 @@ legend <- get_legend(
     theme(legend.position = "right",
           legend.background = element_blank(), 
           legend.text = element_text(size = 7), 
-          legend.title = element_text(size = 8))
+          legend.title = element_blank())
 )
 
 # put them all together
@@ -1236,24 +1206,18 @@ a.preds.tmax.nontrop <- exp(a.preds.tmax.nontrop)-0.01
 
 
 # split by order into matrices, then name them
-number_of_chunks = 6
+number_of_chunks = 3
 list_a.preds.tmax.nontrop <- lapply(seq(1, NROW(a.preds.tmax.nontrop), ceiling(NROW(a.preds.tmax.nontrop)/number_of_chunks)),
                                     function(i) a.preds.tmax.nontrop[i:min(i + ceiling(NROW(a.preds.tmax.nontrop)/number_of_chunks) - 1, NROW(a.preds.tmax.nontrop)),])
 
 names(list_a.preds.tmax.nontrop) <- c("Coleoptera","Hymenoptera","Lepidoptera")
 
-# only need Coleoptera, Hymenoptera, and Lepidoptera
-list_a.preds.tmax.nontrop <- list_a.preds.tmax.nontrop[names(list_a.preds.tmax.nontrop) %in% c( ) == FALSE]
-
 # sweep out refRow
 list_a.preds.tmax.nontrop <- lapply(list_a.preds.tmax.nontrop,FUN=function(x){
-  sweep (x=x, MARGIN = 2, STATS=x[15,],FUN="/") 
+  sweep (x=x, MARGIN = 2, STATS=x[refRow[1],],FUN="/") 
 })
 
 list2env(list_a.preds.tmax.nontrop,globalenv())
-
-# can now remove the extra orders from nd3_nontrop
-nd3_nontrop <- filter(nd3_nontrop, Order %in% c('Coleoptera', 'Hymenoptera', 'Lepidoptera'))
 
 # split nd3_nontrop by order
 Order<- paste0("nd3_nontrop_",nd3_nontrop$Order)
@@ -1398,7 +1362,7 @@ legend <- get_legend(
     theme(legend.position = "right",
           legend.background = element_blank(), 
           legend.text = element_text(size = 7), 
-          legend.title = element_text(size = 8))
+          legend.title = element_blank())
 )
 
 
@@ -1417,15 +1381,19 @@ MaxAnomAbund_nontrop <- cowplot::plot_grid(p_coleoptera,p_hymenoptera,p_lepidopt
 ## plot realms together ##
 
 # add plots together
-MaxAnomAbundRealms <-cowplot::plot_grid(MaxAnomAbund_nontrop, MaxAnomAbund_trop, ncol=1, rel_heights = c(1,1),labels=c('a', 'b'))
+MaxAnomAbundRealms <-cowplot::plot_grid(NULL,MaxAnomAbund_nontrop,NULL,MaxAnomAbund_trop, ncol=1, rel_heights = c(0.1,1,0.1,1),
+                                        labels=c('','a - Non-tropical','', 'b - Tropical'),
+                                        label_size = 10,
+                                        label_x = 0, label_y = 1,
+                                        hjust = -0.2, vjust = -0.05)
 # add legend
-MaxAnomAbundRealms <-cowplot::plot_grid(MaxAnomAbundRealms, legend, ncol=1, rel_heights = c(1,0.1))
+MaxAnomAbundRealms <-cowplot::plot_grid(MaxAnomAbundRealms, legend, ncol=2, rel_widths = c(1,0.1))
 
 # save (pdf)
-ggsave(filename = paste0(outDir, "MaxAnomAbundRealms.pdf"), plot = MaxAnomAbundRealms, width = 300, height = 300, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "MaxAnomAbundRealms.pdf"), plot = MaxAnomAbundRealms, width = 300, height = 200, units = "mm", dpi = 300)
 
 # save (jpeg)
-ggsave("MaxAnomAbundRealms.jpeg", device ="jpeg", path = outDir, width=20, height=15, units="cm", dpi = 350)
+ggsave("MaxAnomAbundRealms.jpeg", device ="jpeg", path = outDir, width=300, height=200, units="mm", dpi = 350)
 
 #### 4. Plot Results for Species Richness, Max Anomaly ####
 
@@ -1475,24 +1443,18 @@ s.preds.tmax.trop <- PredictGLMERRandIter(model = MaxAnomalyModelRich_trop$model
 s.preds.tmax.trop <- exp(s.preds.tmax.trop)-0.01
 
 # split by order into matrices, then name them
-number_of_chunks = 6
+number_of_chunks = 3
 list_s.preds.tmax.trop <- lapply(seq(1, NROW(s.preds.tmax.trop), ceiling(NROW(s.preds.tmax.trop)/number_of_chunks)),
                                  function(i) s.preds.tmax.trop[i:min(i + ceiling(NROW(s.preds.tmax.trop)/number_of_chunks) - 1, NROW(s.preds.tmax.trop)),])
 
 names(list_s.preds.tmax.trop) <- c("Coleoptera","Hymenoptera","Lepidoptera")
 
-# only need Coleoptera, Hymenoptera, and Lepidoptera
-list_s.preds.tmax.trop <- list_s.preds.tmax.trop[names(list_s.preds.tmax.trop) %in% c("Coleoptera","Hymenoptera", "Lepidoptera")]
-
 # sweep out refRow
 list_s.preds.tmax.trop <- lapply(list_s.preds.tmax.trop,FUN=function(x){
-  sweep (x=x, MARGIN = 2, STATS=x[56,],FUN="/") 
+  sweep (x=x, MARGIN = 2, STATS=x[refRow[1],],FUN="/") 
 })
 
 list2env(list_s.preds.tmax.trop,globalenv())
-
-# can now remove the extra orders from nd4_trop
-nd4_trop <- filter(nd4_trop, Order %in% c('Coleoptera', 'Hymenoptera', 'Lepidoptera'))
 
 # split nd4_trop by order
 Order<- paste0("nd4_trop_",nd4_trop$Order)
@@ -1636,7 +1598,7 @@ legend <- get_legend(
     theme(legend.position = "right",
           legend.background = element_blank(), 
           legend.text = element_text(size = 7), 
-          legend.title = element_text(size = 8))
+          legend.title = element_blank())
 )
 
 # put them all together
@@ -1698,24 +1660,18 @@ s.preds.tmax.nontrop <- exp(s.preds.tmax.nontrop)-0.01
 
 
 # split by order into matrices, then name them
-number_of_chunks = 6
+number_of_chunks = 3
 list_s.preds.tmax.nontrop <- lapply(seq(1, NROW(s.preds.tmax.nontrop), ceiling(NROW(s.preds.tmax.nontrop)/number_of_chunks)),
                                     function(i) s.preds.tmax.nontrop[i:min(i + ceiling(NROW(s.preds.tmax.nontrop)/number_of_chunks) - 1, NROW(s.preds.tmax.nontrop)),])
 
 names(list_s.preds.tmax.nontrop) <- c("Coleoptera","Hymenoptera","Lepidoptera")
 
-# only need Coleoptera, Hymenoptera, and Lepidoptera
-list_s.preds.tmax.nontrop <- list_s.preds.tmax.nontrop[names(list_s.preds.tmax.nontrop) %in% c( ) == FALSE]
-
 # sweep out refRow
 list_s.preds.tmax.nontrop <- lapply(list_s.preds.tmax.nontrop,FUN=function(x){
-  sweep (x=x, MARGIN = 2, STATS=x[15,],FUN="/") 
+  sweep (x=x, MARGIN = 2, STATS=x[refRow[1],],FUN="/") 
 })
 
 list2env(list_s.preds.tmax.nontrop,globalenv())
-
-# can now remove the extra orders from nd4_nontrop
-nd4_nontrop <- filter(nd4_nontrop, Order %in% c('Coleoptera', 'Hymenoptera', 'Lepidoptera'))
 
 # split nd4_nontrop by order
 Order<- paste0("nd4_nontrop_",nd4_nontrop$Order)
@@ -1858,7 +1814,7 @@ legend <- get_legend(
     theme(legend.position = "right",
           legend.background = element_blank(), 
           legend.text = element_text(size = 7), 
-          legend.title = element_text(size = 8))
+          legend.title = element_blank())
 )
 
 
@@ -1877,12 +1833,16 @@ MaxAnomRich_nontrop <- cowplot::plot_grid(p_coleoptera,p_hymenoptera,p_lepidopte
 ## plot realms together ##
 
 # add plots together
-MaxAnomRichRealms <-cowplot::plot_grid(MaxAnomRich_nontrop, MaxAnomRich_trop, ncol=1, rel_heights = c(1,1),labels=c('a', 'b'))
+MaxAnomRichRealms <-cowplot::plot_grid(NULL,MaxAnomRich_nontrop,NULL,MaxAnomRich_trop, ncol=1, rel_heights = c(0.1,1,0.1,1),
+                                       labels=c('','a - Non-tropical','', 'b - Tropical'),
+                                       label_size = 10,
+                                       label_x = 0, label_y = 1,
+                                       hjust = -0.2, vjust = -0.05)
 # add legend
-MaxAnomRichRealms <-cowplot::plot_grid(MaxAnomRichRealms, legend, ncol=1, rel_heights = c(1,0.1))
+MaxAnomRichRealms <-cowplot::plot_grid(MaxAnomRichRealms, legend, ncol=2, rel_widths = c(1,0.1))
 
 # save (pdf)
-ggsave(filename = paste0(outDir, "MaxAnomRichRealms.pdf"), plot = MaxAnomRichRealms, width = 300, height = 300, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "MaxAnomRichRealms.pdf"), plot = MaxAnomRichRealms, width = 300, height = 200, units = "mm", dpi = 300)
 
 # save plot (jpeg)
-ggsave("MaxAnomRichRealms.jpeg", device ="jpeg", path = outDir, width=20, height=15, units="cm", dpi = 350)
+ggsave("MaxAnomRichRealms.jpeg", device ="jpeg", path = outDir, width=300, height=200, units="mm", dpi = 350)

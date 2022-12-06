@@ -16,13 +16,11 @@ outDir <- "1_CheckPrepareData/"
 if(!dir.exists(outDir)) dir.create(outDir)
 
 # Load required libraries
-library(predictsFunctions)
-library(dplyr)
-library(ggplot2)
-source("0_Functions.R")
-
-packages <- c("patchwork", "dplyr", "yarg", "lme4", "gt", "broom.mixed", "MASS","webshot")
+packages <- c("predictsFunctions" ,"patchwork", "dplyr", "yarg", "lme4", "gt", "broom.mixed", "MASS","webshot")
 suppressWarnings(suppressMessages(lapply(packages, require, character.only = TRUE)))
+
+# load other functions
+source("0_Functions.R")
 
 # Set the path to copy of the database
 predicts.path <- paste0(dataDir,"database.rds")
