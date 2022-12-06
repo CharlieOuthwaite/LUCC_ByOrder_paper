@@ -16,11 +16,25 @@ outDir <- "1_CheckPrepareData/"
 if(!dir.exists(outDir)) dir.create(outDir)
 
 # Load required libraries
+<<<<<<< HEAD
 packages <- c("predictsFunctions" ,"patchwork", "dplyr", "yarg", "lme4", "gt", "broom.mixed", "MASS","webshot")
 suppressWarnings(suppressMessages(lapply(packages, require, character.only = TRUE)))
 
 # load other functions
 source("0_Functions.R")
+=======
+library(predictsFunctions)
+library(dplyr)
+library(ggplot2)
+library(gt)
+source("0_Functions.R")
+
+packages <- c("patchwork", "dplyr", "yarg", "lme4", "gt", "broom.mixed", "MASS","webshot", "ggplot2","scatterpie","sjPlot")
+suppressWarnings(suppressMessages(lapply(packages, require, character.only = TRUE)))
+
+
+#### 1. Organise data ####
+>>>>>>> c2986b07473e8bb74b4f537ca0ffb06d3f40578c
 
 # Set the path to copy of the database
 predicts.path <- paste0(dataDir,"database.rds")
@@ -117,9 +131,7 @@ predicts_summary_all
 
 predicts <- predicts %>% filter(Order %in% c("Hymenoptera", "Coleoptera", "Lepidoptera", "Diptera", "Hemiptera")) %>% droplevels()
 
-# 814738 obs. of 67 variables
-
-# Charlie 915987 rows
+# 810399 rows
 
 # summarize predicts statistics by order
 predicts_summary <- predicts %>%
@@ -132,11 +144,11 @@ predicts_summary
 
 # Order       Count_Sites Unique_Sites Unique_Species
 # <fct>             <int>        <int>          <int>
-#   1 Hymenoptera      206165         5510           4896
-# 2 Coleoptera       457507         3625           6190
-# 3 Lepidoptera      168417         2004           3908
-# 4 Hemiptera         52187         1304           1458
-# 5 Diptera           31711         1218           1549
+# 1 Hymenoptera      176639         4379           4896
+# 2 Coleoptera       390020         2638           6190
+# 3 Lepidoptera      167464         1846           3908
+# 4 Hemiptera         49119         1006           1458
+# 5 Diptera           27157          877           1549
 
 # convert Order to a "factor"
 predicts$Order <- as.factor(predicts$Order)
@@ -147,7 +159,7 @@ write.csv(predicts_summary,"1_CheckPrepareData/predicts_summary.csv", row.names 
 
 # Split predicts into separate data frames according to insect Order 
 
-# use split function to split the predicts data frame into 6 data frames (1/Order)
+# use split function to split the predicts data frame into 5 data frames (1/Order)
 OrderName <- paste0("",predicts$Order)
 
 by_Order <- split(predicts,OrderName)
@@ -231,8 +243,7 @@ sites$LUI <- dplyr::recode(sites$LUI,
                            'Intermediate secondary vegetation_Intense use' = 'Secondary vegetation',
                            'Intermediate secondary vegetation_Light use' = 'Secondary vegetation')
 
-# 11410 obs. of 25 variables
-# CHarlie 13661 of 27
+# 10746 rows, 26 columns
 
 # ...not sure, but it looks like we are re-classifying all secondary vegetation as "Light use"
 # but why after we have already re-coded the land use type and intensity at all sites?
@@ -247,8 +258,7 @@ sites$LUI <- dplyr::recode(sites$LUI,
 sites <- sites[!sites$LUI == "Urban", ]
 sites <- sites[!is.na(sites$LUI), ]
 
-# 9461 obs. of 25 variables
-# Charlie 11154 of 27
+# 8890 rows, 26 columns
 
 sites <- droplevels(sites)
 
@@ -258,8 +268,7 @@ sites$LogAbund <- log(sites$Total_abundance+1)
 # Remove sites without coordinates
 sites <- sites[!is.na(sites$Latitude), ]
 
-# sites: 9455 obs. of 26 variables
-# Charlie 11127 of 28
+# sites: 8884 rows, 27 columns
 
 # create a new variable designating sites as Tropical or Non-tropical
 # assign new variable for tropical/temperate, convert to factor, and filter out NA
@@ -270,6 +279,9 @@ sites <- sites %>%
 
 # # save as csv
 # write.csv(sites_summary, paste0(outDir, "sites_summary.csv"), row.names = TRUE)
+
+#### 2. Data summary ####
+
 
 # summarize sites by order
 # summarize sites_all
@@ -323,24 +335,55 @@ gtsave(sites_summary, paste0(outDir, "sites_summary.html"))
 # save the prepared dataset
 saveRDS(object = sites,file = paste0(outDir,"PREDICTSSiteData.rds")) 
 
-## plot points of sites (basic) ##
 
-# plot the raster in ggplot
-map.world <- map_data('world')
+#### 3. plot map of site by proportion: scatterpie ####
 
-# map of sites, coloured by order
-p_points_colour <-ggplot() +
+# need to make a new dataframe with variables:
+# UN_subregion
+# Latitude of centre of subregion
+# Longitude of centre of subregion
+# Order
+# Sum of records for each order in that subregion
+
+mapdf <- sites %>% dplyr::select(UN_subregion,Order,Longitude,Latitude) %>% # filter for rows I want
+  group_by(UN_subregion) %>% # group by subregion
+  summarise(Coleoptera = length(Order[Order == "Coleoptera"]), # count for each subregion, the number of records per order
+            Diptera = length(Order[Order == "Diptera"]),
+            Hemiptera = length(Order[Order == "Hemiptera"]),
+            Hymenoptera = length(Order[Order == "Hymenoptera"]),
+            Lepidoptera = length(Order[Order == "Lepidoptera"]),
+            long = mean(Longitude), lat = mean(Latitude), # calculate the mean coordinates, for plotting the piecharts
+            radius = 25*sqrt(length(UN_subregion)/nrow(sites))) # calculate the radius for each subregion
+
+# need to correct the position of the pie charts in europe
+# southern europe - move north and east
+mapdf$lat[mapdf$UN_subregion == "Southern Europe"] <- 43
+mapdf$long[mapdf$UN_subregion == "Southern Europe"] <- -5
+# northern europe - move north and east
+mapdf$lat[mapdf$UN_subregion == "Northern Europe"] <- 68
+mapdf$long[mapdf$UN_subregion == "Northern Europe"] <- 4
+
+## layer maps of sites and by proportion: scatterplot + scatterpie ##
+p_map3 <-ggplot() +
   geom_map(data=map.world, map=map.world,
            aes(x=long, y=lat, group=group, map_id=region),
            fill= "grey", colour="grey", size=0.2) +
-  geom_point(data = sites, aes(x = Longitude, y = Latitude, colour = factor(Order)), shape = 20) +
-  theme(axis.title = element_blank(), 
-        plot.background = element_blank(), 
+  coord_fixed() +
+  labs(x = "Longitude", y = "Latitude", fill = "Order") +
+  geom_point(data = sites, aes(x = Longitude, y = Latitude), shape = 20, size=1) +
+  geom_scatterpie(aes(x=long, y=lat, group=UN_subregion, r=radius),
+                  data=mapdf, cols=c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera"), color=NA, alpha=.8) +
+  scale_fill_manual(values=c("#2271B2","#F0E442","#359B73","#E69F00","#F748A5"))+
+  theme(axis.title = element_text(size = 8),
+        axis.text = element_text(size = 7),
+        plot.background = element_blank(),
         panel.background = element_blank(),
-        axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        legend.title = element_blank())
+        legend.title = element_text(size = 8),
+        legend.text = element_text(size = 7))
+
+# save maps (jpeg)
+ggsave("FIGURE_1_maps_layered.jpeg", device ="jpeg", path = outDir, width=25, height=10, units="cm", dpi = 350)
 
 
-# save plot
-ggsave(filename = paste0(outDir, "/PREDICTS_points_map_colour.pdf"), height = 4, width = 8)
+
+
