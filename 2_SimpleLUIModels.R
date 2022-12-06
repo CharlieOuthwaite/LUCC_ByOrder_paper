@@ -34,12 +34,12 @@ source("0_Functions.R")
 #### 1. Organise data ####
 
 # read in the Site data
-sites <- readRDS(file = paste0(inDir,"PREDICTSSiteData.rds")) # 11127 rows
+sites <- readRDS(file = paste0(inDir,"PREDICTSSiteData.rds")) # 8884 rows
 
 ## Species Richness Model ##
 
 # remove NAs in the specified columns
-model_data_sr <- na.omit(sites[,c('Species_richness','LandUse','Use_intensity','LUI','SS','SSB','SSBS','Order')]) # 11127 rows
+model_data_sr <- na.omit(sites[,c('Species_richness','LandUse','Use_intensity','LUI','SS','SSB','SSBS','Order')]) # 8884 rows
 
 # order data
 model_data_sr$LUI <- factor(model_data_sr$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
@@ -53,17 +53,13 @@ saveRDS(object = model_data_sr ,file = paste0(outDir,"model_data_sr.rds"))
 
 # summaries
 length(unique(model_data_sr$SS)) # 254
-length(unique(model_data_sr$SSBS)) # 7186
+length(unique(model_data_sr$SSBS)) # 6014
 
 # look at the spread of land use/use intensity categories
 print(table(model_data_sr$LUI))
 
 # Primary vegetation Secondary vegetation      Agriculture_Low     Agriculture_High 
-#               2222                 2560                 2031                 2642 
-
-# Charlie running code, get a different set of values
-# Primary vegetation Secondary vegetation      Agriculture_Low     Agriculture_High 
-# 2849                 2919                 2126                 3233  
+#               2093                 2392                 1886                 2513  
 
 
 #### 2. Species Richness models ####
@@ -351,35 +347,19 @@ tab_model(am3.3$model, transform = NULL, file = paste0(outDir,"Abun_output_table
 summary(am3.3$model) # check the table against the outputs
 R2GLMER(am3.3$model) # check the R2 values 
 # $conditional
-# [1] 0.7728262
+# [1] 0.7623785
 # 
 # $marginal
-# [1] 0.09685826
-
-# Charlie gets different values
-# $conditional
-# [1] 0.7512361
-# 
-# $marginal
-# [1] 0.05434378
+# [1] 0.06004844
 
 tab_model(sm3.3$model, transform = NULL, file = paste0(outDir,"Rich_output_table.html"))
 summary(sm3.3$model) # check the table against the outputs
 R2GLMER(sm3.3$model) # check the R2 values 
 # $conditional
-# [1] 0.7315692
+# [1] 0.7106989
 # 
 # $marginal
-# [1] 0.1149284
-
-
-# Charlie gets different values
-
-# $conditional
-# [1] 0.6972051
-# 
-# $marginal
-# [1] 0.05291188
+# [1] 0.05387385
 
 
 ##%######################################################%##
@@ -432,7 +412,7 @@ richness <- richness_metric + xlab(NULL) +
         legend.title = element_blank())
 
 # save plot (pdf)
-ggsave(filename = paste0(outDir, "Figure1_simplemods_rich.pdf"), plot = last_plot(), width = 250, height = 100, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "Figure2_simplemods_rich.pdf"), plot = last_plot(), width = 250, height = 100, units = "mm", dpi = 300)
 
 # save plot (jpeg)
 ggsave("Figure1_simplemods_rich.jpeg", device ="jpeg", path = outDir, width=25, height=10, units="cm", dpi = 350)

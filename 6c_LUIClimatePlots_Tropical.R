@@ -15,6 +15,7 @@ rm(list = ls())
 predictsDir <- "5_RunLUIClimateModels/"
 inDir<- "6_TropicalModels/"
 outDir <- "6_TropicalModels/Plots/"
+predictsDir<- "5_RunLUIClimateModels/"
 if(!dir.exists(outDir)) dir.create(outDir)
 
 # load libraries
