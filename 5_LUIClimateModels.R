@@ -50,7 +50,8 @@ predictsSites$StdTmeanAnomalyRS <- StdCenterPredictor(predictsSites$StdTmeanAnom
 predictsSites$StdTmaxAnomalyRS <- StdCenterPredictor(predictsSites$StdTmaxAnomaly)
 
 # rescaling abundance and log values
-predictsSites <- RescaleAbundance(predictsSites)
+# CO note changed from RescaleAbundance to RescaleAbundance2 to scale with in Study AND Order
+predictsSites <- RescaleAbundance2(predictsSites)
 
 # Charlie added this line as later bits were throwing errors
 predictsSites <- droplevels(predictsSites)
@@ -299,8 +300,13 @@ list_a.preds.tmean <- lapply(seq(1, NROW(a.preds.tmean), ceiling(NROW(a.preds.tm
 
 # name them
 names(list_a.preds.tmean) <- c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera")
+<<<<<<< HEAD
                              
 # sweep out according to the refRow
+=======
+                                                   
+# tim's suggestion
+>>>>>>> c2986b07473e8bb74b4f537ca0ffb06d3f40578c
 list_a.preds.tmean <- lapply(list_a.preds.tmean,FUN=function(x){
  sweep (x=x, MARGIN = 2, STATS=x[refRow[1],],FUN="/") 
 })
@@ -594,13 +600,17 @@ sr.preds.tmean <- PredictGLMERRandIter(model = MeanAnomalyModelRich$model,data =
 sr.preds.tmean <- exp(sr.preds.tmean)-0.01
 
 # create list of matrices
-number_of_chunks = 6
+number_of_chunks = 5
 list_sr.preds.tmean <- lapply(seq(1, NROW(sr.preds.tmean), ceiling(NROW(sr.preds.tmean)/number_of_chunks)),
                               function(i) sr.preds.tmean[i:min(i + ceiling(NROW(sr.preds.tmean)/number_of_chunks) - 1, NROW(sr.preds.tmean)),])
 # name them
 names(list_sr.preds.tmean) <- c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera")
 
+<<<<<<< HEAD
 # sweep out according to the refRow
+=======
+# tim's suggestion
+>>>>>>> c2986b07473e8bb74b4f537ca0ffb06d3f40578c
 list_sr.preds.tmean <- lapply(list_sr.preds.tmean,FUN=function(x){
   sweep (x=x, MARGIN = 2, STATS=x[refRow[1],],FUN="/") 
 })
@@ -884,13 +894,22 @@ QAH <- quantile(x = MaxAnomalyModelAbund$data$StdTmaxAnomalyRS[
 a.preds.tmax <- PredictGLMERRandIter(model = MaxAnomalyModelAbund$model,data = nd3, nIters = 10000)
 a.preds.tmax <- exp(a.preds.tmax)-0.01
 
+<<<<<<< HEAD
 # split into 5 groups
 number_of_chunks = 6
+=======
+# split into 6 groups
+number_of_chunks = 5
+>>>>>>> c2986b07473e8bb74b4f537ca0ffb06d3f40578c
 list_a.preds.tmax <- lapply(seq(1, NROW(a.preds.tmax), ceiling(NROW(a.preds.tmax)/number_of_chunks)),
                             function(i) a.preds.tmax[i:min(i + ceiling(NROW(a.preds.tmax)/number_of_chunks) - 1, NROW(a.preds.tmax)),])
 # name the matrices
 names(list_a.preds.tmax) <- c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera")
+<<<<<<< HEAD
                             
+=======
+
+>>>>>>> c2986b07473e8bb74b4f537ca0ffb06d3f40578c
 # unload into global environment
 list2env(list_a.preds.tmax,globalenv())
 
@@ -1177,13 +1196,22 @@ QAH <- quantile(x = MaxAnomalyModelRich$data$StdTmaxAnomalyRS[
 sr.preds.tmax <- PredictGLMERRandIter(model = MaxAnomalyModelRich$model,data = nd4, nIters = 10000)
 sr.preds.tmax <- exp(sr.preds.tmax)-0.01
 
+<<<<<<< HEAD
 # split into 5 groups
 number_of_chunks = 6
+=======
+# split into 6 groups
+number_of_chunks = 5
+>>>>>>> c2986b07473e8bb74b4f537ca0ffb06d3f40578c
 list_sr.preds.tmax <- lapply(seq(1, NROW(sr.preds.tmax), ceiling(NROW(sr.preds.tmax)/number_of_chunks)),
                              function(i) sr.preds.tmax[i:min(i + ceiling(NROW(sr.preds.tmax)/number_of_chunks) - 1, NROW(sr.preds.tmax)),])
 # name the matrices
 names(list_sr.preds.tmax) <- c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera")
+<<<<<<< HEAD
                              
+=======
+
+>>>>>>> c2986b07473e8bb74b4f537ca0ffb06d3f40578c
 # unload into global environment
 list2env(list_sr.preds.tmax,globalenv())
 
