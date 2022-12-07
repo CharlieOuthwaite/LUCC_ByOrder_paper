@@ -3,15 +3,15 @@
 .RData
 .Ruserdata
 
+ 
+
 
 # ignore r project
 LUCC_ByOrder_paper.Rproj
 
+ 
+
 # ignore output directories
 Data/
-1_CheckPrepareData
-2_RunSimpleLUIModel/
-3_PrepareClimateIndexMaps/
-4_PREDICTSMatchClimateIndex
-5_RunLUIClimateModels
-11_Explore_primveg/
+11_Explore_primvsg/
+ 
