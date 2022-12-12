@@ -17,6 +17,7 @@ rm(list = ls())
 inDir <- "1_CheckPrepareData/"
 outDir <- "2_RunSimpleLUIModel/"
 predsDir <- "7_Predictions/"
+dataDir <- "Data/"
 if(!dir.exists(outDir)) dir.create(outDir)
 if(!dir.exists(predsDir)) dir.create(predsDir)
 
@@ -28,7 +29,7 @@ packages_plot <- c("patchwork", "dplyr", "yarg", "lme4", "gt", "broom.mixed", "M
 suppressWarnings(suppressMessages(lapply(packages_plot, require, character.only = TRUE)))
 
 # source in additional functions
-source("0_Functions.R")
+source(dataDir,"0_Functions.R")
 
 
 #### 1. Organise data ####
@@ -308,7 +309,8 @@ selection_table <- data.frame("Response" = c(rep("Species richness", 5),
   )%>%
   tab_stubhead(label = "Models")
 
-gtsave(selection_table,"2_RunSimpleLUIModel/LUIModels_Selection1.html")
+# save it
+gtsave(selection_table, "SimpleLUIModel_Selection.png", path = outDir)
 
 # species richness only
 selection_table_sr <- data.frame("Response" = c(rep("Species richness", 5)),
@@ -323,7 +325,8 @@ selection_table_sr <- data.frame("Response" = c(rep("Species richness", 5)),
   ungroup() %>%
   gt()
 
-gtsave(selection_table_sr,"2_RunSimpleLUIModel/LUIModels_Selection_Rich.html")
+# save it
+gtsave(selection_table_sr,"SimpleLUIModel_Selection_Rich.png", path = outDir)
 
 # total abundance only
 selection_table_ab <- data.frame("Response" = c(rep("Total abundance", 5)),
@@ -338,12 +341,12 @@ selection_table_ab <- data.frame("Response" = c(rep("Total abundance", 5)),
   ungroup() %>%
   gt()
 
-
-gtsave(selection_table_ab,"2_RunSimpleLUIModel/LUIModels_Selection_Abund.html")
+# save it
+gtsave(selection_table_ab,"SimpleLUIModel_Selection_Abund.png", path = outDir)
 
 # save model output tables for use in supplementary information 
 # use function from sjPlot library to save neat versions of model output table
-tab_model(am3.3$model, transform = NULL, file = paste0(outDir,"Abun_output_table.html"))
+tab_model(am3.3$model, transform = NULL, file = paste0(outDir,"Output_table_abund.html"))
 summary(am3.3$model) # check the table against the outputs
 R2GLMER(am3.3$model) # check the R2 values 
 # $conditional
@@ -352,7 +355,7 @@ R2GLMER(am3.3$model) # check the R2 values
 # $marginal
 # [1] 0.06004844
 
-tab_model(sm3.3$model, transform = NULL, file = paste0(outDir,"Rich_output_table.html"))
+tab_model(sm3.3$model, transform = NULL, file = paste0(outDir,"Output_table_rich.html"))
 summary(sm3.3$model) # check the table against the outputs
 R2GLMER(sm3.3$model) # check the R2 values 
 # $conditional
@@ -412,10 +415,10 @@ richness <- richness_metric + xlab(NULL) +
         legend.title = element_blank())
 
 # save plot (pdf)
-ggsave(filename = paste0(outDir, "Figure2_simplemods_rich.pdf"), plot = last_plot(), width = 250, height = 100, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "Fig1_SimpleLUI_Rich.pdf"), plot = last_plot(), width = 250, height = 100, units = "mm", dpi = 300)
 
 # save plot (jpeg)
-ggsave("Figure1_simplemods_rich.jpeg", device ="jpeg", path = outDir, width=25, height=10, units="cm", dpi = 350)
+ggsave("Fig1_SimpleLUI_Rich.jpeg", device ="jpeg", path = outDir, width=25, height=10, units="cm", dpi = 350)
 
 ####  6. Abundance Plot ####
 
@@ -461,10 +464,10 @@ abundance <- abundance_metric + xlab(NULL) +
         legend.title = element_blank())
 
 # save plot (pdf)
-ggsave(filename = paste0(outDir, "Figure1_simplemods_abund.pdf"), plot = last_plot(), width = 250, height = 100, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "Fig1_SimpleLUI_Abund.pdf"), plot = last_plot(), width = 250, height = 100, units = "mm", dpi = 300)
 
 # save plot (jpeg)
-ggsave("Figure1_simplemods_abund.jpeg", device ="jpeg", path = outDir, width=25, height=10, units="cm", dpi = 350)
+ggsave("Fig1_SimpleLUI_Abund.jpeg", device ="jpeg", path = outDir, width=25, height=10, units="cm", dpi = 350)
 
 ####  7. Plot Together  ####
 
@@ -505,10 +508,10 @@ legend <- cowplot::plot_grid(NULL,legend,NULL, ncol = 1, rel_heights = c(0.5,1,0
 plot_figure <- cowplot::plot_grid(plot_figure, legend, ncol = 2, rel_widths = c(1,0.2))
 
 # save plot (pdf)
-ggsave(filename = paste0(outDir, "Figure1_simplemods.pdf"), plot = last_plot(), width = 250, height = 200, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "Fig1_SimpleLUI.pdf"), plot = last_plot(), width = 250, height = 200, units = "mm", dpi = 300)
 
 # save plot (jpeg)
-ggsave("Figure1_simplemods.jpeg", device ="jpeg", path = outDir, width=20, height=15, units="cm", dpi = 350)
+ggsave("Fig1_SimpleLUI.jpeg", device ="jpeg", path = outDir, width=20, height=15, units="cm", dpi = 350)
 
 #### 8. Table of predicted values ####
 
@@ -516,12 +519,15 @@ ggsave("Figure1_simplemods.jpeg", device ="jpeg", path = outDir, width=20, heigh
 all_res <- rbind(result.ab, result.sr)
 all_res$measure <- c(rep("ab", 20), rep("sr", 20))
 
-# save as table
-percentage_change_LUI <- all_res %>% gt()
-gtsave(percentage_change_LUI, paste0(predsDir, "percentage_change_LUI.html"))
-
 # save as .csv
-write.csv(all_res, file = paste0(predsDir,"percentage_change_LUI.csv"))
+write.csv(all_res, file = paste0(predsDir,"LUI_predictions.csv"))
+
+# save as table
+LUI_predictions <- all_res %>% gt()
+gtsave(LUI_predictions,"LUI_predictions.png", path = predsDir)
+
+# # save as html, if wanted
+# gtsave(LUI_predictions, paste0(predsDir, "LUI_predictions.html"))
 
 # t.end <- Sys.time()
 # 

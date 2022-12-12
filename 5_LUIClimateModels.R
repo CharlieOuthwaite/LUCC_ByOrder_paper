@@ -300,13 +300,8 @@ list_a.preds.tmean <- lapply(seq(1, NROW(a.preds.tmean), ceiling(NROW(a.preds.tm
 
 # name them
 names(list_a.preds.tmean) <- c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera")
-<<<<<<< HEAD
                              
 # sweep out according to the refRow
-=======
-                                                   
-# tim's suggestion
->>>>>>> c2986b07473e8bb74b4f537ca0ffb06d3f40578c
 list_a.preds.tmean <- lapply(list_a.preds.tmean,FUN=function(x){
  sweep (x=x, MARGIN = 2, STATS=x[refRow[1],],FUN="/") 
 })
@@ -322,8 +317,8 @@ by_Order <- split(nd,Order)
 list2env(by_Order,globalenv())
 
 # remove anything above and below the quantiles
-Coleoptera[which((nd_Coleoptera$LUI=="Primary vegetation") & (nd_Coleoptera$StdTmeanAnomalyRS > C_QPV[2])),] <- NA
 Coleoptera[which((nd_Coleoptera$LUI=="Primary vegetation") & (nd_Coleoptera$StdTmeanAnomalyRS < C_QPV[1])),] <- NA
+Coleoptera[which((nd_Coleoptera$LUI=="Primary vegetation") & (nd_Coleoptera$StdTmeanAnomalyRS > C_QPV[2])),] <- NA
 Coleoptera[which((nd_Coleoptera$LUI=="Secondary vegetation") & (nd_Coleoptera$StdTmeanAnomalyRS < C_QSV[1])),] <- NA
 Coleoptera[which((nd_Coleoptera$LUI=="Secondary vegetation") & (nd_Coleoptera$StdTmeanAnomalyRS > C_QSV[2])),] <- NA
 Coleoptera[which((nd_Coleoptera$LUI=="Agriculture_Low") & (nd_Coleoptera$StdTmeanAnomalyRS < C_QAL[1])),] <- NA
@@ -331,8 +326,8 @@ Coleoptera[which((nd_Coleoptera$LUI=="Agriculture_Low") & (nd_Coleoptera$StdTmea
 Coleoptera[which((nd_Coleoptera$LUI=="Agriculture_High") & (nd_Coleoptera$StdTmeanAnomalyRS < C_QAH[1])),] <- NA
 Coleoptera[which((nd_Coleoptera$LUI=="Agriculture_High") & (nd_Coleoptera$StdTmeanAnomalyRS > C_QAH[2])),] <- NA
 
-Diptera[which((nd_Diptera$LUI=="Primary vegetation") & (nd_Diptera$StdTmeanAnomalyRS > D_QPV[2])),] <- NA
 Diptera[which((nd_Diptera$LUI=="Primary vegetation") & (nd_Diptera$StdTmeanAnomalyRS < D_QPV[1])),] <- NA
+Diptera[which((nd_Diptera$LUI=="Primary vegetation") & (nd_Diptera$StdTmeanAnomalyRS > D_QPV[2])),] <- NA
 Diptera[which((nd_Diptera$LUI=="Secondary vegetation") & (nd_Diptera$StdTmeanAnomalyRS < D_QSV[1])),] <- NA
 Diptera[which((nd_Diptera$LUI=="Secondary vegetation") & (nd_Diptera$StdTmeanAnomalyRS > D_QSV[2])),] <- NA
 Diptera[which((nd_Diptera$LUI=="Agriculture_Low") & (nd_Diptera$StdTmeanAnomalyRS < D_QAL[1])),] <- NA
@@ -340,8 +335,8 @@ Diptera[which((nd_Diptera$LUI=="Agriculture_Low") & (nd_Diptera$StdTmeanAnomalyR
 Diptera[which((nd_Diptera$LUI=="Agriculture_High") & (nd_Diptera$StdTmeanAnomalyRS < D_QAH[1])),] <- NA
 Diptera[which((nd_Diptera$LUI=="Agriculture_High") & (nd_Diptera$StdTmeanAnomalyRS > D_QAH[2])),] <- NA
 
-Hemiptera[which((nd_Hemiptera$LUI=="Primary vegetation") & (nd_Hemiptera$StdTmeanAnomalyRS > He_QPV[2])),] <- NA
 Hemiptera[which((nd_Hemiptera$LUI=="Primary vegetation") & (nd_Hemiptera$StdTmeanAnomalyRS < He_QPV[1])),] <- NA
+Hemiptera[which((nd_Hemiptera$LUI=="Primary vegetation") & (nd_Hemiptera$StdTmeanAnomalyRS > He_QPV[2])),] <- NA
 Hemiptera[which((nd_Hemiptera$LUI=="Secondary vegetation") & (nd_Hemiptera$StdTmeanAnomalyRS < He_QSV[1])),] <- NA
 Hemiptera[which((nd_Hemiptera$LUI=="Secondary vegetation") & (nd_Hemiptera$StdTmeanAnomalyRS > He_QSV[2])),] <- NA
 Hemiptera[which((nd_Hemiptera$LUI=="Agriculture_Low") & (nd_Hemiptera$StdTmeanAnomalyRS < He_QAL[1])),] <- NA
@@ -349,8 +344,8 @@ Hemiptera[which((nd_Hemiptera$LUI=="Agriculture_Low") & (nd_Hemiptera$StdTmeanAn
 Hemiptera[which((nd_Hemiptera$LUI=="Agriculture_High") & (nd_Hemiptera$StdTmeanAnomalyRS < He_QAH[1])),] <- NA
 Hemiptera[which((nd_Hemiptera$LUI=="Agriculture_High") & (nd_Hemiptera$StdTmeanAnomalyRS > He_QAH[2])),] <- NA
 
-Hymenoptera[which((nd_Hymenoptera$LUI=="Primary vegetation") & (nd_Hymenoptera$StdTmeanAnomalyRS > Hy_QPV[2])),] <- NA
 Hymenoptera[which((nd_Hymenoptera$LUI=="Primary vegetation") & (nd_Hymenoptera$StdTmeanAnomalyRS < Hy_QPV[1])),] <- NA
+Hymenoptera[which((nd_Hymenoptera$LUI=="Primary vegetation") & (nd_Hymenoptera$StdTmeanAnomalyRS > Hy_QPV[2])),] <- NA
 Hymenoptera[which((nd_Hymenoptera$LUI=="Secondary vegetation") & (nd_Hymenoptera$StdTmeanAnomalyRS < Hy_QSV[1])),] <- NA
 Hymenoptera[which((nd_Hymenoptera$LUI=="Secondary vegetation") & (nd_Hymenoptera$StdTmeanAnomalyRS > Hy_QSV[2])),] <- NA
 Hymenoptera[which((nd_Hymenoptera$LUI=="Agriculture_Low") & (nd_Hymenoptera$StdTmeanAnomalyRS < Hy_QAL[1])),] <- NA
@@ -358,8 +353,8 @@ Hymenoptera[which((nd_Hymenoptera$LUI=="Agriculture_Low") & (nd_Hymenoptera$StdT
 Hymenoptera[which((nd_Hymenoptera$LUI=="Agriculture_High") & (nd_Hymenoptera$StdTmeanAnomalyRS < Hy_QAH[1])),] <- NA
 Hymenoptera[which((nd_Hymenoptera$LUI=="Agriculture_High") & (nd_Hymenoptera$StdTmeanAnomalyRS > Hy_QAH[2])),] <- NA
 
-Lepidoptera[which((nd_Lepidoptera$LUI=="Primary vegetation") & (nd_Lepidoptera$StdTmeanAnomalyRS > L_QPV[2])),] <- NA
 Lepidoptera[which((nd_Lepidoptera$LUI=="Primary vegetation") & (nd_Lepidoptera$StdTmeanAnomalyRS < L_QPV[1])),] <- NA
+Lepidoptera[which((nd_Lepidoptera$LUI=="Primary vegetation") & (nd_Lepidoptera$StdTmeanAnomalyRS > L_QPV[2])),] <- NA
 Lepidoptera[which((nd_Lepidoptera$LUI=="Secondary vegetation") & (nd_Lepidoptera$StdTmeanAnomalyRS < L_QSV[1])),] <- NA
 Lepidoptera[which((nd_Lepidoptera$LUI=="Secondary vegetation") & (nd_Lepidoptera$StdTmeanAnomalyRS > L_QSV[2])),] <- NA
 Lepidoptera[which((nd_Lepidoptera$LUI=="Agriculture_Low") & (nd_Lepidoptera$StdTmeanAnomalyRS < L_QAL[1])),] <- NA
@@ -424,7 +419,7 @@ p_coleoptera <- ggplot(data = nd_Coleoptera, aes(x = StdTmeanAnomaly, y = PredMe
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   #scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
-  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150), limits = c(-100, 150)) +
+  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150,200), limits = c(-100, 200)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") + 
   ggtitle("Coleoptera") +
@@ -449,7 +444,7 @@ p_diptera <- ggplot(data = nd_Diptera, aes(x = StdTmeanAnomaly, y = PredMedian))
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   #scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
-  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150), limits = c(-100, 150)) +
+  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150,200), limits = c(-100, 200)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") +
   ggtitle("Diptera") +
@@ -473,7 +468,7 @@ p_hemiptera <- ggplot(data = nd_Hemiptera, aes(x = StdTmeanAnomaly, y = PredMedi
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   #scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
-  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150), limits = c(-100, 150)) +
+  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150,200), limits = c(-100, 200)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") +
   ggtitle("Hemiptera") +
@@ -498,7 +493,7 @@ p_hymenoptera <- ggplot(data = nd_Hymenoptera, aes(x = StdTmeanAnomaly, y = Pred
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   #scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
   #scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
-  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150, 200, 250), limits = c(-100, 250)) +
+  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150,200), limits = c(-100, 200)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") +
   ggtitle("Hymenoptera") +
@@ -521,7 +516,7 @@ p_lepidoptera <- ggplot(data = nd_Lepidoptera, aes(x = StdTmeanAnomaly, y = Pred
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   #scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
-  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150), limits = c(-100, 150)) +
+  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150,200), limits = c(-100, 200)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") +
   ggtitle("Lepidoptera") +
@@ -580,18 +575,76 @@ nd2$Species_richness <- 0
 refRow <- which((nd2$LUI=="Primary vegetation") & (nd2$StdTmeanAnomaly==min(abs(nd2$StdTmeanAnomaly))))
 
 # set quantiles
-QPV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
-  MeanAnomalyModelRich$data$LUI=="Primary vegetation"],
+# coleoptera
+C_QPV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Primary vegetation" & MeanAnomalyModelRich$data$Order == "Coleoptera"],
   probs = exclQuantiles)
-QSV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
-  MeanAnomalyModelRich$data$LUI=="Secondary vegetation"],
+C_QSV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Secondary vegetation" & MeanAnomalyModelRich$data$Order == "Coleoptera"],
   probs = exclQuantiles)
-QAL <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
-  MeanAnomalyModelRich$data$LUI=="Agriculture_Low"],
+C_QAL <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Agriculture_Low" & MeanAnomalyModelRich$data$Order == "Coleoptera"],
   probs = exclQuantiles)
-QAH <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
-  MeanAnomalyModelRich$data$LUI=="Agriculture_High"],
+C_QAH <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Agriculture_High" & MeanAnomalyModelRich$data$Order == "Coleoptera"],
   probs = exclQuantiles)
+
+# diptera
+D_QPV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Primary vegetation" & MeanAnomalyModelRich$data$Order == "Diptera"],
+  probs = exclQuantiles)
+D_QSV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Secondary vegetation" & MeanAnomalyModelRich$data$Order == "Diptera"],
+  probs = exclQuantiles)
+D_QAL <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Agriculture_Low" & MeanAnomalyModelRich$data$Order == "Diptera"],
+  probs = exclQuantiles)
+D_QAH <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Agriculture_High" & MeanAnomalyModelRich$data$Order == "Diptera"],
+  probs = exclQuantiles)
+
+# hemiptera
+He_QPV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Primary vegetation" & MeanAnomalyModelRich$data$Order == "Hemiptera"],
+  probs = exclQuantiles)
+He_QSV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Secondary vegetation" & MeanAnomalyModelRich$data$Order == "Hemiptera"],
+  probs = exclQuantiles)
+He_QAL <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Agriculture_Low" & MeanAnomalyModelRich$data$Order == "Hemiptera"],
+  probs = exclQuantiles)
+He_QAH <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Agriculture_High" & MeanAnomalyModelRich$data$Order == "Hemiptera"],
+  probs = exclQuantiles)
+
+# hymenoptera
+Hy_QPV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Primary vegetation" & MeanAnomalyModelRich$data$Order == "Hymenoptera"],
+  probs = exclQuantiles)
+Hy_QSV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Secondary vegetation" & MeanAnomalyModelRich$data$Order == "Hymenoptera"],
+  probs = exclQuantiles)
+Hy_QAL <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Agriculture_Low" & MeanAnomalyModelRich$data$Order == "Hymenoptera"],
+  probs = exclQuantiles)
+Hy_QAH <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Agriculture_High" & MeanAnomalyModelRich$data$Order == "Hymenoptera"],
+  probs = exclQuantiles)
+
+# lepidoptera
+L_QPV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Primary vegetation" & MeanAnomalyModelRich$data$Order == "Lepidoptera"],
+  probs = exclQuantiles)
+L_QSV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Secondary vegetation" & MeanAnomalyModelRich$data$Order == "Lepidoptera"],
+  probs = exclQuantiles)
+L_QAL <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Agriculture_Low" & MeanAnomalyModelRich$data$Order == "Lepidoptera"],
+  probs = exclQuantiles)
+L_QAH <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Agriculture_High" & MeanAnomalyModelRich$data$Order == "Lepidoptera"],
+  probs = exclQuantiles)
+
 
 # predict the results
 sr.preds.tmean <- PredictGLMERRandIter(model = MeanAnomalyModelRich$model,data = nd2)
@@ -606,11 +659,7 @@ list_sr.preds.tmean <- lapply(seq(1, NROW(sr.preds.tmean), ceiling(NROW(sr.preds
 # name them
 names(list_sr.preds.tmean) <- c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera")
 
-<<<<<<< HEAD
 # sweep out according to the refRow
-=======
-# tim's suggestion
->>>>>>> c2986b07473e8bb74b4f537ca0ffb06d3f40578c
 list_sr.preds.tmean <- lapply(list_sr.preds.tmean,FUN=function(x){
   sweep (x=x, MARGIN = 2, STATS=x[refRow[1],],FUN="/") 
 })
@@ -624,8 +673,8 @@ by_Order <- split(nd2,Order)
 list2env(by_Order,globalenv())
 
 # remove anything above and below the quantiles
-Coleoptera[which((nd2_Coleoptera$LUI=="Primary vegetation") & (nd2_Coleoptera$StdTmeanAnomalyRS > C_QPV[2])),] <- NA
 Coleoptera[which((nd2_Coleoptera$LUI=="Primary vegetation") & (nd2_Coleoptera$StdTmeanAnomalyRS < C_QPV[1])),] <- NA
+Coleoptera[which((nd2_Coleoptera$LUI=="Primary vegetation") & (nd2_Coleoptera$StdTmeanAnomalyRS > C_QPV[2])),] <- NA
 Coleoptera[which((nd2_Coleoptera$LUI=="Secondary vegetation") & (nd2_Coleoptera$StdTmeanAnomalyRS < C_QSV[1])),] <- NA
 Coleoptera[which((nd2_Coleoptera$LUI=="Secondary vegetation") & (nd2_Coleoptera$StdTmeanAnomalyRS > C_QSV[2])),] <- NA
 Coleoptera[which((nd2_Coleoptera$LUI=="Agriculture_Low") & (nd2_Coleoptera$StdTmeanAnomalyRS < C_QAL[1])),] <- NA
@@ -633,8 +682,8 @@ Coleoptera[which((nd2_Coleoptera$LUI=="Agriculture_Low") & (nd2_Coleoptera$StdTm
 Coleoptera[which((nd2_Coleoptera$LUI=="Agriculture_High") & (nd2_Coleoptera$StdTmeanAnomalyRS < C_QAH[1])),] <- NA
 Coleoptera[which((nd2_Coleoptera$LUI=="Agriculture_High") & (nd2_Coleoptera$StdTmeanAnomalyRS > C_QAH[2])),] <- NA
 
-Diptera[which((nd2_Diptera$LUI=="Primary vegetation") & (nd2_Diptera$StdTmeanAnomalyRS > D_QPV[2])),] <- NA
 Diptera[which((nd2_Diptera$LUI=="Primary vegetation") & (nd2_Diptera$StdTmeanAnomalyRS < D_QPV[1])),] <- NA
+Diptera[which((nd2_Diptera$LUI=="Primary vegetation") & (nd2_Diptera$StdTmeanAnomalyRS > D_QPV[2])),] <- NA
 Diptera[which((nd2_Diptera$LUI=="Secondary vegetation") & (nd2_Diptera$StdTmeanAnomalyRS < D_QSV[1])),] <- NA
 Diptera[which((nd2_Diptera$LUI=="Secondary vegetation") & (nd2_Diptera$StdTmeanAnomalyRS > D_QSV[2])),] <- NA
 Diptera[which((nd2_Diptera$LUI=="Agriculture_Low") & (nd2_Diptera$StdTmeanAnomalyRS < D_QAL[1])),] <- NA
@@ -642,8 +691,8 @@ Diptera[which((nd2_Diptera$LUI=="Agriculture_Low") & (nd2_Diptera$StdTmeanAnomal
 Diptera[which((nd2_Diptera$LUI=="Agriculture_High") & (nd2_Diptera$StdTmeanAnomalyRS < D_QAH[1])),] <- NA
 Diptera[which((nd2_Diptera$LUI=="Agriculture_High") & (nd2_Diptera$StdTmeanAnomalyRS > D_QAH[2])),] <- NA
 
-Hemiptera[which((nd2_Hemiptera$LUI=="Primary vegetation") & (nd2_Hemiptera$StdTmeanAnomalyRS > He_QPV[2])),] <- NA
 Hemiptera[which((nd2_Hemiptera$LUI=="Primary vegetation") & (nd2_Hemiptera$StdTmeanAnomalyRS < He_QPV[1])),] <- NA
+Hemiptera[which((nd2_Hemiptera$LUI=="Primary vegetation") & (nd2_Hemiptera$StdTmeanAnomalyRS > He_QPV[2])),] <- NA
 Hemiptera[which((nd2_Hemiptera$LUI=="Secondary vegetation") & (nd2_Hemiptera$StdTmeanAnomalyRS < He_QSV[1])),] <- NA
 Hemiptera[which((nd2_Hemiptera$LUI=="Secondary vegetation") & (nd2_Hemiptera$StdTmeanAnomalyRS > He_QSV[2])),] <- NA
 Hemiptera[which((nd2_Hemiptera$LUI=="Agriculture_Low") & (nd2_Hemiptera$StdTmeanAnomalyRS < He_QAL[1])),] <- NA
@@ -651,8 +700,8 @@ Hemiptera[which((nd2_Hemiptera$LUI=="Agriculture_Low") & (nd2_Hemiptera$StdTmean
 Hemiptera[which((nd2_Hemiptera$LUI=="Agriculture_High") & (nd2_Hemiptera$StdTmeanAnomalyRS < He_QAH[1])),] <- NA
 Hemiptera[which((nd2_Hemiptera$LUI=="Agriculture_High") & (nd2_Hemiptera$StdTmeanAnomalyRS > He_QAH[2])),] <- NA
 
-Hymenoptera[which((nd2_Hymenoptera$LUI=="Primary vegetation") & (nd2_Hymenoptera$StdTmeanAnomalyRS > Hy_QPV[2])),] <- NA
 Hymenoptera[which((nd2_Hymenoptera$LUI=="Primary vegetation") & (nd2_Hymenoptera$StdTmeanAnomalyRS < Hy_QPV[1])),] <- NA
+Hymenoptera[which((nd2_Hymenoptera$LUI=="Primary vegetation") & (nd2_Hymenoptera$StdTmeanAnomalyRS > Hy_QPV[2])),] <- NA
 Hymenoptera[which((nd2_Hymenoptera$LUI=="Secondary vegetation") & (nd2_Hymenoptera$StdTmeanAnomalyRS < Hy_QSV[1])),] <- NA
 Hymenoptera[which((nd2_Hymenoptera$LUI=="Secondary vegetation") & (nd2_Hymenoptera$StdTmeanAnomalyRS > Hy_QSV[2])),] <- NA
 Hymenoptera[which((nd2_Hymenoptera$LUI=="Agriculture_Low") & (nd2_Hymenoptera$StdTmeanAnomalyRS < Hy_QAL[1])),] <- NA
@@ -660,8 +709,8 @@ Hymenoptera[which((nd2_Hymenoptera$LUI=="Agriculture_Low") & (nd2_Hymenoptera$St
 Hymenoptera[which((nd2_Hymenoptera$LUI=="Agriculture_High") & (nd2_Hymenoptera$StdTmeanAnomalyRS < Hy_QAH[1])),] <- NA
 Hymenoptera[which((nd2_Hymenoptera$LUI=="Agriculture_High") & (nd2_Hymenoptera$StdTmeanAnomalyRS > Hy_QAH[2])),] <- NA
 
-Lepidoptera[which((nd2_Lepidoptera$LUI=="Primary vegetation") & (nd2_Lepidoptera$StdTmeanAnomalyRS > L_QPV[2])),] <- NA
 Lepidoptera[which((nd2_Lepidoptera$LUI=="Primary vegetation") & (nd2_Lepidoptera$StdTmeanAnomalyRS < L_QPV[1])),] <- NA
+Lepidoptera[which((nd2_Lepidoptera$LUI=="Primary vegetation") & (nd2_Lepidoptera$StdTmeanAnomalyRS > L_QPV[2])),] <- NA
 Lepidoptera[which((nd2_Lepidoptera$LUI=="Secondary vegetation") & (nd2_Lepidoptera$StdTmeanAnomalyRS < L_QSV[1])),] <- NA
 Lepidoptera[which((nd2_Lepidoptera$LUI=="Secondary vegetation") & (nd2_Lepidoptera$StdTmeanAnomalyRS > L_QSV[2])),] <- NA
 Lepidoptera[which((nd2_Lepidoptera$LUI=="Agriculture_Low") & (nd2_Lepidoptera$StdTmeanAnomalyRS < L_QAL[1])),] <- NA
@@ -875,18 +924,75 @@ nd3$Species_richness <- 0
 # reference for % difference = primary vegetation and positive anomaly closest to 0 
 refRow <- which((nd3$LUI=="Primary vegetation") & (nd3$StdTmaxAnomaly==min(abs(nd3$StdTmaxAnomaly))))
 
+# set quantiles
+# coleoptera
+C_QPV <- quantile(x = MaxAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelAbund$data$LUI=="Primary vegetation" & MaxAnomalyModelAbund$data$Order == "Coleoptera"],
+  probs = exclQuantiles)
+C_QSV <- quantile(x = MaxAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelAbund$data$LUI=="Secondary vegetation" & MaxAnomalyModelAbund$data$Order == "Coleoptera"],
+  probs = exclQuantiles)
+C_QAL <- quantile(x = MaxAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelAbund$data$LUI=="Agriculture_Low" & MaxAnomalyModelAbund$data$Order == "Coleoptera"],
+  probs = exclQuantiles)
+C_QAH <- quantile(x = MaxAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelAbund$data$LUI=="Agriculture_High" & MaxAnomalyModelAbund$data$Order == "Coleoptera"],
+  probs = exclQuantiles)
 
-QPV <- quantile(x = MaxAnomalyModelAbund$data$StdTmaxAnomalyRS[
-  MaxAnomalyModelAbund$data$LUI=="Primary vegetation"],
+# diptera
+D_QPV <- quantile(x = MaxAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelAbund$data$LUI=="Primary vegetation" & MaxAnomalyModelAbund$data$Order == "Diptera"],
   probs = exclQuantiles)
-QSV <- quantile(x = MaxAnomalyModelAbund$data$StdTmaxAnomalyRS[
-  MaxAnomalyModelAbund$data$LUI=="Secondary vegetation"],
+D_QSV <- quantile(x = MaxAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelAbund$data$LUI=="Secondary vegetation" & MaxAnomalyModelAbund$data$Order == "Diptera"],
   probs = exclQuantiles)
-QAL <- quantile(x = MaxAnomalyModelAbund$data$StdTmaxAnomalyRS[
-  MaxAnomalyModelAbund$data$LUI=="Agriculture_Low"],
+D_QAL <- quantile(x = MaxAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelAbund$data$LUI=="Agriculture_Low" & MaxAnomalyModelAbund$data$Order == "Diptera"],
   probs = exclQuantiles)
-QAH <- quantile(x = MaxAnomalyModelAbund$data$StdTmaxAnomalyRS[
-  MaxAnomalyModelAbund$data$LUI=="Agriculture_High"],
+D_QAH <- quantile(x = MaxAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelAbund$data$LUI=="Agriculture_High" & MaxAnomalyModelAbund$data$Order == "Diptera"],
+  probs = exclQuantiles)
+
+# hemiptera
+He_QPV <- quantile(x = MaxAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelAbund$data$LUI=="Primary vegetation" & MaxAnomalyModelAbund$data$Order == "Hemiptera"],
+  probs = exclQuantiles)
+He_QSV <- quantile(x = MaxAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelAbund$data$LUI=="Secondary vegetation" & MaxAnomalyModelAbund$data$Order == "Hemiptera"],
+  probs = exclQuantiles)
+He_QAL <- quantile(x = MaxAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelAbund$data$LUI=="Agriculture_Low" & MaxAnomalyModelAbund$data$Order == "Hemiptera"],
+  probs = exclQuantiles)
+He_QAH <- quantile(x = MaxAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelAbund$data$LUI=="Agriculture_High" & MaxAnomalyModelAbund$data$Order == "Hemiptera"],
+  probs = exclQuantiles)
+
+# hymenoptera
+Hy_QPV <- quantile(x = MaxAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelAbund$data$LUI=="Primary vegetation" & MaxAnomalyModelAbund$data$Order == "Hymenoptera"],
+  probs = exclQuantiles)
+Hy_QSV <- quantile(x = MaxAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelAbund$data$LUI=="Secondary vegetation" & MaxAnomalyModelAbund$data$Order == "Hymenoptera"],
+  probs = exclQuantiles)
+Hy_QAL <- quantile(x = MaxAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelAbund$data$LUI=="Agriculture_Low" & MaxAnomalyModelAbund$data$Order == "Hymenoptera"],
+  probs = exclQuantiles)
+Hy_QAH <- quantile(x = MaxAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelAbund$data$LUI=="Agriculture_High" & MaxAnomalyModelAbund$data$Order == "Hymenoptera"],
+  probs = exclQuantiles)
+
+# lepidoptera
+L_QPV <- quantile(x = MaxAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelAbund$data$LUI=="Primary vegetation" & MaxAnomalyModelAbund$data$Order == "Lepidoptera"],
+  probs = exclQuantiles)
+L_QSV <- quantile(x = MaxAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelAbund$data$LUI=="Secondary vegetation" & MaxAnomalyModelAbund$data$Order == "Lepidoptera"],
+  probs = exclQuantiles)
+L_QAL <- quantile(x = MaxAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelAbund$data$LUI=="Agriculture_Low" & MaxAnomalyModelAbund$data$Order == "Lepidoptera"],
+  probs = exclQuantiles)
+L_QAH <- quantile(x = MaxAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelAbund$data$LUI=="Agriculture_High" & MaxAnomalyModelAbund$data$Order == "Lepidoptera"],
   probs = exclQuantiles)
 
 # if(!is.null(MaxAnomalyModelAbund$model)){
@@ -894,22 +1000,13 @@ QAH <- quantile(x = MaxAnomalyModelAbund$data$StdTmaxAnomalyRS[
 a.preds.tmax <- PredictGLMERRandIter(model = MaxAnomalyModelAbund$model,data = nd3, nIters = 10000)
 a.preds.tmax <- exp(a.preds.tmax)-0.01
 
-<<<<<<< HEAD
 # split into 5 groups
-number_of_chunks = 6
-=======
-# split into 6 groups
 number_of_chunks = 5
->>>>>>> c2986b07473e8bb74b4f537ca0ffb06d3f40578c
 list_a.preds.tmax <- lapply(seq(1, NROW(a.preds.tmax), ceiling(NROW(a.preds.tmax)/number_of_chunks)),
                             function(i) a.preds.tmax[i:min(i + ceiling(NROW(a.preds.tmax)/number_of_chunks) - 1, NROW(a.preds.tmax)),])
 # name the matrices
 names(list_a.preds.tmax) <- c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera")
-<<<<<<< HEAD
-                            
-=======
 
->>>>>>> c2986b07473e8bb74b4f537ca0ffb06d3f40578c
 # unload into global environment
 list2env(list_a.preds.tmax,globalenv())
 
@@ -1026,8 +1123,7 @@ p_coleoptera <- ggplot(data = nd3_Coleoptera, aes(x = StdTmaxAnomaly, y = PredMe
   scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
-  scale_y_continuous(breaks = c(-100, -75, -50, -25, 0, 25, 50, 75, 100, 125, 150), limits = c(-100, 150)) +
-  #scale_y_continuous(breaks = c(-100, -75, -50, -25, 0, 25, 50, 75, 100, 125, 150,175, 200), limits = c(-100, 200)) +
+  scale_y_continuous(breaks = c(-100, -75, -50, -25, 0, 25, 50, 75, 100), limits = c(-100, 100)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Maximum Temperature Anomaly") +
   ggtitle("Coleoptera") +
@@ -1050,8 +1146,7 @@ p_diptera <- ggplot(data = nd3_Diptera, aes(x = StdTmaxAnomaly, y = PredMedian))
   scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
-  scale_y_continuous(breaks = c(-100, -75, -50, -25, 0, 25, 50, 75, 100, 125, 150), limits = c(-100, 150)) +
-  #scale_y_continuous(breaks = c(-100, -75, -50, -25, 0, 25, 50, 75, 100, 125, 150,175, 200), limits = c(-100, 200)) +
+  scale_y_continuous(breaks = c(-100, -75, -50, -25, 0, 25, 50, 75, 100), limits = c(-100, 100)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Maximum Temperature Anomaly") +
   #xlim(c(-1, 5)) +
@@ -1075,8 +1170,7 @@ p_hemiptera <- ggplot(data = nd3_Hemiptera, aes(x = StdTmaxAnomaly, y = PredMedi
   scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
-  scale_y_continuous(breaks = c(-100, -75, -50, -25, 0, 25, 50, 75, 100, 125, 150), limits = c(-100, 150)) +
-  #scale_y_continuous(breaks = c(-100, -75, -50, -25, 0, 25, 50, 75, 100, 125, 150,175, 200), limits = c(-100, 200)) +
+  scale_y_continuous(breaks = c(-100, -75, -50, -25, 0, 25, 50, 75, 100), limits = c(-100, 100)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Maximum Temperature Anomaly") +
   ggtitle("Hemiptera") +
@@ -1098,8 +1192,7 @@ p_hymenoptera <- ggplot(data = nd3_Hymenoptera, aes(x = StdTmaxAnomaly, y = Pred
   scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
-  scale_y_continuous(breaks = c(-100, -75, -50, -25, 0, 25, 50, 75, 100, 125, 150), limits = c(-100, 150)) +
-  #scale_y_continuous(breaks = c(-100, -75, -50, -25, 0, 25, 50, 75, 100, 125, 150,175, 200), limits = c(-100, 200)) +
+  scale_y_continuous(breaks = c(-100, -75, -50, -25, 0, 25, 50, 75, 100), limits = c(-100, 100)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Maximum Temperature Anomaly") +
   ggtitle("Hymenoptera") +
@@ -1125,8 +1218,7 @@ p_lepidoptera <- ggplot(data = nd3_Lepidoptera, aes(x = StdTmaxAnomaly, y = Pred
   scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
-  scale_y_continuous(breaks = c(-100, -75, -50, -25, 0, 25, 50, 75, 100, 125, 150), limits = c(-100, 150)) +
-  #scale_y_continuous(breaks = c(-100, -75, -50, -25, 0, 25, 50, 75, 100, 125, 150,175, 200), limits = c(-100, 200)) +
+  scale_y_continuous(breaks = c(-100, -75, -50, -25, 0, 25, 50, 75, 100), limits = c(-100, 100)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Maximum Temperature Anomaly") +
   ggtitle("Lepidoptera") +
@@ -1180,38 +1272,87 @@ nd4$Species_richness <- 0
 # reference for % difference = primary vegetation and positive anomaly closest to 0
 refRow <- which((nd4$LUI=="Primary vegetation") & (nd4$StdTmaxAnomaly==min(abs(nd4$StdTmaxAnomaly))))
 
-QPV <- quantile(x = MaxAnomalyModelRich$data$StdTmaxAnomalyRS[
-  MaxAnomalyModelRich$data$LUI=="Primary vegetation"],
+# set quantiles
+# coleoptera
+C_QPV <- quantile(x = MaxAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelRich$data$LUI=="Primary vegetation" & MaxAnomalyModelRich$data$Order == "Coleoptera"],
   probs = exclQuantiles)
-QSV <- quantile(x = MaxAnomalyModelRich$data$StdTmaxAnomalyRS[
-  MaxAnomalyModelRich$data$LUI=="Secondary vegetation"],
+C_QSV <- quantile(x = MaxAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelRich$data$LUI=="Secondary vegetation" & MaxAnomalyModelRich$data$Order == "Coleoptera"],
   probs = exclQuantiles)
-QAL <- quantile(x = MaxAnomalyModelRich$data$StdTmaxAnomalyRS[
-  MaxAnomalyModelRich$data$LUI=="Agriculture_Low"],
+C_QAL <- quantile(x = MaxAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelRich$data$LUI=="Agriculture_Low" & MaxAnomalyModelRich$data$Order == "Coleoptera"],
   probs = exclQuantiles)
-QAH <- quantile(x = MaxAnomalyModelRich$data$StdTmaxAnomalyRS[
-  MaxAnomalyModelRich$data$LUI=="Agriculture_High"],
+C_QAH <- quantile(x = MaxAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelRich$data$LUI=="Agriculture_High" & MaxAnomalyModelRich$data$Order == "Coleoptera"],
+  probs = exclQuantiles)
+
+# diptera
+D_QPV <- quantile(x = MaxAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelRich$data$LUI=="Primary vegetation" & MaxAnomalyModelRich$data$Order == "Diptera"],
+  probs = exclQuantiles)
+D_QSV <- quantile(x = MaxAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelRich$data$LUI=="Secondary vegetation" & MaxAnomalyModelRich$data$Order == "Diptera"],
+  probs = exclQuantiles)
+D_QAL <- quantile(x = MaxAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelRich$data$LUI=="Agriculture_Low" & MaxAnomalyModelRich$data$Order == "Diptera"],
+  probs = exclQuantiles)
+D_QAH <- quantile(x = MaxAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelRich$data$LUI=="Agriculture_High" & MaxAnomalyModelRich$data$Order == "Diptera"],
+  probs = exclQuantiles)
+
+# hemiptera
+He_QPV <- quantile(x = MaxAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelRich$data$LUI=="Primary vegetation" & MaxAnomalyModelRich$data$Order == "Hemiptera"],
+  probs = exclQuantiles)
+He_QSV <- quantile(x = MaxAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelRich$data$LUI=="Secondary vegetation" & MaxAnomalyModelRich$data$Order == "Hemiptera"],
+  probs = exclQuantiles)
+He_QAL <- quantile(x = MaxAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelRich$data$LUI=="Agriculture_Low" & MaxAnomalyModelRich$data$Order == "Hemiptera"],
+  probs = exclQuantiles)
+He_QAH <- quantile(x = MaxAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelRich$data$LUI=="Agriculture_High" & MaxAnomalyModelRich$data$Order == "Hemiptera"],
+  probs = exclQuantiles)
+
+# hymenoptera
+Hy_QPV <- quantile(x = MaxAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelRich$data$LUI=="Primary vegetation" & MaxAnomalyModelRich$data$Order == "Hymenoptera"],
+  probs = exclQuantiles)
+Hy_QSV <- quantile(x = MaxAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelRich$data$LUI=="Secondary vegetation" & MaxAnomalyModelRich$data$Order == "Hymenoptera"],
+  probs = exclQuantiles)
+Hy_QAL <- quantile(x = MaxAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelRich$data$LUI=="Agriculture_Low" & MaxAnomalyModelRich$data$Order == "Hymenoptera"],
+  probs = exclQuantiles)
+Hy_QAH <- quantile(x = MaxAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelRich$data$LUI=="Agriculture_High" & MaxAnomalyModelRich$data$Order == "Hymenoptera"],
+  probs = exclQuantiles)
+
+# lepidoptera
+L_QPV <- quantile(x = MaxAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelRich$data$LUI=="Primary vegetation" & MaxAnomalyModelRich$data$Order == "Lepidoptera"],
+  probs = exclQuantiles)
+L_QSV <- quantile(x = MaxAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelRich$data$LUI=="Secondary vegetation" & MaxAnomalyModelRich$data$Order == "Lepidoptera"],
+  probs = exclQuantiles)
+L_QAL <- quantile(x = MaxAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelRich$data$LUI=="Agriculture_Low" & MaxAnomalyModelRich$data$Order == "Lepidoptera"],
+  probs = exclQuantiles)
+L_QAH <- quantile(x = MaxAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MaxAnomalyModelRich$data$LUI=="Agriculture_High" & MaxAnomalyModelRich$data$Order == "Lepidoptera"],
   probs = exclQuantiles)
 
 sr.preds.tmax <- PredictGLMERRandIter(model = MaxAnomalyModelRich$model,data = nd4, nIters = 10000)
 sr.preds.tmax <- exp(sr.preds.tmax)-0.01
 
-<<<<<<< HEAD
 # split into 5 groups
-number_of_chunks = 6
-=======
-# split into 6 groups
 number_of_chunks = 5
->>>>>>> c2986b07473e8bb74b4f537ca0ffb06d3f40578c
 list_sr.preds.tmax <- lapply(seq(1, NROW(sr.preds.tmax), ceiling(NROW(sr.preds.tmax)/number_of_chunks)),
                              function(i) sr.preds.tmax[i:min(i + ceiling(NROW(sr.preds.tmax)/number_of_chunks) - 1, NROW(sr.preds.tmax)),])
 # name the matrices
 names(list_sr.preds.tmax) <- c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera")
-<<<<<<< HEAD
-                             
-=======
 
->>>>>>> c2986b07473e8bb74b4f537ca0ffb06d3f40578c
 # unload into global environment
 list2env(list_sr.preds.tmax,globalenv())
 

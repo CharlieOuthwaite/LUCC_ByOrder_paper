@@ -284,9 +284,25 @@ saveRDS(object = model_data_ab_nontrop ,file = paste0(outDir,"model_data_ab_nont
 ##%######################################################%##
 
 # read in model data
+sm0_trop <- readRDS(file = paste0(outDir,"sm0_trop.rds"))
+sm3_trop <- readRDS(file = paste0(outDir,"sm3_trop.rds"))
+sm0.2_trop <- readRDS(file = paste0(outDir,"sm0.2_trop.rds"))
+sm3.2_trop <- readRDS(file = paste0(outDir,"sm3.2_trop.rds"))
 sm3.3_trop <- readRDS(file = paste0(outDir,"sm3.3_trop.rds"))
-am3.3_trop <- readRDS(file = paste0(ourDir,"am3.3_trop.rds"))
+sm0_nontrop <- readRDS(file = paste0(outDir,"sm0_nontrop.rds"))
+sm3_nontrop <- readRDS(file = paste0(outDir,"sm3_nontrop.rds"))
+sm0.2_nontrop <- readRDS(file = paste0(outDir,"sm0.2_nontrop.rds"))
+sm3.2_nontrop <- readRDS(file = paste0(outDir,"sm3.2_nontrop.rds"))
 sm3.3_nontrop <- readRDS(file = paste0(outDir,"sm3.3_nontrop.rds"))
+am0_trop <- readRDS(file = paste0(outDir,"am0_trop.rds"))
+am3_trop <- readRDS(file = paste0(outDir,"am3_trop.rds"))
+am0.2_trop <- readRDS(file = paste0(outDir,"am0.2_trop.rds"))
+am3.2_trop <- readRDS(file = paste0(outDir,"am3.2_trop.rds"))
+am3.3_trop <- readRDS(file = paste0(outDir,"am3.3_trop.rds"))
+am0_nontrop <- readRDS(file = paste0(outDir,"am0_nontrop.rds"))
+am3_nontrop <- readRDS(file = paste0(outDir,"am3_nontrop.rds"))
+am0.2_nontrop <- readRDS(file = paste0(outDir,"am0.2_nontrop.rds"))
+am3.2_nontrop <- readRDS(file = paste0(outDir,"am3.2_nontrop.rds"))
 am3.3_nontrop <- readRDS(file = paste0(outDir,"am3.3_nontrop.rds"))
 model_data_sr_trop <- readRDS(file = paste0(outDir,"model_data_sr_trop.rds"))
 model_data_ab_trop <- readRDS(file = paste0(outDir,"model_data_ab_trop.rds"))
@@ -340,8 +356,11 @@ selection_table_nontrop <- data.frame("Realm" = c(rep("NonTropical", 10)),
   gt()
 
 # save the tables
-gtsave(selection_table_trop,paste0(outDir,"LUIModels_Selection_trop.html"))
-gtsave(selection_table_nontrop,paste0(outDir,"LUIModels_Selection_nontrop.html"))
+gtsave(selection_table_trop,paste0(outDir,"SimpleLUIModel_Selection_trop.html"))
+gtsave(selection_table_trop,"SimpleLUIModel_Selection_trop.png", path = outDir)
+
+gtsave(selection_table_nontrop,paste0(outDir,"SimpleLUIModel_Selection_nontrop.html"))
+gtsave(selection_table_nontrop,"SimpleLUIModel_Selection_nontrop.png", path = outDir)
 
 ####  5a. Species Richness Plot, Nontropical ####
 
@@ -431,10 +450,10 @@ richness_realms <- cowplot::plot_grid(NULL,richness_nontrop,NULL,richness_trop, 
 richness_realms_LUI <- cowplot::plot_grid(richness_realms, legend, ncol = 1, rel_heights = c(1,0.1))
 
 # save plot (pdf)
-ggsave(filename = paste0(outDir, "richness_realms_LUI.pdf"), plot = richness_realms_LUI, width = 120, height = 150, units = "mm", dpi = 300)
+ggsave(filename = paste0(plotDir, "SimpleLUI_Rich_Realms.pdf"), plot = richness_realms_LUI, width = 120, height = 150, units = "mm", dpi = 300)
 
 # save plot (jpeg)
-ggsave("richness_realms_LUI.jpeg", device ="jpeg", path = outDir, width=120, height=150, units="mm", dpi = 350)
+ggsave("SimpleLUI_Rich_Realms.jpeg", device ="jpeg", path = plotDir, width=120, height=150, units="mm", dpi = 350)
 
 ####  6a. Abundance Plot, Nontropical ####
 
@@ -523,10 +542,10 @@ abundance_realms <- cowplot::plot_grid(NULL,abundance_nontrop,NULL,abundance_tro
 abundance_realms_LUI <- cowplot::plot_grid(abundance_realms, legend, ncol = 1, rel_heights = c(1,0.1))
 
 # save plot (pdf)
-ggsave(filename = paste0(outDir, "abundance_realms_LUI.pdf"), plot = abundance_realms_LUI, width = 120, height = 150, units = "mm", dpi = 300)
+ggsave(filename = paste0(plotDir, "SimpleLUI_Abund_Realms.pdf"), plot = abundance_realms_LUI, width = 120, height = 150, units = "mm", dpi = 300)
 
 # save plot (jpeg)
-ggsave("abundance_realms_LUI.jpeg", device ="jpeg", path = outDir, width=120, height=150, units="mm", dpi = 350)
+ggsave("SimpleLUI_Abund_Realms.jpeg", device ="jpeg", path = plotDir, width=120, height=150, units="mm", dpi = 350)
 
 ####  7. Plot all together  ####
 
@@ -539,10 +558,10 @@ simplemods_realms<-cowplot::plot_grid(NULL,NULL,richness_nontrop,richness_trop,N
 simplemods_realms <- cowplot::plot_grid(simplemods_realms, legend, ncol = 1, rel_heights = c(1,0.1))
 
 # save plot (pdf)
-ggsave(filename = paste0(outDir, "simplemods_realms.pdf"), plot = simplemods_realms, width = 200, height = 200, units = "mm", dpi = 300)
+ggsave(filename = paste0(plotDir, "SimpleLUI_Realms.pdf"), plot = simplemods_realms, width = 200, height = 200, units = "mm", dpi = 300)
 
 # save plot (jpeg)
-ggsave("simplemods_realms.jpeg", device ="jpeg", path = outDir, width=200, height=200, units="mm", dpi = 350)
+ggsave("SimpleLUI_Realms.jpeg", device ="jpeg", path = plotDir, width=200, height=200, units="mm", dpi = 350)
 
 #### 8. Table of predicted values ####
 
@@ -551,13 +570,12 @@ all_res <- rbind(result.ab.nontrop, result.ab.trop, result.sr.nontrop, result.sr
 all_res$measure <- c(rep("ab",24 ), rep("sr", 24))
 all_res$Realm <- c(rep("nontrop",12), rep("trop", 12),rep("nontrop",12), rep("trop",12))
 
-# save as gt table
-percentage_change_LUI_tropical <- all_res %>% gt()
-# gtsave() doesn't like using the "predsDir" filepath, have to use the whole path
-gtsave(percentage_change_LUI_tropical,"C:/Users/Kyra/Documents/GLITRS/Paper/Code/percentage_change_LUI_tropical.png")
+# save .csv
+write.csv(all_res, file = paste0(predsDir,"LUI_predictions_realms.csv"))
 
-# save table
-write.csv(all_res, file = paste0(predsDir,"percentage_change_LUI_tropical.csv"))
+# save as gt table
+LUI_predictions_realms <- all_res %>% gt()
+gtsave(LUI_predictions_realms,"LUI_predictions_realms.png", path = predsDir)
 
 # t.end <- Sys.time()
 # 
