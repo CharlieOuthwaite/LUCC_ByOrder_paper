@@ -415,10 +415,10 @@ richness <- richness_metric + xlab(NULL) +
         legend.title = element_blank())
 
 # save plot (pdf)
-ggsave(filename = paste0(outDir, "Fig1_SimpleLUI_Rich.pdf"), plot = last_plot(), width = 250, height = 100, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "SimpleLUI_Rich.pdf"), plot = last_plot(), width = 250, height = 100, units = "mm", dpi = 300)
 
 # save plot (jpeg)
-ggsave("Fig1_SimpleLUI_Rich.jpeg", device ="jpeg", path = outDir, width=25, height=10, units="cm", dpi = 350)
+ggsave("SimpleLUI_Rich.jpeg", device ="jpeg", path = outDir, width=25, height=10, units="cm", dpi = 350)
 
 ####  6. Abundance Plot ####
 
@@ -464,10 +464,10 @@ abundance <- abundance_metric + xlab(NULL) +
         legend.title = element_blank())
 
 # save plot (pdf)
-ggsave(filename = paste0(outDir, "Fig1_SimpleLUI_Abund.pdf"), plot = last_plot(), width = 250, height = 100, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "SimpleLUI_Abund.pdf"), plot = last_plot(), width = 250, height = 100, units = "mm", dpi = 300)
 
 # save plot (jpeg)
-ggsave("Fig1_SimpleLUI_Abund.jpeg", device ="jpeg", path = outDir, width=25, height=10, units="cm", dpi = 350)
+ggsave("SimpleLUI_Abund.jpeg", device ="jpeg", path = outDir, width=25, height=10, units="cm", dpi = 350)
 
 ####  7. Plot Together  ####
 
@@ -508,10 +508,10 @@ legend <- cowplot::plot_grid(NULL,legend,NULL, ncol = 1, rel_heights = c(0.5,1,0
 plot_figure <- cowplot::plot_grid(plot_figure, legend, ncol = 2, rel_widths = c(1,0.2))
 
 # save plot (pdf)
-ggsave(filename = paste0(outDir, "Fig1_SimpleLUI.pdf"), plot = last_plot(), width = 250, height = 200, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "SimpleLUI.pdf"), plot = last_plot(), width = 250, height = 200, units = "mm", dpi = 300)
 
 # save plot (jpeg)
-ggsave("Fig1_SimpleLUI.jpeg", device ="jpeg", path = outDir, width=20, height=15, units="cm", dpi = 350)
+ggsave("SimpleLUI.jpeg", device ="jpeg", path = outDir, width=20, height=15, units="cm", dpi = 350)
 
 #### 8. Table of predicted values ####
 
