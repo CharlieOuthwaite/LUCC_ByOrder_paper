@@ -14,8 +14,7 @@ rm(list = ls())
 
 # set directories 
 inDir<- "4_PREDICTSMatchClimateIndex/"
-outDir <- "5_RunLUIClimateModels/"
-plotDir <- "5_RunLUIClimateModels/Plots/"
+s
 if(!dir.exists(outDir)) dir.create(outDir)
 if(!dir.exists(plotDir)) dir.create(plotDir)
 
@@ -419,7 +418,7 @@ p_coleoptera <- ggplot(data = nd_Coleoptera, aes(x = StdTmeanAnomaly, y = PredMe
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   #scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
-  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150,200), limits = c(-100, 200)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") + 
   ggtitle("Coleoptera") +
@@ -444,7 +443,7 @@ p_diptera <- ggplot(data = nd_Diptera, aes(x = StdTmeanAnomaly, y = PredMedian))
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   #scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
-  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150,200), limits = c(-100, 200)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") +
   ggtitle("Diptera") +
@@ -468,7 +467,7 @@ p_hemiptera <- ggplot(data = nd_Hemiptera, aes(x = StdTmeanAnomaly, y = PredMedi
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   #scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
-  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150,200), limits = c(-100, 200)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") +
   ggtitle("Hemiptera") +
@@ -492,8 +491,7 @@ p_hymenoptera <- ggplot(data = nd_Hymenoptera, aes(x = StdTmeanAnomaly, y = Pred
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   #scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
-  #scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
-  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150,200), limits = c(-100, 200)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") +
   ggtitle("Hymenoptera") +
@@ -516,7 +514,7 @@ p_lepidoptera <- ggplot(data = nd_Lepidoptera, aes(x = StdTmeanAnomaly, y = Pred
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   #scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
-  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150,200), limits = c(-100, 200)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") +
   ggtitle("Lepidoptera") +
