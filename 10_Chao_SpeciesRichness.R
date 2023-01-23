@@ -1,8 +1,13 @@
 
-#### Additional tests: Chao-estimated species richness  ####
+############################################################
+#                                                          #
+#    Additional tests: Chao-estimated species richness     #
+#                                                          #
+############################################################
 
 # in this script, models are run using Chao-estimated species richness
-# get set up
+
+#### Set up ####
 
 # set up directories
 dataDir <- "Data/"
@@ -84,7 +89,9 @@ list2env(by_Order,globalenv())
 # Order
 # species richness estimators
 
-# droplevels() drops unused factor levels. This is particularly useful if we want to drop factor levels that are no longer used due to subsetting a vector or a data frame (as we did with split()). 
+# droplevels() drops unused factor levels. 
+# This is particularly useful if we want to drop factor levels that are no longer 
+# used due to subsetting a vector or a data frame (as we did with split()). 
 
 Coleoptera <- droplevels(Coleoptera)
 Coleoptera <- SiteMetrics(diversity = Coleoptera,
@@ -115,11 +122,11 @@ Lepidoptera <- SiteMetrics(diversity = Lepidoptera,
 
 # merge all sites_Order data frames into one called "sites" using rbind()
 sites <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera)
-# 11410 obs. of 23 variables
+# 10746 obs. of 23 variables
 
 # Chao cannot be estimated for all sites, so drop those that it can't and see what is left
 sites <- sites[!is.na(sites$ChaoR),] 
-# 6948 obs. of 23 variables
+# 6585 obs. of 23 variables
 
 # simple plot of estimated species richness against sampled species richness
 jpeg(file="10_Additional_Tests/Species Richness vs Chao.jpeg")
@@ -222,17 +229,17 @@ sites$Use_intensity[((sites$LandUse=="Young secondary vegetation") &
 sites <- sites[!sites$LUI == "Urban", ]
 sites <- sites[!is.na(sites$LUI), ]
 
-# 6948 obs. of 25 variables
+# 5920 obs. of 25 variables
 sites <- droplevels(sites)
 
 # Remove sites without coordinates
 sites <- sites[!is.na(sites$Latitude), ]
-# 6240 obs. of 25 variables
+# 5920 obs. of 25 variables
 
 # load in original dataset and match climate anomaly data to sites
-predictsSites <- readRDS(inDir,"PREDICTSSites_Climate.rds")
-# predictsSites <- predictsSites@data
-# 9455 obs. of 36 variables
+predictsSites <- readRDS(paste0(inDir,"PREDICTSSites_Climate.rds"))
+predictsSites <- predictsSites@data
+# 8884 obs. of 35 variables
 
 # keep only SSBS and climate anomaly variables
 predictsSites <- predictsSites[ , c("SSBS", "StdTmeanAnomaly", "StdTmaxAnomaly")]
