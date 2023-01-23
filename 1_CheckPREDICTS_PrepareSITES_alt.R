@@ -331,10 +331,10 @@ sites_summary <- sites %>%
   )
 
 # save table
-gtsave(sites_summary,"C:/Users/Kyra/Documents/GLITRS/Paper/Code/sites_summary_allorders.png")
+gtsave(sites_summary,"sites_summary_allorders.png")
 
 # save as csv
-write.csv(sites_summary,"C:/Users/Kyra/Documents/GLITRS/Paper/Code/sites_summary_allorders.csv", row.names = TRUE)
+write.csv(sites_summary,"sites_summary_allorders.csv", row.names = TRUE)
 
 #### 3b. Summarize data by order and latitudinal realm ####
 
@@ -403,10 +403,10 @@ lat_summary <- sites %>%
   )
 
 # save table
-gtsave(lat_summary,"C:/Users/Kyra/Documents/GLITRS/Paper/Code/lat_summary_allorders.png")
+gtsave(lat_summary,"lat_summary_allorders.png")
 
 # save as csv
-write.csv(lat_summary,"C:/Users/Kyra/Documents/GLITRS/Paper/Code/lat_summary_allorders.csv", row.names = TRUE)
+write.csv(lat_summary,"lat_summary_allorders.csv", row.names = TRUE)
 
 # keep top five orders (according to number of sites sampled)
 sites <- sites %>% filter(Order %in% c("Hymenoptera", "Coleoptera", "Lepidoptera", "Diptera", "Hemiptera")) %>% droplevels()
@@ -414,4 +414,146 @@ sites <- sites %>% filter(Order %in% c("Hymenoptera", "Coleoptera", "Lepidoptera
 # save the prepared dataset
 saveRDS(object = sites,file = paste0(outDir,"PREDICTSSiteData.rds")) 
 
-# can re-run lines 269-390 on the new dataset for summaries of just the top five orders
+#### 3c. Summarise remaining data by order ####
+
+sites_summary <- sites %>%
+  group_by(Order) %>% 
+  mutate(LogAbund = ifelse(is.na(LogAbund), 0, LogAbund)) %>% # replace NA values with 0 for ease of summarising
+  summarise(Sites = length(SSBS),
+            Studies = n_distinct(SS),
+            sites_1 = length(LUI[LUI == "Primary vegetation"]) ,
+            studies_1 = n_distinct(SS[LUI == "Primary vegetation"]),
+            sites_2 = length(LUI[LUI == "Secondary vegetation"]),
+            studies_2 = n_distinct(SS[LUI == "Secondary vegetation"]),
+            sites_low = length(LUI[LUI == "Agriculture_Low"]),
+            studies_low = n_distinct(SS[LUI == "Agriculture_Low"]),
+            sites_high = length(LUI[LUI == "Agriculture_High"]),
+            studies_high = n_distinct(SS[LUI == "Agriculture_High"]),
+            Abundance = sum(LogAbund>0) ,
+            SpeciesRichness = sum(Species_richness>0)) %>%
+  ungroup() %>%  
+  arrange(desc(Sites))%>%
+  gt() %>%
+  tab_header(title = "Data spread across land-uses"
+  ) %>%
+  tab_spanner(
+    label = "Total",
+    columns = c(Sites,Studies)
+  )  %>%
+  tab_spanner(
+    label = "Primary Vegetation",
+    columns = c(sites_1,studies_1)
+  ) %>%
+  tab_spanner(
+    label = "Secondary vegetation",
+    columns = c(sites_2,studies_2)
+  ) %>%
+  tab_spanner(
+    label = "Low-intensity agriculture",
+    columns = c(sites_low,studies_low)
+  ) %>%
+  tab_spanner(
+    label = "High-intensity agriculture",
+    columns = c(sites_high,studies_high)
+  )  %>%
+  tab_spanner(
+    label = "Diversity Metric",
+    columns = c(Abundance,SpeciesRichness)
+  )  %>% 
+  cols_align(
+    align = "center",
+    columns = c(Order,Sites,Studies,sites_1,studies_1,sites_2,studies_2,sites_low,studies_low,sites_high,studies_high,Abundance,SpeciesRichness)
+  ) %>%
+  cols_label(
+    Order = "Order",
+    Sites = "Sites",
+    Studies = "Studies",
+    sites_1 = "Sites",
+    studies_1 = "Studies",
+    sites_2 = "Sites",
+    studies_2 = "Studies",
+    sites_low = "Sites",
+    studies_low = "Studies",
+    sites_high = "Sites",
+    studies_high = "Studies",
+    Abundance = "Abundance",
+    SpeciesRichness = "Species richness"
+  )
+
+# save table
+gtsave(sites_summary,"sites_summary.png",path = outDir)
+
+# save as csv
+write.csv(sites_summary,outDir,"sites_summary.csv", row.names = TRUE)
+
+#### 3d. Summarize remaining data by order and latitudinal realm ####
+
+sites_summary_realms <- sites %>%
+  group_by(Order,Realm) %>%
+  mutate(LogAbund = ifelse(is.na(LogAbund), 0, LogAbund)) %>% # replace NA values with 0 for ease of summarising
+  summarise(Sites = length(SSBS),
+            Studies = n_distinct(SS),
+            sites_1 = length(LUI[LUI == "Primary vegetation"]) ,
+            studies_1 = n_distinct(SS[LUI == "Primary vegetation"]),
+            sites_2 = length(LUI[LUI == "Secondary vegetation"]),
+            studies_2 = n_distinct(SS[LUI == "Secondary vegetation"]),
+            sites_low = length(LUI[LUI == "Agriculture_Low"]),
+            studies_low = n_distinct(SS[LUI == "Agriculture_Low"]),
+            sites_high = length(LUI[LUI == "Agriculture_High"]),
+            studies_high = n_distinct(SS[LUI == "Agriculture_High"]),
+            Abundance = sum(LogAbund>0) ,
+            SpeciesRichness = sum(Species_richness>0)) %>%
+  ungroup() %>%
+  gt() %>%
+  tab_header(title = "Data spread across land-uses, by latitudinal realm"
+  ) %>%
+  tab_spanner(
+    label = "Total",
+    columns = c(Sites,Studies)
+  )  %>%
+  tab_spanner(
+    label = "Primary Vegetation",
+    columns = c(sites_1,studies_1)
+  ) %>%
+  tab_spanner(
+    label = "Secondary vegetation",
+    columns = c(sites_2,studies_2)
+  ) %>%
+  tab_spanner(
+    label = "Low-intensity agriculture",
+    columns = c(sites_low,studies_low)
+  ) %>%
+  tab_spanner(
+    label = "High-intensity agriculture",
+    columns = c(sites_high,studies_high)
+  )  %>%
+  tab_spanner(
+    label = "Diversity Metric",
+    columns = c(Abundance,SpeciesRichness)
+  )  %>% 
+  cols_align(
+    align = "center",
+    columns = c(Order,Realm,Sites,Studies,sites_1,studies_1,sites_2,studies_2,sites_low,studies_low,sites_high,studies_high,Abundance,SpeciesRichness)
+  )%>%
+  cols_label(
+    Order = "Order",
+    Realm = "Realm",
+    Sites = "Sites",
+    Studies = "Studies",
+    sites_1 = "Sites",
+    studies_1 = "Studies",
+    sites_2 = "Sites",
+    studies_2 = "Studies",
+    sites_low = "Sites",
+    studies_low = "Studies",
+    sites_high = "Sites",
+    studies_high = "Studies",
+    Abundance = "Abundance",
+    SpeciesRichness = "Species richness"
+  )
+
+# save table
+gtsave(sites_summary_realms,"sites_summary_realms.png", path = outDir)
+
+# save as csv
+write.csv(sites_summary_realms, outDir, "sites_summary_realms.csv", row.names = TRUE)

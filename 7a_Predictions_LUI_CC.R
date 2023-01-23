@@ -26,6 +26,7 @@ library(StatisticalModels)
 library(predictsFunctions)
 library(webshot)
 library(gt)
+
 source('0_Functions.R')
 
 
@@ -144,11 +145,11 @@ all_res <- rbind(result.ab, result.sr)
 all_res$measure <- c(rep("ab", 40), rep("sr", 40))
 
 # save as png
-percentage_change_LUI_CC <- all_res %>% gt()
-gtsave(percentage_change_LUI_CC,outDir,"MeanAnom_PercentageChange_LUI_CC.png")
+LUI_CC_Predictions_MeanAnom <- all_res %>% gt()
+gtsave(LUI_CC_Predictions_MeanAnom,"LUI_CC_Predictions_MeanAnom.png",path = outDir)
 
 # save table
-write.csv(all_res, file = paste0(outDir,"MeanAnom_PercentageChange_LU_CC.csv"))
+write.csv(all_res, file = paste0(outDir,"LUI_CC_Predictions_MeanAnom.csv"))
 
 ## Max Anomaly ##
 #create matrix for predictions 
@@ -156,7 +157,7 @@ write.csv(all_res, file = paste0(outDir,"MeanAnom_PercentageChange_LU_CC.csv"))
 # abun and richness = 0
 
 # what is the rescaled value of STA of 1
-BackTransformCentreredPredictor(transformedX = -0.14, originalX = predictsSites$StdTmaxAnomaly) # -0.14 gives about 1 
+BackTransformCentreredPredictor(transformedX = -0.04, originalX = predictsSites$StdTmaxAnomaly) # -0.04 gives about 1 
 
 # what is the rescaled value of STA of 0
 BackTransformCentreredPredictor(transformedX = -0.89, originalX = predictsSites$StdTmaxAnomaly) # -0.89 gives about 0
@@ -169,7 +170,7 @@ data_tab <- expand.grid(LUI = c("Primary vegetation", "Secondary vegetation", "A
                         Species_richness = 0)
 
 # add column with STA, values repeating 5 times
-StdTmaxAnomalyRS = rep(c(-0.89,-0.89,-0.89,-0.89,-0.14,-0.14,-0.14,-0.14),times=5)
+StdTmaxAnomalyRS = rep(c(-0.89,-0.89,-0.89,-0.89,-0.04,-0.04,-0.04,-0.04),times=5)
 
 # add STA to the data_tab
 data_tab<-cbind(data_tab,StdTmaxAnomalyRS)
@@ -247,12 +248,11 @@ all_res <- rbind(result.ab, result.sr)
 all_res$measure <- c(rep("ab", 40), rep("sr", 40))
 
 # save as png
-percentage_change_LUI_CC <- all_res %>% gt()
-gtsave(percentage_change_LUI_CC,outDir,"MaxAnom_PercentageChange_LUI_CC.png")
-
+LUI_CC_Predictions_MaxAnom <- all_res %>% gt()
+gtsave(LUI_CC_Predictions_MaxAnom,"LUI_CC_Predictions_MaxAnom.png",path = outDir)
 
 # save table
-write.csv(all_res, file = paste0(outDir,"/MaxAnom_PercentageChange_LUI_CC.csv"))
+write.csv(all_res, file = paste0(outDir,"LUI_CC_Predictions_MaxAnom.csv"))
 
 
 # t.end <- Sys.time()
