@@ -1,6 +1,7 @@
 ##%######################################################%##
 #                                                          #
-####       Check Hymenoptera and Lepidoptera Data        ####
+####          Check Coleoptera Hymenoptera,                #
+#                 and Lepidoptera Data                  ####
 #                                                          #
 ##%######################################################%##
 
@@ -10,8 +11,8 @@
 rm(list = ls())
 
 # set up directories
-dataDir <- "Data/"
-outDir <- "12_CheckHymenoptera_Lepidoptera/"
+dataDir <- "C:/Users/Kyra/Documents/GitHub/LUCC_ByOrder_paper/Data/"
+outDir <- "C:/Users/Kyra/Documents/GitHub/LUCC_ByOrder_paper/12_CheckColeoptera_Hymenoptera_Lepidoptera/"
 if(!dir.exists(outDir)) dir.create(outDir)
 
 # Load required libraries
@@ -19,7 +20,7 @@ packages <- c("predictsFunctions","patchwork", "dplyr", "tidyr", "ggplot", "yarg
 suppressWarnings(suppressMessages(lapply(packages, require, character.only = TRUE)))
 
 # source in additional functions
-source("0_Functions.R")
+source("C:/Users/Kyra/Documents/GitHub/LUCC_ByOrder_paper/0_Functions.R")
 
 #### 1. Load and check dataset ####
 
@@ -34,7 +35,7 @@ predicts <- ReadPREDICTS(predicts.path)
 predicts <- predicts[(predicts$Class=="Insecta"),]
 # 935078 obs. of 67 variables
 
-predicts <- predicts %>% filter(Order %in% c("Hymenoptera", "Lepidoptera")) %>% droplevels()
+predicts <- predicts %>% filter(Order %in% c("Coleoptera","Hymenoptera", "Lepidoptera")) %>% droplevels()
 
 # Correct effort-sensitive abundance measures (assumes linear relationship between effort and recorded abundance)
 predicts <- CorrectSamplingEffort(diversity = predicts)
@@ -75,6 +76,10 @@ by_Order <- split(predicts,OrderName)
 list2env(by_Order,globalenv())
 
 # Calculate site metrics of diversity for each order, include extra columns:
+Coleoptera <- droplevels(Coleoptera)
+Coleoptera <- SiteMetrics(diversity = Coleoptera,
+                           extra.cols = c("Predominant_land_use",
+                                          "SSB","SSBS", "Biome","Order","Family","Species"))
 Hymenoptera <- droplevels(Hymenoptera)
 Hymenoptera <- SiteMetrics(diversity = Hymenoptera,
                            extra.cols = c("Predominant_land_use",
@@ -86,7 +91,7 @@ Lepidoptera <- SiteMetrics(diversity = Lepidoptera,
 
 # merge all sites_Order data frames into one called "sites"
 # merge using rbind()
-sites <- rbind(Hymenoptera,Lepidoptera)
+sites <- rbind(Coleoptera,Hymenoptera,Lepidoptera)
 
 # First, we will rearrange the land-use classification a bit
 # rename "Predominant_land_use" to "LandUse"
@@ -177,7 +182,86 @@ sites$Family <- as.character(sites$Family)
 sites$Family <- sites$Family %>% replace_na('Unspecified')
 sites$Family <- as.factor(sites$Family)
 
-### 2. Check Hymenoptera ###
+### 3. Check Coleopteraa ###
+
+# filter for just coleoptera
+coleoptera <- sites[(sites$Order=="Coleoptera"),]
+
+coleoptera_summary <- coleoptera %>%
+  group_by(Family) %>% 
+  mutate(LogAbund = ifelse(is.na(LogAbund), 0, LogAbund)) %>% # replace NA values with 0 for ease of summarising
+  summarise(sites = length(Family),
+            studies = n_distinct(SS),
+            percent = 100*(length(Family)/nrow(coleoptera)),
+            species = n_distinct(Species),
+            sites_1 = length(LUI[LUI == "Primary vegetation"]) ,
+            studies_1 = n_distinct(SS[LUI == "Primary vegetation"]),
+            sites_2 = length(LUI[LUI == "Secondary vegetation"]),
+            studies_2 = n_distinct(SS[LUI == "Secondary vegetation"]),
+            sites_low = length(LUI[LUI == "Agriculture_Low"]),
+            studies_low = n_distinct(SS[LUI == "Agriculture_Low"]),
+            sites_high = length(LUI[LUI == "Agriculture_High"]),
+            studies_high = n_distinct(SS[LUI == "Agriculture_High"]),
+            Abundance = sum(LogAbund>0) ,
+            SpeciesRichness = sum(Species_richness>0)) %>%
+  ungroup() %>%  
+  arrange(desc(sites))%>%
+  gt() %>%
+  tab_header(title = "Coleoptera summary"
+  ) %>%
+  tab_spanner(
+    label = "Total",
+    columns = c(sites,studies,species,percent)
+  )  %>%
+  tab_spanner(
+    label = "Primary Vegetation",
+    columns = c(sites_1,studies_1)
+  ) %>%
+  tab_spanner(
+    label = "Secondary vegetation",
+    columns = c(sites_2,studies_2)
+  ) %>%
+  tab_spanner(
+    label = "Low-intensity agriculture",
+    columns = c(sites_low,studies_low)
+  ) %>%
+  tab_spanner(
+    label = "High-intensity agriculture",
+    columns = c(sites_high,studies_high)
+  )  %>%
+  tab_spanner(
+    label = "Diversity Metric",
+    columns = c(Abundance,SpeciesRichness)
+  )  %>% 
+  cols_align(
+    align = "center",
+    columns = c(Family,sites,studies,percent,species,sites_1,studies_1,sites_2,studies_2,sites_low,studies_low,sites_high,studies_high,Abundance,SpeciesRichness)
+  ) %>%
+  cols_label(
+    Family = "Family",
+    sites = "Sites",
+    percent = "%",
+    species = "Species",
+    studies = "Studies",
+    sites_1 = "Sites",
+    studies_1 = "Studies",
+    sites_2 = "Sites",
+    studies_2 = "Studies",
+    sites_low = "Sites",
+    studies_low = "Studies",
+    sites_high = "Sites",
+    studies_high = "Studies",
+    Abundance = "Abundance",
+    SpeciesRichness = "Species richness"
+  )
+
+# save table
+gtsave(coleoptera_summary,"coleoptera_summary.png")
+
+# save as csv
+write.csv(coleoptera_summary,"coleoptera_summary.csv", row.names = TRUE)
+
+### 4. Check Hymenoptera ###
 
 # filter for just hymenopterans
 hymenoptera <- sites[(sites$Order=="Hymenoptera"),]
@@ -256,7 +340,7 @@ gtsave(hymenoptera_summary,"hymenoptera_summary.png")
 # save as csv
 write.csv(hymenoptera_summary,"hymenoptera_summary.csv", row.names = TRUE)
 
-### 2. Check Lepidoptera ###
+### 5. Check Lepidoptera ###
 
 # filter for just lepidopterans
 lepidoptera <- sites[(sites$Order=="Lepidoptera"),]

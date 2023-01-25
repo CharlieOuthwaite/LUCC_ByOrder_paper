@@ -13,10 +13,13 @@
 rm(list = ls())
 
 # set directories 
-inDir<- "4_PREDICTSMatchClimateIndex/"
-s
+inDir <- "4_PREDICTSMatchClimateIndex/"
+outDir <- "5_RunLUIClimateModels/"
+plotDir <- "5_RunLUIClimateModels/Plots/"
+tabDir <- "5_RunLUIClimateModels/Tables/"
 if(!dir.exists(outDir)) dir.create(outDir)
 if(!dir.exists(plotDir)) dir.create(plotDir)
+if(!dir.exists(tabDir)) dir.create(tabDir)
 
 # sink(paste0(outDir,"log_LUI_ClimateModels.txt"))
 # 
