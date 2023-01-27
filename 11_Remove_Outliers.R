@@ -59,8 +59,7 @@ length(unique(modelData$SS)) # 235
 # rerun the model using lme4 to avoid errors when using the influence function
 mod1 <- lmer(formula = LogAbund ~ LUI * StdTmeanAnomalyRS * Order + (1 | SS) + (1 | SSB), modelData)
 
-
-
+# use influence function to get outliers and plot
 alt.est.a <- influence(mod1, "SS")
 plot(alt.est.a, which = "cook", sort = T) # takes a long time to run
 result1 <- cooks.distance(alt.est.a, sort = T)
@@ -76,17 +75,13 @@ result1 <- cooks.distance(alt.est.a, sort = T)
 
 modelData <- MeanAnomalyModelRich$data
 
-length(unique(modelData$SS)) # 263
+length(unique(modelData$SS)) # 253
 
 # rerun the model using lme4 to avoid errors when using the influence function
 mod2 <- glmer(formula = Species_richness~LUI * StdTmeanAnomalyRS * Order+(1|SS)+(1|SSB)+(1|SSBS), modelData, family = "poisson")
 
 
-# additional info needed for the influence function
-# maxIters=10000
-# optimizer="bobyqa"
-# fitFamily = "poisson"
-alt.est.a <- influence(mod2, "SS") # takes a long time to run
+alt.est.a <- influence(mod2, "SS") # takes a really long time to run
 plot(alt.est.a, which = "cook", sort = T)
 result2 <- cooks.distance(alt.est.a, sort = T)
 
