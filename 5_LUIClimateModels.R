@@ -14,7 +14,8 @@ rm(list = ls())
 
 # set directories 
 inDir<- "4_PREDICTSMatchClimateIndex/"
-s
+outDir <- "5_RunLUIClimateModels/"
+plotDir <- "5_RunLUIClimateModels/Plots/"
 if(!dir.exists(outDir)) dir.create(outDir)
 if(!dir.exists(plotDir)) dir.create(plotDir)
 
