@@ -36,34 +36,63 @@ model_data <- predictsSites[!is.na(predictsSites$LogAbund), ] # 8468
 model_data <- model_data[!is.na(model_data$StdTmeanAnomalyRS), ]
 
 
-MeanAnomalyModelAbund <- GLMER(modelData = model_data,responseVar = "LogAbund",fitFamily = "gaussian",
+MeanAnomalyModelAbund_avg <- GLMER(modelData = model_data,responseVar = "LogAbund",fitFamily = "gaussian",
                                fixedStruct = "avg_temp + LUI * StdTmeanAnomalyRS * Order",
                                randomStruct = "(1|SS)+(1|SSB)",
                                saveVars = c("SSBS"))
 
 # get summary
-summary(MeanAnomalyModelAbund$model)
+summary(MeanAnomalyModelAbund_avg$model)
 
 # save the model output
-save(MeanAnomalyModelAbund, file = paste0(outdir, "MeanAnomalyModelAbund_avgtemp.rdata"))
+save(MeanAnomalyModelAbund_avg, file = paste0(outdir, "MeanAnomalyModelAbund_avgtemp.rdata"))
 
 
 #### b. Richness model ####
 
 model_data <- predictsSites[!is.na(predictsSites$StdTmeanAnomalyRS), ] # 8858
 
-MeanAnomalyModelRich <- GLMER(modelData = model_data,responseVar = "Species_richness",fitFamily = "poisson",
+MeanAnomalyModelRich_avg <- GLMER(modelData = model_data,responseVar = "Species_richness",fitFamily = "poisson",
                               fixedStruct = "avg_temp + LUI * StdTmeanAnomalyRS * Order",
                               randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",
                               saveVars = c("SSBS"))
 
-summary(MeanAnomalyModelRich$model)
+summary(MeanAnomalyModelRich_avg$model)
 
-save(MeanAnomalyModelRich, file = paste0(outdir, "MeanAnomalyModelRich_avgtemp.rdata"))
+save(MeanAnomalyModelRich_avg, file = paste0(outdir, "MeanAnomalyModelRich_avgtemp.rdata"))
 
 # Warning message:
 #   In commonArgs(par, fn, control, environment()) :
 #   maxfun < 10 * length(par)^2 is not recommended.
+
+
+#### Read in original models, compare AIC ####
+
+moddir <- "5_RunLUIClimateModels/"
+
+load(paste0(moddir, "MeanAnomalyModelAbund.rdata"))
+load(paste0(moddir, "MeanAnomalyModelRich.rdata"))
+
+AIC(MeanAnomalyModelAbund_avg$model, MeanAnomalyModelAbund$model)
+
+#                                 df      AIC
+# MeanAnomalyModelAbund_avg$model 44 26647.92
+# MeanAnomalyModelAbund$model     43 26643.84
+
+AIC(MeanAnomalyModelRich_avg$model, MeanAnomalyModelRich$model)
+
+#                                df      AIC
+# MeanAnomalyModelRich_avg$model 44 54747.09
+# MeanAnomalyModelRich$model     43 54750.61
+
+
+rm(MeanAnomalyModelRich, MeanAnomalyModelAbund)
+
+# later code uses original names so switch back
+MeanAnomalyModelAbund <- MeanAnomalyModelAbund_avg
+MeanAnomalyModelRich <- MeanAnomalyModelRich_avg
+
+
 
 #### Plots of models with order level random effect ####
 
@@ -79,7 +108,8 @@ nd <- expand.grid(
                         length.out = 100),
   LUI=factor(c("Primary vegetation","Secondary vegetation","Agriculture_Low","Agriculture_High"),
              levels = levels(MeanAnomalyModelAbund$data$LUI)),
-  Order=factor(c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera")))
+  Order=factor(c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera")), 
+  avg_temp = median(MeanAnomalyModelAbund$data$avg_temp))
 
 # back transform the predictors
 nd$StdTmeanAnomaly <- BackTransformCentreredPredictor(
@@ -437,10 +467,10 @@ legend <- get_legend(
 MeanAnomAbund <- cowplot::plot_grid(p_coleoptera,p_diptera,p_hemiptera,p_hymenoptera,p_lepidoptera,legend, ncol=3)
 
 # save plot (pdf)
-ggsave(filename = paste0(outdir, "MeanAnomAbund_orderRanEff.pdf"), plot = MeanAnomAbund, width = 200, height = 150, units = "mm", dpi = 300)
+ggsave(filename = paste0(outdir, "MeanAnomAbund_avgtemp.pdf"), plot = MeanAnomAbund, width = 200, height = 150, units = "mm", dpi = 300)
 
 # save plot (jpeg)
-ggsave("MeanAnomAbund_orderRanEff.jpeg", device ="jpeg", path = outdir, width=20, height=15, units="cm", dpi = 350)
+ggsave("MeanAnomAbund_avgtemp.jpeg", device ="jpeg", path = outdir, width=20, height=15, units="cm", dpi = 350)
 
 
 #### 4. Richness, Mean Anomaly ####
@@ -451,7 +481,8 @@ nd2 <- expand.grid(
                         length.out = 100),
   LUI=factor(c("Primary vegetation","Secondary vegetation","Agriculture_Low","Agriculture_High"),
              levels = levels(MeanAnomalyModelRich$data$LUI)),
-  Order=factor(c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera")))
+  Order=factor(c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera")), 
+  avg_temp = median(MeanAnomalyModelRich$data$avg_temp))
 
 # back transform the predictors
 nd2$StdTmeanAnomaly <- BackTransformCentreredPredictor(
@@ -789,10 +820,10 @@ legend <- get_legend(
 MeanAnomRich <- cowplot::plot_grid(p_coleoptera,p_diptera,p_hemiptera,p_hymenoptera,p_lepidoptera,legend, ncol=3)
 
 # save plot (pdf)
-ggsave(filename = paste0(outdir, "MeanAnomRich_orderRanEff.pdf"), plot = MeanAnomRich, width = 200, height = 150, units = "mm", dpi = 300)
+ggsave(filename = paste0(outdir, "MeanAnomRich_avgtemp.pdf"), plot = MeanAnomRich, width = 200, height = 150, units = "mm", dpi = 300)
 
 # save plot (jpeg)
-ggsave("MeanAnomRich_orderRanEff.jpeg", device ="jpeg", path = outdir, width=20, height=15, units="cm", dpi = 350)
+ggsave("MeanAnomRich_avgtemp.jpeg", device ="jpeg", path = outdir, width=20, height=15, units="cm", dpi = 350)
 
 
 
