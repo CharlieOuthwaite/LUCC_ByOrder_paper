@@ -911,8 +911,115 @@ ggsave("MeanAnomRich_outrm.jpeg", device ="jpeg", path = outdir, width=20, heigh
 
 
 
+############################################################
+#                                                          #
+#                   Explore the outliers                   #
+#                                                          #
+############################################################
+
+#  load in PREDICTS subset
+datadir <- "5_RunLUIClimateModels/"
+predictsSites <- readRDS(file = paste0(datadir,"PREDICTSSitesClimate_Data.rds"))
+
+# load the models where outliers removed
+load(file = paste0(outdir, "/MeanAnomalyModelAbund_rmout.rdata"))
+load(file = paste0(outdir, "/MeanAnomalyModelRich_rmout.rdata"))
+
+# determine list of outliers by comparing the datasets 
+pred_abun <- predictsSites[!is.na(predictsSites$LogAbund), ]
+
+ss_abun <- unique(pred_abun$SS[!pred_abun$SS %in% MeanAnomalyModelAbund$data$SS]) # 3
+ss_rich <- unique(predictsSites$SS[!predictsSites$SS %in% MeanAnomalyModelRich$data$SS]) # 14
+
+pred_about <- predictsSites[predictsSites$SS %in% ss_abun, ]
+pred_about <- pred_about[!is.na(pred_about$LogAbund), ] # 583 sites
+pred_srout <- predictsSites[predictsSites$SS %in% ss_rich, ] # 2207 sites
 
 
+
+table(pred_about$LUI, pred_about$Order)
+#                      Coleoptera Diptera Hemiptera Hymenoptera Lepidoptera
+# Primary vegetation            0       0         0           0           0
+# Agriculture_High              0      32         0          32           0
+# Agriculture_Low               0      32         0          32           0
+# Secondary vegetation        139      59        59          59         139
+
+
+table(pred_srout$LUI, pred_srout$Order)
+#                      Coleoptera Diptera Hemiptera Hymenoptera Lepidoptera
+# Primary vegetation          101       0        78          23         104
+# Agriculture_High             96     104        84         116          99
+# Agriculture_Low             111      68        95          98         239
+# Secondary vegetation        218      86       125         101         261
+
+
+ss_abun %in% ss_rich # TRUE TRUE TRUE 
+# all abundance outliers also richness outliers
+
+
+#### Look at spread of anomaly values across outlier studies ####
+
+
+library(ggplot2)
+library(pals) # pals package has good palettes for discrete colours when large number of groups
+library(ggfocus)
+
+ggplot(data = pred_about, aes(x = StdTmeanAnomaly, y = LogAbund, col = SS)) + 
+  geom_point() + 
+  facet_wrap(~LUI) + 
+  theme_bw()
+
+ggsave(filename = paste0(outdir, "PLOT_Abun_outliers_STA_logAbun.png"))
+
+
+ggplot(data = pred_srout, aes(x = StdTmeanAnomaly, y = Species_richness, col = SS)) + 
+  geom_point() + 
+  scale_color_manual(values=as.vector(alphabet())) +
+  facet_wrap(~LUI) + 
+  theme_bw()
+
+ggsave(filename = paste0(outdir, "PLOT_Rich_outliers_STA_rich.png"))
+
+
+## recreate plots for non-outliers
+
+ggplot(data = pred_abun, aes(x = StdTmeanAnomaly, y = LogAbund, col = SS)) + 
+  geom_point() + 
+  facet_wrap(~LUI) + 
+  theme_bw() + 
+  theme(legend.position = "none")
+
+ggsave(filename = paste0(outdir, "PLOT_Abun_STA_logAbun_ALL.png"))
+
+
+ggplot(data = predictsSites, aes(x = StdTmeanAnomaly, y = Species_richness, col = SS)) + 
+  geom_point() + 
+  #scale_color_manual(values=as.vector(alphabet())) +
+  facet_wrap(~LUI) + 
+  theme_bw()  + 
+  theme(legend.position = "none")
+
+ggsave(filename = paste0(outdir, "PLOT_Rich_STA_rich_ALL.png"))
+
+
+## focus on the outliers
+ggplot(data = pred_abun, aes(x = StdTmeanAnomaly, y = LogAbund, col = SS)) + 
+  geom_point() + 
+  facet_wrap(~LUI) + 
+  scale_color_focus(ss_abun) + 
+  theme_bw() + 
+  theme(legend.position = "none")
+
+ggsave(filename = paste0(outdir, "PLOT_Abun_STA_logAbun_ALL_focus.png"))
+
+ggplot(data = predictsSites, aes(x = StdTmeanAnomaly, y = Species_richness, col = SS)) + 
+geom_point() + 
+scale_color_focus(ss_rich) + 
+facet_wrap(~LUI) + 
+theme_bw()  + 
+theme(legend.position = "none")
+  
+ggsave(filename = paste0(outdir, "PLOT_Rich_STA_rich_ALL_focus.png"))
 
 t.end <- Sys.time()
 
