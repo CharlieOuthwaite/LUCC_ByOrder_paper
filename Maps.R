@@ -67,7 +67,7 @@ mapdf <- sites %>% dplyr::select(UN_subregion,Order,Longitude,Latitude) %>% # fi
             long = mean(Longitude), lat = mean(Latitude), # calculate the mean coordinates, for plotting the piecharts
             radius = 25*sqrt(length(UN_subregion)/nrow(sites))) # calculate the radius for each subregion
 
-# need to correct the position of the pie charts in europe
+# need to correct the position of the pie charts in europe to prevent overlap
 # southern europe - move north and east
 mapdf$lat[mapdf$UN_subregion == "Southern Europe"] <- 43
 mapdf$long[mapdf$UN_subregion == "Southern Europe"] <- -5
