@@ -649,7 +649,7 @@ L_QAH <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
 sr.preds.tmean <- PredictGLMERRandIter(model = MeanAnomalyModelRich$model,data = nd2)
 
 # back transform the abundance values
-sr.preds.tmean <- exp(sr.preds.tmean)-0.01
+sr.preds.tmean <- exp(sr.preds.tmean)
 
 # create list of matrices
 number_of_chunks = 5
