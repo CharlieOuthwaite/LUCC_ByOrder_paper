@@ -16,6 +16,9 @@ library(StatisticalModels)
 library(ggplot2)
 library(cowplot)
 library(dplyr)
+library(plotly)
+
+
 
 # directories
 dataDir <- "Data/"
@@ -721,7 +724,6 @@ plot_data_sr <- rbind(plot_data_sr, all_groups)
 save(plot_data_ab, file = paste0(outdir, "jackknife_data_abun.rdata"))
 save(plot_data_sr, file = paste0(outdir, "jackknife_data_rich.rdata"))
 
-
 # tidy environment
 rm(Coleoptera, Diptera, Hemiptera, Lepidoptera, Hymenoptera, nd_Coleoptera,
    nd_Diptera, nd_Hemiptera, nd_Hymenoptera, nd_Lepidoptera, nd2_Coleoptera,
@@ -729,9 +731,21 @@ rm(Coleoptera, Diptera, Hemiptera, Lepidoptera, Hymenoptera, nd_Coleoptera,
    C_QPV, C_QSV, D_QAH, D_QAL, D_QPV, D_QSV, He_QAH, He_QAL,   He_QPV, He_QSV, 
    Hy_QAH, Hy_QAL, Hy_QPV, Hy_QSV, L_QAH, L_QAL, L_QPV, L_QSV)
 
+
+#### loading data for plotting ####
+
+# load(file = paste0(outdir, "jackknife_data_abun.rdata"))
+# load(file = paste0(outdir, "jackknife_data_rich.rdata"))
+
+
 # organise plotting data using original model outputs for comparison
 load("5_RunLUIClimateModels/MeanAnomalyModelAbund.rdata")
 load("5_RunLUIClimateModels/MeanAnomalyModelRich.rdata")
+
+
+# load in original site level data
+sites <- readRDS(file = "5_RunLUIClimateModels/PREDICTSSitesClimate_Data.rds")
+
 
 # Organise data for plotting
 
@@ -1163,3 +1177,493 @@ nd2_Lepidoptera$PredLower <- ((apply(X = Lepidoptera,MARGIN = 1,
 
 ori_rich <- rbind(nd2_Coleoptera, nd2_Diptera, nd2_Hemiptera, nd2_Hymenoptera, nd2_Lepidoptera)
 
+
+
+#### Combine into Order level plots ####
+
+# Combine the jackknifed and original data into order level plot where the original
+# data is the focus and the jackknifed ones removed. 
+
+
+#### Diptera plots ####
+
+## 1. abundance
+
+# add a label to the original data
+ori_abun$family <- "all"
+
+# combine this with the data from the jackknifing process
+plotdat1 <- rbind(ori_abun, plot_data_ab)
+
+# subset to the order of interest
+plot_dip <- plotdat1[plotdat1$Order == "Diptera", ]
+
+# convert family to factor
+plot_dip$family <- as.factor(plot_dip$family)
+
+# Which line should be the focus, the original model result
+plot_dip$focus <- "No"
+plot_dip[plot_dip$family == "all", "focus"] <- "Yes"
+
+# remove that where family was unknown
+plot_dip <- plot_dip[!plot_dip$family == "", ]
+
+# annotation for plot
+ann_text <- data.frame(StdTmeanAnomaly = c(0.6, 0.6) , PredMedian = c(50, 0) ,lab = "Text",
+                       LUI = factor(c("Agriculture_Low", "Agriculture_High"),levels = c("Primary vegetation","Secondary vegetation", "Agriculture_Low", "Agriculture_High" )))
+
+# organise plot focussed on the all with jackknifed subset lines in grey
+p1 <- ggplot() + 
+  geom_line(data = plot_dip[plot_dip$focus == "No", ], aes(x = StdTmeanAnomaly, y = PredMedian, group = family), col = "darkgrey", alpha = 0.6, size = 1) +
+  geom_line(data = plot_dip[plot_dip$focus == "Yes", ], aes(x = StdTmeanAnomaly, y = PredMedian), col = "blue",  size = 1) +
+    # geom_ribbon(aes(ymin = plotdat1$PredLower, ymax = plotdat1$PredUpper, fill = family), alpha = 0.2) +
+  facet_wrap(~LUI) + 
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  geom_text(data = ann_text, aes(x = StdTmeanAnomaly, y = PredMedian), label = "Syrphidae") +
+  #scale_color_focus(c('Yes'), color_focus = "blue") +
+  #scale_alpha_focus(c('all')) +
+    # scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  # scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  theme_bw() + 
+  scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
+  #scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100), limits = c(-100, 100)) +
+  ylab("Change in total abundance (%)") +
+  xlab("Standardised Temperature Anomaly") + 
+  theme(aspect.ratio = 1, 
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title.x = element_text(size = 8),
+        axis.title.y = element_text(size = 8),
+        axis.text = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
+        legend.position = "none", 
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25)) 
+
+
+p1
+ggsave(p1, filename = paste0(outdir, "Diptera_Jackknife_abundance_plot.png"))
+
+ggplotly(p1)
+
+## 2. Richness
+
+# add a label to the original data
+ori_rich$family <- "all"
+
+# combine this with the data from the jackknifing process
+plotdat2 <- rbind(ori_rich, plot_data_sr)
+
+# subset to the order of interest
+plot_dip <- plotdat2[plotdat2$Order == "Diptera", ]
+
+# convert family to factor
+plot_dip$family <- as.factor(plot_dip$family)
+
+# Which line should be the focus, the original model result
+plot_dip$focus <- "No"
+plot_dip[plot_dip$family == "all", "focus"] <- "Yes"
+
+plot_dip$LUI <- factor(plot_dip$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
+
+# remove that where family was unknown
+plot_dip <- plot_dip[!plot_dip$family == "", ]
+
+
+# annotation for plot
+ann_text <- data.frame(StdTmeanAnomaly = c(0.6, 0.6) , PredMedian = c(50, 55) ,lab = "Text",
+                       LUI = factor(c("Agriculture_Low", "Agriculture_High"),levels = c("Primary vegetation","Secondary vegetation", "Agriculture_Low", "Agriculture_High" )))
+
+
+# organise plot focussed on the all with jackknifed subset lines in grey
+p2 <- ggplot() + 
+  geom_line(data = plot_dip[plot_dip$focus == "No", ], aes(x = StdTmeanAnomaly, y = PredMedian, group = family), col = "darkgrey", alpha = 0.6, size = 1) +
+  geom_line(data = plot_dip[plot_dip$focus == "Yes", ], aes(x = StdTmeanAnomaly, y = PredMedian), col = "blue",  size = 1) +
+  geom_text(data = ann_text, aes(x = StdTmeanAnomaly, y = PredMedian), label = "Syrphidae") +
+  # geom_ribbon(aes(ymin = plotdat1$PredLower, ymax = plotdat1$PredUpper, fill = family), alpha = 0.2) +
+  facet_wrap(~LUI) + 
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  #scale_color_focus(c('Yes'), color_focus = "blue") +
+  #scale_alpha_focus(c('all')) +
+  # scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  # scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  theme_bw() + 
+  scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
+  #scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100), limits = c(-100, 100)) +
+  ylab("Change in species richness (%)") +
+  xlab("Standardised Temperature Anomaly") + 
+  theme(aspect.ratio = 1, 
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title.x = element_text(size = 8),
+        axis.title.y = element_text(size = 8),
+        axis.text = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
+        legend.position = "none", 
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25)) 
+
+p2
+ggsave(p2, filename = paste0(outdir, "Diptera_Jackknife_richness_plot.png"))
+
+ggplotly(p2)
+
+
+
+#### Coleoptera plots ####
+
+## 1. abundance
+
+# subset to the order of interest
+plot_col<- plotdat1[plotdat1$Order == "Coleoptera", ]
+
+# convert family to factor
+plot_col$family <- as.factor(plot_col$family)
+
+# Which line should be the focus, the original model result
+plot_col$focus <- "No"
+plot_col[plot_col$family == "all", "focus"] <- "Yes"
+
+# remove that where family was unknown
+plot_col <- plot_col[!plot_col$family == "", ]
+
+
+# annotation for plot
+ann_text <- data.frame(StdTmeanAnomaly = c(1, 1.2) , PredMedian = c(-50, -35) ,lab = "Text",
+                       LUI = factor(c("Primary vegetation", "Secondary vegetation"),levels = c("Primary vegetation","Secondary vegetation", "Agriculture_Low", "Agriculture_High" )))
+
+
+# organise plot focussed on the all with jackknifed subset lines in grey
+p1 <- ggplot() + 
+  geom_line(data = plot_col[plot_col$focus == "No", ], aes(x = StdTmeanAnomaly, y = PredMedian, group = family), col = "darkgrey", alpha = 0.6, size = 1) +
+  geom_line(data = plot_col[plot_col$focus == "Yes", ], aes(x = StdTmeanAnomaly, y = PredMedian), col = "blue",  size = 1) +
+  geom_text(data = ann_text, aes(x = StdTmeanAnomaly, y = PredMedian), label = c("Scarabaeidae", "Pyrochroidae")) +
+    # geom_ribbon(aes(ymin = plotdat1$PredLower, ymax = plotdat1$PredUpper, fill = family), alpha = 0.2) +
+  facet_wrap(~LUI) + 
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  #scale_color_focus(c('Yes'), color_focus = "blue") +
+  #scale_alpha_focus(c('all')) +
+  # scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  # scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  theme_bw() + 
+  scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
+  #scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100), limits = c(-100, 100)) +
+  ylab("Change in total abundance (%)") +
+  xlab("Standardised Temperature Anomaly") + 
+  theme(aspect.ratio = 1, 
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title.x = element_text(size = 8),
+        axis.title.y = element_text(size = 8),
+        axis.text = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
+        legend.position = "none", 
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25)) 
+
+p1
+
+ggsave(p1, filename = paste0(outdir, "Coleoptera_Jackknife_abundance_plot.png"))
+
+ggplotly(p1)
+
+
+## 2. Richness
+
+# subset to the order of interest
+plot_col <- plotdat2[plotdat2$Order == "Coleoptera", ]
+
+# convert family to factor
+plot_col$family <- as.factor(plot_col$family)
+
+# Which line should be the focus, the original model result
+plot_col$focus <- "No"
+plot_col[plot_col$family == "all", "focus"] <- "Yes"
+
+plot_col$LUI <- factor(plot_col$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
+
+# remove that where family was unknown
+plot_col <- plot_col[!plot_col$family == "", ]
+
+
+# annotation for plot
+ann_text <- data.frame(StdTmeanAnomaly = c(1, 1.2) , PredMedian = c(-25, 25) ,lab = "Text",
+                       LUI = factor(c("Primary vegetation", "Secondary vegetation"),levels = c("Primary vegetation","Secondary vegetation", "Agriculture_Low", "Agriculture_High" )))
+
+# organise plot focussed on the all with jackknifed subset lines in grey
+p2 <- ggplot() + 
+  geom_line(data = plot_col[plot_col$focus == "No", ], aes(x = StdTmeanAnomaly, y = PredMedian, group = family), col = "darkgrey", alpha = 0.6, size = 1) +
+  geom_line(data = plot_col[plot_col$focus == "Yes", ], aes(x = StdTmeanAnomaly, y = PredMedian), col = "blue",  size = 1) +
+  geom_text(data = ann_text, aes(x = StdTmeanAnomaly, y = PredMedian), label = c("Scarabaeidae", "Pyrochroidae")) +
+    # geom_ribbon(aes(ymin = plotdat1$PredLower, ymax = plotdat1$PredUpper, fill = family), alpha = 0.2) +
+  facet_wrap(~LUI) + 
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  #scale_color_focus(c('Yes'), color_focus = "blue") +
+  #scale_alpha_focus(c('all')) +
+  # scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  # scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  theme_bw() + 
+  scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
+  #scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100), limits = c(-100, 100)) +
+  ylab("Change in species richness (%)") +
+  xlab("Standardised Temperature Anomaly") + 
+  theme(aspect.ratio = 1, 
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title.x = element_text(size = 8),
+        axis.title.y = element_text(size = 8),
+        axis.text = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
+        legend.position = "none", 
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25)) 
+
+p2
+
+ggsave(p2, filename = paste0(outdir, "Coleoptera_Jackknife_richness_plot.png"))
+
+ggplotly(p2)
+
+#### Hemiptera plots ####
+
+## 1. abundance
+
+# subset to the order of interest
+plot_hem <- plotdat1[plotdat1$Order == "Hemiptera", ]
+
+# convert family to factor
+plot_hem$family <- as.factor(plot_hem$family)
+
+# Which line should be the focus, the original model result
+plot_hem$focus <- "No"
+plot_hem[plot_hem$family == "all", "focus"] <- "Yes"
+
+# remove that where family was unknown
+plot_hem <- plot_hem[!plot_hem$family == "", ]
+
+
+# annotation for plot
+ann_text <- data.frame(StdTmeanAnomaly = c(1.2, 1) , PredMedian = c(-20, -25) ,lab = "Text",
+                       LUI = factor(c("Primary vegetation", "Agriculture_Low"),levels = c("Primary vegetation","Secondary vegetation", "Agriculture_Low", "Agriculture_High" )))
+
+# organise plot focussed on the all with jackknifed subset lines in grey
+p1 <- ggplot() + 
+  geom_line(data = plot_hem[plot_hem$focus == "No", ], aes(x = StdTmeanAnomaly, y = PredMedian, group = family), col = "darkgrey", alpha = 0.6, size = 1) +
+  geom_line(data = plot_hem[plot_hem$focus == "Yes", ], aes(x = StdTmeanAnomaly, y = PredMedian), col = "blue",  size = 1) +
+  geom_text(data = ann_text, aes(x = StdTmeanAnomaly, y = PredMedian), label = c("Cicadellidae", "Cicadellidae")) +
+    # geom_ribbon(aes(ymin = plotdat1$PredLower, ymax = plotdat1$PredUpper, fill = family), alpha = 0.2) +
+  facet_wrap(~LUI) + 
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  #scale_color_focus(c('Yes'), color_focus = "blue") +
+  #scale_alpha_focus(c('all')) +
+  # scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  # scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  theme_bw() + 
+  scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
+  #scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100), limits = c(-100, 100)) +
+  ylab("Change in total abundance (%)") +
+  xlab("Standardised Temperature Anomaly") + 
+  theme(aspect.ratio = 1, 
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title.x = element_text(size = 8),
+        axis.title.y = element_text(size = 8),
+        axis.text = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
+        legend.position = "none", 
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25)) 
+
+p1
+
+ggsave(p1, filename = paste0(outdir, "Hemiptera_Jackknife_abundance_plot.png"))
+
+ggplotly(p1)
+
+## 2. Richness
+
+# subset to the order of interest
+plot_hem <- plotdat2[plotdat2$Order == "Hemiptera", ]
+
+# convert family to factor
+plot_hem$family <- as.factor(plot_hem$family)
+
+# Which line should be the focus, the original model result
+plot_hem$focus <- "No"
+plot_hem[plot_hem$family == "all", "focus"] <- "Yes"
+
+plot_hem$LUI <- factor(plot_hem$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
+
+# remove that where family was unknown
+plot_hem <- plot_hem[!plot_hem$family == "", ]
+
+# annotation for plot
+ann_text <- data.frame(StdTmeanAnomaly = c(1.5, 1, 1.2, 1.2, 1.5) , PredMedian = c(75, -50, 50, 0, 25) ,lab = "Text",
+                       LUI = factor(c("Primary vegetation", "Primary vegetation","Agriculture_Low", "Secondary vegetation", "Agriculture_High"),levels = c("Primary vegetation","Secondary vegetation", "Agriculture_Low", "Agriculture_High" )))
+
+# organise plot focussed on the all with jackknifed subset lines in grey
+p2 <- ggplot() + 
+  geom_line(data = plot_hem[plot_hem$focus == "No", ], aes(x = StdTmeanAnomaly, y = PredMedian, group = family), col = "darkgrey", alpha = 0.6, size = 1) +
+  geom_line(data = plot_hem[plot_hem$focus == "Yes", ], aes(x = StdTmeanAnomaly, y = PredMedian), col = "blue",  size = 1) +
+  geom_text(data = ann_text, aes(x = StdTmeanAnomaly, y = PredMedian), label = c("Cicadellidae", "Staphylinidae",  "Formicidae", "Pyrochroidae", "Formicidae")) +
+  # geom_ribbon(aes(ymin = plotdat1$PredLower, ymax = plotdat1$PredUpper, fill = family), alpha = 0.2) +
+  facet_wrap(~LUI) + 
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  #scale_color_focus(c('Yes'), color_focus = "blue") +
+  #scale_alpha_focus(c('all')) +
+  # scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  # scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  theme_bw() + 
+  scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
+  #scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100), limits = c(-100, 100)) +
+  ylab("Change in species richness (%)") +
+  xlab("Standardised Temperature Anomaly") + 
+  theme(aspect.ratio = 1, 
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title.x = element_text(size = 8),
+        axis.title.y = element_text(size = 8),
+        axis.text = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
+        legend.position = "none", 
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25)) 
+
+p2
+ggsave(p2, filename = paste0(outdir, "Hemiptera_Jackknife_richness_plot.png"))
+
+ggplotly(p2)
+
+#### Hymenoptera plots ####
+
+## 1. abundance
+
+# add a label to the original data
+ori_abun$family <- "all"
+
+# combine this with the data from the jackknifing process
+plotdat1 <- rbind(ori_abun, plot_data_ab)
+
+# subset to the order of interest
+plot_hym <- plotdat1[plotdat1$Order == "Hymenoptera", ]
+
+# convert family to factor
+plot_hym$family <- as.factor(plot_hym$family)
+
+# Which line should be the focus, the original model result
+plot_hym$focus <- "No"
+plot_hym[plot_hym$family == "all", "focus"] <- "Yes"
+
+# remove that where family was unknown
+plot_hym <- plot_hym[!plot_hym$family == "", ]
+
+# annotation for plot
+ann_text <- data.frame(StdTmeanAnomaly = c(0.7, 1) , PredMedian = c(25, -25) ,lab = "Text",
+                       LUI = factor(c("Agriculture_Low", "Agriculture_High"),levels = c("Primary vegetation","Secondary vegetation", "Agriculture_Low", "Agriculture_High" )))
+
+# organise plot focussed on the all with jackknifed subset lines in grey
+p1 <- ggplot() + 
+  geom_line(data = plot_hym[plot_hym$focus == "No", ], aes(x = StdTmeanAnomaly, y = PredMedian, group = family), col = "darkgrey", alpha = 0.6, size = 1) +
+  geom_line(data = plot_hym[plot_hym$focus == "Yes", ], aes(x = StdTmeanAnomaly, y = PredMedian), col = "blue",  size = 1) +
+  #geom_text(data = ann_text, aes(x = StdTmeanAnomaly, y = PredMedian), label = c("Syrphidae", "Syrphidae")) +
+  # geom_ribbon(aes(ymin = plotdat1$PredLower, ymax = plotdat1$PredUpper, fill = family), alpha = 0.2) +
+  facet_wrap(~LUI) + 
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  #scale_color_focus(c('Yes'), color_focus = "blue") +
+  #scale_alpha_focus(c('all')) +
+  # scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  # scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  theme_bw() + 
+  scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
+  #scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100), limits = c(-100, 100)) +
+  ylab("Change in total abundance (%)") +
+  xlab("Standardised Temperature Anomaly") + 
+  theme(aspect.ratio = 1, 
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title.x = element_text(size = 8),
+        axis.title.y = element_text(size = 8),
+        axis.text = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
+        legend.position = "none", 
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25)) 
+
+p1
+
+ggsave(p1, filename = paste0(outdir, "Hymenoptera_Jackknife_abundance_plot.png"))
+
+
+ggplotly(p1)
+
+## 2. Richness
+
+# add a label to the original data
+ori_rich$family <- "all"
+
+# combine this with the data from the jackknifing process
+plotdat2 <- rbind(ori_rich, plot_data_sr)
+
+# subset to the order of interest
+plot_hym <- plotdat2[plotdat2$Order == "Diptera", ]
+
+# convert family to factor
+plot_hym$family <- as.factor(plot_hym$family)
+
+# Which line should be the focus, the original model result
+plot_hym$focus <- "No"
+plot_hym[plot_hym$family == "all", "focus"] <- "Yes"
+
+plot_hym$LUI <- factor(plot_hym$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
+
+# remove that where family was unknown
+plot_hym <- plot_hym[!plot_hym$family == "", ]
+
+# annotation for plot
+ann_text <- data.frame(StdTmeanAnomaly = c(1.5, 1.5, 0.5, 0.2, 1, 0.4) , PredMedian = c(25, 40, 50, 0, 50, 25) ,lab = "Text",
+                       LUI = factor(c("Primary vegetation", "Primary vegetation", "Agriculture_Low", "Agriculture_Low","Agriculture_High","Agriculture_High"),levels = c("Primary vegetation","Secondary vegetation", "Agriculture_Low", "Agriculture_High" )))
+
+# organise plot focussed on the all with jackknifed subset lines in grey
+p2 <- ggplot() + 
+  geom_line(data = plot_hym[plot_hym$focus == "No", ], aes(x = StdTmeanAnomaly, y = PredMedian, group = family), col = "darkgrey", alpha = 0.6, size = 1) +
+  geom_line(data = plot_hym[plot_hym$focus == "Yes", ], aes(x = StdTmeanAnomaly, y = PredMedian), col = "blue",  size = 1) +
+  geom_text(data = ann_text, aes(x = StdTmeanAnomaly, y = PredMedian), label = c("Syrphidae", "Formicidae", "Syrphidae", "Apidae", "Syrphidae", "Formicidae")) +
+    # geom_ribbon(aes(ymin = plotdat1$PredLower, ymax = plotdat1$PredUpper, fill = family), alpha = 0.2) +
+  facet_wrap(~LUI) + 
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  #scale_color_focus(c('Yes'), color_focus = "blue") +
+  #scale_alpha_focus(c('all')) +
+  # scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  # scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  theme_bw() + 
+  scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
+  #scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100), limits = c(-100, 100)) +
+  ylab("Change in species richness (%)") +
+  xlab("Standardised Temperature Anomaly") + 
+  theme(aspect.ratio = 1, 
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title.x = element_text(size = 8),
+        axis.title.y = element_text(size = 8),
+        axis.text = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
+        legend.position = "none", 
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25)) 
+
+p2
+
+ggsave(p2, filename = paste0(outdir, "Hymenoptera_Jackknife_richness_plot.png"))
+
+ggplotly(p2)
+
+
+#### Lepidoptera plots ####
