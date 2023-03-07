@@ -11,22 +11,24 @@
 rm(list = ls())
 
 # set directories 
+dataDir<- "Data/"
 inDir<- "1_CheckPrepareData/"
 plotDir <- "1_CheckPrepareData/Plots/"
 if(!dir.exists(plotDir)) dir.create(plotDir)
 
 # load packages
-packages_plot <- c("patchwork","dplyr","ggplot2","scatterpie","gt","broom.mixed","MASS","webshot","sjPlot","stringr")
+packages_plot <- c("patchwork","dplyr","ggplot2","scatterpie","gt","broom.mixed","MASS","webshot","sjPlot","stringr","rjson")
 suppressWarnings(suppressMessages(lapply(packages_plot, require, character.only = TRUE)))
 
 # load data set
-sites <- readRDS(file = paste0(plotDir,"PREDICTSSiteData.rds"))
+sites <- readRDS(file = paste0(inDir,"PREDICTSSiteData.rds"))
+
+# load map
+map.world <- map_data('world')
 
 ## 1. plot map of site distribution: scatterplot ##
 
 # plot the raster in ggplot
-
-map.world <- map_data('world')
 
 # map of sites, no colour
 p_map1.1 <-ggplot() +
