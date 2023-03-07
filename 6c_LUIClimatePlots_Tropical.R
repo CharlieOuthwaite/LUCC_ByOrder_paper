@@ -632,7 +632,7 @@ L_QAH <- quantile(x = MeanAnomalyModelRich_trop$data$StdTmeanAnomalyRS[
 s.preds.tmean.trop <- PredictGLMERRandIter(model = MeanAnomalyModelRich_trop$model,data = nd2_trop)
 
 # back transform the abundance values
-s.preds.tmean.trop <- exp(s.preds.tmean.trop)-0.01
+s.preds.tmean.trop <- exp(s.preds.tmean.trop)
 
 # split by order into matrices, then name them
 number_of_chunks = 3
@@ -877,7 +877,7 @@ L_QAH <- quantile(x = MeanAnomalyModelRich_nontrop$data$StdTmeanAnomalyRS[
 s.preds.tmean.nontrop <- PredictGLMERRandIter(model = MeanAnomalyModelRich_nontrop$model,data = nd2_nontrop)
 
 # back transform the abundance values
-s.preds.tmean.nontrop <- exp(s.preds.tmean.nontrop)-0.01
+s.preds.tmean.nontrop <- exp(s.preds.tmean.nontrop)
 
 
 # split by order into matrices, then name them
@@ -1658,7 +1658,7 @@ L_QAH <- quantile(x = MaxAnomalyModelRich_trop$data$StdTmeanAnomalyRS[
 s.preds.tmax.trop <- PredictGLMERRandIter(model = MaxAnomalyModelRich_trop$model,data = nd4_trop)
 
 # back transform the abundance values
-s.preds.tmax.trop <- exp(s.preds.tmax.trop)-0.01
+s.preds.tmax.trop <- exp(s.preds.tmax.trop)
 
 # split by order into matrices, then name them
 number_of_chunks = 3
@@ -1874,7 +1874,7 @@ QAH <- quantile(x = MaxAnomalyModelRich_nontrop$data$StdTmaxAnomalyRS[
 s.preds.tmax.nontrop <- PredictGLMERRandIter(model = MaxAnomalyModelRich_nontrop$model,data = nd4_nontrop)
 
 # back transform the abundance values
-s.preds.tmax.nontrop <- exp(s.preds.tmax.nontrop)-0.01
+s.preds.tmax.nontrop <- exp(s.preds.tmax.nontrop)
 
 
 # split by order into matrices, then name them
