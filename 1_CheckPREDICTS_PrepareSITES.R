@@ -24,6 +24,23 @@ source("0_Functions.R")
 
 #### 1. Load and check dataset ####
 
+packages <- c("predictsFunctions" ,"patchwork", "dplyr", "yarg", "lme4", "gt", "broom.mixed", "MASS","webshot")
+suppressWarnings(suppressMessages(lapply(packages, require, character.only = TRUE)))
+
+# load other functions
+source("0_Functions.R")
+library(predictsFunctions)
+library(dplyr)
+library(ggplot2)
+library(gt)
+source("0_Functions.R")
+
+packages <- c("patchwork", "dplyr", "yarg", "lme4", "gt", "broom.mixed", "MASS","webshot", "ggplot2","scatterpie","sjPlot")
+suppressWarnings(suppressMessages(lapply(packages, require, character.only = TRUE)))
+
+
+#### 1. Organise data ####
+
 # Set the path to copy of the database
 predicts.path <- paste0(dataDir,"database.rds")
 
