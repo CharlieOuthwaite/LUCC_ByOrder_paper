@@ -202,10 +202,20 @@ save(MaxAnomalyModelRich_trop, file = paste0(outDir, "MaxAnomalyModelRich_trop.r
 tab_model(MeanAnomalyModelAbund_nontrop$model, transform = NULL, file = paste0(tabDir,"AbunMeanAnom_output_nontrop_table.html"))
 summary(MeanAnomalyModelAbund_nontrop$model) # check the table against the outputs
 R2GLMER(MeanAnomalyModelAbund_nontrop$model) # check the R2 values 
+# $conditional
+# [1] 0.5761286
+# 
+# $marginal
+# [1] 0.1504236
 
 tab_model(MeanAnomalyModelRich_nontrop$model, transform = NULL, file = paste0(tabDir,"RichMeanAnom_output_nontrop_table.html"))
 summary(MeanAnomalyModelRich_nontrop$model) # check the table against the outputs
 R2GLMER(MeanAnomalyModelRich_nontrop$model) # check the R2 values
+# $conditional
+# [1] 0.7402805
+# 
+# $marginal
+# [1] 0.1029864
 
 tab_model(MaxAnomalyModelAbund_nontrop$model, transform = NULL, file = paste0(tabDir,"AbunMaxAnom_output_nontrop_table.html"))
 summary(MaxAnomalyModelAbund_nontrop$model) # check the table against the outputs
@@ -220,10 +230,21 @@ R2GLMER(MaxAnomalyModelRich_nontrop$model) # check the R2 values
 tab_model(MeanAnomalyModelAbund_trop$model, transform = NULL, file = paste0(tabDir,"AbunMeanAnom_output_trop_table.html"))
 summary(MeanAnomalyModelAbund_trop$model) # check the table against the outputs
 R2GLMER(MeanAnomalyModelAbund_trop$model) # check the R2 values 
+# $conditional
+# [1] 0.4410931
+# 
+# $marginal
+# [1] 0.1449011
 
 tab_model(MeanAnomalyModelRich_trop$model, transform = NULL, file = paste0(tabDir, "RichMeanAnom_output_trop_table.html"))
 summary(MeanAnomalyModelRich_trop$model) # check the table against the outputs
 R2GLMER(MeanAnomalyModelRich_trop$model) # check the R2 values
+# $conditional
+# [1] 0.7506744
+# 
+# $marginal
+# [1] 0.1304144
+
 
 tab_model(MaxAnomalyModelAbund_trop$model, transform = NULL, file = paste0(tabDir,"AbunMaxAnom_output_trop_table.html"))
 summary(MaxAnomalyModelAbund_trop$model) # check the table against the outputs

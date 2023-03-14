@@ -579,8 +579,42 @@ write.csv(all_res, file = paste0(predsDir,"LUI_predictions_realms.csv"))
 LUI_predictions_realms <- all_res %>% gt()
 gtsave(LUI_predictions_realms,"LUI_predictions_realms.png", path = predsDir)
 
+
+
+# R-squared values
+
+R2GLMER(am3.3_trop$model)
+# $conditional
+# [1] 0.7149983
+# 
+# $marginal
+# [1] 0.06486359
+
+R2GLMER(am3.3_nontrop$model)
+# $conditional
+# [1] 0.8209407
+# 
+# $marginal
+# [1] 0.09744095
+
+R2GLMER(sm3.3_trop$model)
+# $conditional
+# [1] 0.7040361
+# 
+# $marginal
+# [1] 0.0782471
+
+R2GLMER(sm3.3_nontrop$model)
+# $conditional
+# [1] 0.7436253
+# 
+# $marginal
+# [1] 0.07648085
+
+
 # t.end <- Sys.time()
 # 
 # print(round(t.end - t.start,0))
 # 
 # sink()
+
