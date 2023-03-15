@@ -38,7 +38,7 @@ predicts <- ReadPREDICTS(predicts.path)
 # 3250404 obs. of 67 variables
 
 # Select only data for insects
-predicts <- predicts[(predicts$Class=="Insecta"),]
+predicts <- predicts[predicts$Class == "Insecta",]
 # 935078 obs. of 67 variables
 
 # Correct effort-sensitive abundance measures (assumes linear relationship between effort and recorded abundance)
@@ -57,7 +57,7 @@ predicts <- MergeSites(diversity = predicts)
 # 826292 obs. of 67 variables
 
 # remove entries without Order
-predicts <- droplevels(predicts[(predicts$Order!=""),])
+predicts <- droplevels(predicts[predicts$Order != "", ])
 # 826016 obs. of 67 variables
 
 # convert Order to a "factor"
@@ -65,12 +65,13 @@ predicts$Order <- as.factor(predicts$Order)
 
 # remove orders not included
 predicts <- predicts[predicts$Order %in% c("Coleoptera", "Diptera", "Hemiptera", "Hymenoptera", "Lepidoptera"), ]
-
+# 810399 obs. of 67 variables
 
 # how many unique families?
 fams <- droplevels(unique(predicts$Family))
 length(fams) # 357
 
+# drop levels since unique sites etc will have been filtered out
 predicts <- droplevels(predicts)
 
 # how many famliies per order
@@ -102,6 +103,9 @@ pred_ori <- pred_ori@data
 plot_data_ab <- NULL
 plot_data_sr <- NULL
 
+# for testing
+# family <- "Pyrochroidae"
+
 for(family in fams){
   
 predicts <- pred_data[!pred_data$Family == family, ]  
@@ -111,9 +115,10 @@ predicts <- pred_data[!pred_data$Family == family, ]
 
 # Split predicts into separate data frames according to insect Order 
 
-# use split function to split the predicts data frame into 6 data frames (1/Order)
+# use split function to split the predicts data frame into 5 data frames (1/Order)
 OrderName <- paste0("",predicts$Order)
 
+# creates a list with 5 elements
 by_Order <- split(predicts,OrderName)
 
 # extract data frames from list into global environment
@@ -198,11 +203,10 @@ sites$LUI <- dplyr::recode(sites$LUI,
 sites <- sites[!sites$LUI == "Urban", ]
 sites <- sites[!is.na(sites$LUI), ]
 
-
 sites <- droplevels(sites)
 
-# transform abundance values 
-sites$LogAbund <- log(sites$Total_abundance+1)
+# # transform abundance values 
+# sites$LogAbund <- log(sites$Total_abundance+1)
 
 # Remove sites without coordinates
 sites <- sites[!is.na(sites$Latitude), ]
@@ -240,7 +244,9 @@ sites <- droplevels(sites)
 
 # some of the climate values are NA since they do not meet the thresholds
 sites <- sites[!is.na(sites$avg_temp), ]
+# 8778 rows
 
+levels(sites$LUI)
 
 
 #### 4. rerun the analysis with subsetted data ####
@@ -250,6 +256,8 @@ sites <- sites[!is.na(sites$avg_temp), ]
 model_data <- sites[!is.na(sites$LogAbund), ]
 model_data <- model_data[!is.na(model_data$StdTmeanAnomalyRS), ]
 
+# levels(model_data$LUI)
+# levels(model_data$Order)
 
 MeanAnomalyModelAbund <- GLMER(modelData = model_data,responseVar = "LogAbund",fitFamily = "gaussian",
                                fixedStruct = "LUI * StdTmeanAnomalyRS * Order",
@@ -260,6 +268,9 @@ MeanAnomalyModelAbund <- GLMER(modelData = model_data,responseVar = "LogAbund",f
 # ii. Richness, mean anomaly
 
 model_data <- sites[!is.na(sites$StdTmeanAnomalyRS), ]
+
+# levels(model_data$LUI)
+# levels(model_data$Order)
 
 MeanAnomalyModelRich <- GLMER(modelData = model_data,responseVar = "Species_richness",fitFamily = "poisson",
                               fixedStruct = "LUI * StdTmeanAnomalyRS * Order",
@@ -280,7 +291,8 @@ nd <- expand.grid(
                         length.out = 100),
   LUI=factor(c("Primary vegetation","Secondary vegetation","Agriculture_Low","Agriculture_High"),
              levels = levels(MeanAnomalyModelAbund$data$LUI)),
-  Order=factor(c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera")))
+  Order=factor(c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera"), 
+               levels = levels(MeanAnomalyModelAbund$data$Order)))
 
 # back transform the predictors
 nd$StdTmeanAnomaly <- BackTransformCentreredPredictor(
@@ -505,7 +517,8 @@ nd2 <- expand.grid(
                         length.out = 100),
   LUI=factor(c("Primary vegetation","Secondary vegetation","Agriculture_Low","Agriculture_High"),
              levels = levels(MeanAnomalyModelRich$data$LUI)),
-  Order=factor(c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera")))
+  Order=factor(c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera"),
+               levels = levels(MeanAnomalyModelRich$data$Order)))
 
 # back transform the predictors
 nd2$StdTmeanAnomaly <- BackTransformCentreredPredictor(
@@ -760,7 +773,8 @@ nd <- expand.grid(
                         length.out = 100),
   LUI=factor(c("Primary vegetation","Secondary vegetation","Agriculture_Low","Agriculture_High"),
              levels = levels(MeanAnomalyModelAbund$data$LUI)),
-  Order=factor(c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera")))
+  Order=factor(c("Coleoptera","Diptera","Hemiptera","Hymenoptera", "Lepidoptera"), 
+               levels = levels(MeanAnomalyModelAbund$data$Order)))
 
 # back transform the predictors
 nd$StdTmeanAnomaly <- BackTransformCentreredPredictor(
@@ -978,7 +992,8 @@ nd2 <- expand.grid(
                         length.out = 100),
   LUI=factor(c("Primary vegetation","Secondary vegetation","Agriculture_Low","Agriculture_High"),
              levels = levels(MeanAnomalyModelRich$data$LUI)),
-  Order=factor(c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera")))
+  Order=factor(c("Coleoptera","Diptera","Hemiptera","Hymenoptera", "Lepidoptera"), 
+               levels = levels(MeanAnomalyModelRich$data$Order)))
 
 # back transform the predictors
 nd2$StdTmeanAnomaly <- BackTransformCentreredPredictor(
