@@ -29,7 +29,7 @@ packages_plot <- c("patchwork", "dplyr", "yarg", "lme4", "gt", "broom.mixed", "M
 suppressWarnings(suppressMessages(lapply(packages_plot, require, character.only = TRUE)))
 
 # source in additional functions
-source(dataDir,"0_Functions.R")
+source("0_Functions.R")
 
 
 #### 1. Organise data ####
@@ -45,9 +45,6 @@ model_data_sr <- na.omit(sites[,c('Species_richness','LandUse','Use_intensity','
 # order data
 model_data_sr$LUI <- factor(model_data_sr$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
 model_data_sr$Order <- factor(model_data_sr$Order, levels = c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera"))
-
-# relevel
-model_data_sr$LUI <- relevel(model_data_sr$LUI, ref = "Primary vegetation")
 
 #save model_data_sr
 saveRDS(object = model_data_sr ,file = paste0(outDir,"model_data_sr.rds"))
