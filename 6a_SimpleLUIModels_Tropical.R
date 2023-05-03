@@ -109,7 +109,20 @@ sm3.2_nontrop <- GLMER(modelData = model_data_sr_nontrop,responseVar = "Species_
 sm3.3_nontrop <- GLMER(modelData = model_data_sr_nontrop,responseVar = "Species_richness",fitFamily = "poisson",
                        fixedStruct = "Order*LUI",randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",REML = FALSE)
 
+# check the R2 values
+R2GLMER(sm3_nontrop$model)
+# $conditional
+# [1] 0.6826042
+# 
+# $marginal
+# [1] 0.002203097
 
+R2GLMER(sm3.3_nontrop$model)
+# $conditional
+# [1] 0.7436253
+# 
+# $marginal
+# [1] 0.07648085
 
 #### 2b. Species richness models, Tropical ####
 
@@ -154,6 +167,20 @@ sm3.2_trop <- GLMER(modelData = model_data_sr_trop,responseVar = "Species_richne
 sm3.3_trop <- GLMER(modelData = model_data_sr_trop,responseVar = "Species_richness",fitFamily = "poisson",
                     fixedStruct = "Order*LUI",randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",REML = FALSE)
 
+# check the R2 values
+R2GLMER(sm3_trop$model)
+# $conditional
+# [1] 0.6258934
+# 
+# $marginal
+# [1] 0.01403576
+
+R2GLMER(sm3.3_trop$model)
+# $conditional
+# [1] 0.7040361
+# 
+# $marginal
+# [1] 0.0782471
 
 # take a look at the AICs
 AIC_sm_realm<-print(AIC(sm0_trop$model,sm3_trop$model,sm0.2_trop$model,sm3.2_trop$model,sm3.3_trop$model,
@@ -203,6 +230,21 @@ am3.2_nontrop <- GLMER(modelData = model_data_ab_nontrop,responseVar = "LogAbund
 am3.3_nontrop <- GLMER(modelData = model_data_ab_nontrop,responseVar = "LogAbund",fitFamily = "gaussian",
                        fixedStruct = "Order*LUI",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
 
+# check the R2 values
+R2GLMER(am3_nontrop$model)
+# $conditional
+# [1] 0.6936086
+# 
+# $marginal
+# [1] 0.001193759
+
+R2GLMER(am3.3_nontrop$model)
+# $conditional
+# [1] 0.8209407
+# 
+# $marginal
+# [1] 0.09744095
+
 #### 3b. Abundance models, Tropical ####
 
 # remove NAs in the specified columns
@@ -240,6 +282,21 @@ am3.2_trop <- GLMER(modelData = model_data_ab_trop,responseVar = "LogAbund",fitF
 
 am3.3_trop <- GLMER(modelData = model_data_ab_trop,responseVar = "LogAbund",fitFamily = "gaussian",
                     fixedStruct = "Order*LUI",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
+
+# check the R2 values
+R2GLMER(am3_trop$model)
+# $conditional
+# [1] 0.650317
+# 
+# $marginal
+# [1] 0.01575033
+
+R2GLMER(am3.3_trop$model)
+# $conditional
+# [1] 0.7149983
+# 
+# $marginal
+# [1] 0.06486359
 
 # take a look at the AICs
 AIC_am_realm<-print(AIC(am0_trop$model,am3_trop$model,am0.2_trop$model,am3.2_trop$model,am3.3_trop$model,
@@ -579,37 +636,6 @@ write.csv(all_res, file = paste0(predsDir,"LUI_predictions_realms.csv"))
 LUI_predictions_realms <- all_res %>% gt()
 gtsave(LUI_predictions_realms,"LUI_predictions_realms.png", path = predsDir)
 
-
-
-# R-squared values
-
-R2GLMER(am3.3_trop$model)
-# $conditional
-# [1] 0.7149983
-# 
-# $marginal
-# [1] 0.06486359
-
-R2GLMER(am3.3_nontrop$model)
-# $conditional
-# [1] 0.8209407
-# 
-# $marginal
-# [1] 0.09744095
-
-R2GLMER(sm3.3_trop$model)
-# $conditional
-# [1] 0.7040361
-# 
-# $marginal
-# [1] 0.0782471
-
-R2GLMER(sm3.3_nontrop$model)
-# $conditional
-# [1] 0.7436253
-# 
-# $marginal
-# [1] 0.07648085
 
 
 # t.end <- Sys.time()
