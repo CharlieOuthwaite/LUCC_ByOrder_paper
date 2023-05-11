@@ -165,6 +165,8 @@ g_sm2.3_all <-allFit(g_sm2.3)
 g_sm3.3_all <-allFit(g_sm3.3)
 g_sm4.3_all <-allFit(g_sm4.3)
 
+save(sm3.3, file = paste0(outDir, "Richness_landuse_model.rdata"))
+
 #### 3. Abundance Models  #####
 
 # remove NAs in the specified columns
@@ -181,14 +183,14 @@ model_data_ab$LUI <- relevel(model_data_ab$LUI, ref = "Primary vegetation")
 saveRDS(object = model_data_ab ,file = paste0(outDir,"model_data_ab.rds"))
 
 # summaries
-length(unique(model_data_ab$SS)) # 238 Studies
-length(unique(model_data_ab$SSBS))# 6854
+length(unique(model_data_ab$SS)) # 236 Studies
+length(unique(model_data_ab$SSBS))# 5706
 
 # look at the spread of land use/use intensity categories
 print(table(model_data_ab$LUI))
 
 # Primary vegetation Secondary vegetation      Agriculture_Low     Agriculture_High 
-#               2745                 2770                 2109                 3091
+# 2001                 2255                 1869                 2371
 
 # Run abundance models using 'GLMER' function from StatisticalModels
 
@@ -242,7 +244,7 @@ AIC_am <-print(AIC(am0$model,am1$model,am2$model,am3$model,am4$model,
 write.csv(AIC_am, file = paste0(outDir,"AIC_am.csv"))
 
 # save 
-saveRDS(object = sm0 ,file = paste0(outDir,"sm0.rds"))
+saveRDS(object = sm0 ,file = paste0(outDir,"sm0.rd"))
 saveRDS(object = sm3 ,file = paste0(outDir,"sm3.rds"))
 saveRDS(object = sm0.2 ,file = paste0(outDir,"sm0.2.rds"))
 saveRDS(object = sm3.2 ,file = paste0(outDir,"sm3.2.rds"))
@@ -253,6 +255,7 @@ saveRDS(object = am0.2 ,file = paste0(outDir,"am0.2.rds"))
 saveRDS(object = am3.2 ,file = paste0(outDir,"am3.2.rds"))
 saveRDS(object = am3.3 ,file = paste0(outDir,"am3.3.rds"))
 
+save(am3.3, file = paste0(outDir, "Abundance_landuse_model.rdata"))
 
 
 # read in model data
