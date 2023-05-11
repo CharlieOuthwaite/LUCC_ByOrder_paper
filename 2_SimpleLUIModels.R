@@ -80,6 +80,14 @@ sm2 <- GLMER(modelData = model_data_sr,responseVar = "Species_richness",fitFamil
 sm3 <- GLMER(modelData = model_data_sr,responseVar = "Species_richness",fitFamily = "poisson",
              fixedStruct = "LUI",randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",REML = FALSE)
 
+# check the R2 values
+R2GLMER(sm3$model)
+# $conditional
+# [1] 0.6700198
+# 
+# $marginal
+# [1] 0.007716616
+
 # interactive effects of land use and use intensity
 sm4 <- GLMER(modelData = model_data_sr,responseVar = "Species_richness",fitFamily = "poisson",
              fixedStruct = "LandUse*Use_intensity",randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",REML = FALSE)
@@ -115,6 +123,14 @@ sm2.3 <- GLMER(modelData = model_data_sr,responseVar = "Species_richness",fitFam
 # additive effect of order and LUI
 sm3.3 <- GLMER(modelData = model_data_sr,responseVar = "Species_richness",fitFamily = "poisson",
                fixedStruct = "Order*LUI",randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",REML = FALSE)
+
+# check the R2 values
+R2GLMER(sm3.3$model)
+# $conditional
+# [1] 0.7106989
+# 
+# $marginal
+# [1] 0.05387385
 
 # interactive effects of order, land use, and use intensity
 sm4.3 <- GLMER(modelData = model_data_sr,responseVar = "Species_richness",fitFamily = "poisson",
@@ -206,6 +222,14 @@ am2 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gau
 am3 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
              fixedStruct = "LUI",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
 
+# check the R2 values
+R2GLMER(am3$model)
+# $conditional
+# [1] 0.6838617
+# 
+# $marginal
+# [1] 0.007807588
+
 am4 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
              fixedStruct = "LandUse*Use_intensity",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
 
@@ -229,6 +253,14 @@ am1.3 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "g
 
 am2.3 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
                fixedStruct = "Order*LandUse+Use_intensity",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
+
+# check the R2 values
+R2GLMER(am3.3$model)
+# $conditional
+# [1] 0.7623785
+# 
+# $marginal
+# [1] 0.06004844
 
 am3.3 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
                fixedStruct = "Order*LUI",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)

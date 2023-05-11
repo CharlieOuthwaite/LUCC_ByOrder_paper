@@ -278,12 +278,74 @@ for(order in orders){
   
 }
 
+# check R-squared values
 
+R2GLMER (MeanAnomalyModelAbund_Coleoptera$model)
+# $conditional
+# [1] 0.5924863
+# 
+# $marginal
+# [1] 0.04200098
 
+R2GLMER (MeanAnomalyModelAbund_Diptera$model)
+# $conditional
+# [1] 0.5303029
+# 
+# $marginal
+# [1] 0.06720692
 
+R2GLMER (MeanAnomalyModelAbund_Hemiptera$model)
+# $conditional
+# [1] 0.4286731
+# 
+# $marginal
+# [1] 0.07476181
 
+R2GLMER (MeanAnomalyModelAbund_Hymenoptera$model)
+# $conditional
+# [1] 0.4851417
+# 
+# $marginal
+# [1] 0.01828185
 
+R2GLMER (MeanAnomalyModelAbund_Lepidoptera$model)
+# $conditional
+# [1] 0.5404108
+# 
+# $marginal
+# [1] 0.03082085
 
+R2GLMER (MeanAnomalyModelRich_Coleoptera$model)
+# $conditional
+# [1] 0.7595814
+# 
+# $marginal
+# [1] 0.01589639
 
+R2GLMER (MeanAnomalyModelRich_Diptera$model)
+# $conditional
+# [1] 0.8044178
+# 
+# $marginal
+# [1] 0.1016308
 
+R2GLMER (MeanAnomalyModelRich_Hemiptera$model)
+# $conditional
+# [1] 0.6736128
+# 
+# $marginal
+# [1] 0.06802885
 
+R2GLMER (MeanAnomalyModelRich_Hymenoptera$model)
+# $conditional
+# [1] 0.6459363
+# 
+# $marginal
+# [1] 0.01125481
+
+R2GLMER (MeanAnomalyModelRich_Lepidoptera$model)
+# $conditional
+# [1] 0.8252371
+# 
+# $marginal
+# [1] 0.007577729

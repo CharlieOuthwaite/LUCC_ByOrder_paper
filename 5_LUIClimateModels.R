@@ -13,11 +13,13 @@
 rm(list = ls())
 
 # set directories 
-inDir<- "4_PREDICTSMatchClimateIndex/"
+inDir <- "4_PREDICTSMatchClimateIndex/"
 outDir <- "5_RunLUIClimateModels/"
 plotDir <- "5_RunLUIClimateModels/Plots/"
+tabDir <- "5_RunLUIClimateModels/Tables/"
 if(!dir.exists(outDir)) dir.create(outDir)
 if(!dir.exists(plotDir)) dir.create(plotDir)
+if(!dir.exists(tabDir)) dir.create(tabDir)
 
 # sink(paste0(outDir,"log_LUI_ClimateModels.txt"))
 # 
@@ -1353,7 +1355,7 @@ L_QAH <- quantile(x = MaxAnomalyModelRich$data$StdTmeanAnomalyRS[
   probs = exclQuantiles)
 
 sr.preds.tmax <- PredictGLMERRandIter(model = MaxAnomalyModelRich$model,data = nd4, nIters = 10000)
-sr.preds.tmax <- exp(sr.preds.tmax)-0.01
+sr.preds.tmax <- exp(sr.preds.tmax)
 
 # split into 5 groups
 number_of_chunks = 5
