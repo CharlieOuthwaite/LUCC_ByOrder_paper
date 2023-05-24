@@ -5,8 +5,7 @@
 ##%######################################################%##
 
 # This script details all of the datasets and R packages required to 
-# run the analyses associated with the paper by Outhwaite et al on the
-# interactions between land use/use intensity and climate change on insects.
+# run the analyses associated with the paper.
 
 outDir <- "0_data_package_requirements/"
 
@@ -46,15 +45,10 @@ install_github(repo = "timnewbold/StatisticalModels")
 # CRU data - TMP and TMX data for mean and max monthly temperatures
 # https://crudata.uea.ac.uk/cru/data/hrg/
 
-# Download and unzip into a 0_data folder the "cru_ts4.03.1901.2018.tmx.dat.nc.gz" 
-# AND "cru_ts4.03.1901.2018.tmp.dat.nc.gz" from the "tmx" and "tmp" folders respectively.
-
-# Hoskins et al data - primary and secondary vegetation layers (PRI_2005 and SEC_2005),
-# which are then combined into a "natural habitat" layer.
-# http://doi.org/10.4225/08/56DCD9249B224
+# Download and unzip into a 0_data folder the "cru_ts4.03.1901.2018.tmp.dat.nc.gz" from  "tmp" folder.
 
 
-# Datasets downloaded from the above links shoud be saved into a directory named 0_data
+# Datasets downloaded from the above links should be saved into a directory named 0_data
 datadir <- "0_data/"
 
 if(!dir.exists(datadir)) dir.create(datadir)
