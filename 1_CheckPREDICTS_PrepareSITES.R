@@ -336,7 +336,7 @@ sites_summary <- sites %>%
 gtsave(sites_summary,"sites_summary_allorders.png",path = outDir)
 
 # save as csv
-write.csv(sites_summary,file = paste0("sites_summary_allorders.csv"))
+write.csv(sites_summary,file = paste0(outDir, "sites_summary_allorders.csv"))
 
 #### 3b. Summarize data by order and latitudinal realm ####
 
@@ -410,7 +410,7 @@ lat_summary <- sites %>%
 gtsave(lat_summary,"lat_summary_allorders.png",path = outDir)
 
 # save as csv
-write.csv(lat_summary,file = paste0("lat_summary_allorders.csv"))
+write.csv(lat_summary,file = paste0(outDir, "lat_summary_allorders.csv"))
 
 # keep top five orders (according to number of sites sampled)
 sites <- sites %>% filter(Order %in% c("Hymenoptera", "Coleoptera", "Lepidoptera", "Diptera", "Hemiptera")) %>% droplevels()
