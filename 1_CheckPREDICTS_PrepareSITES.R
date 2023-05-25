@@ -16,7 +16,7 @@ outDir <- "1_CheckPrepareData/"
 if(!dir.exists(outDir)) dir.create(outDir)
 
 # Load required libraries
-packages <- c("predictsFunctions","patchwork", "dplyr", "ggplot", "yarg", "lme4", "gt", "broom.mixed", "MASS","webshot")
+packages <- c("predictsFunctions","patchwork", "dplyr", "ggplot2", "yarg", "lme4", "gt", "broom.mixed", "MASS","webshot")
 suppressWarnings(suppressMessages(lapply(packages, require, character.only = TRUE)))
 
 # source in additional functions
@@ -50,7 +50,7 @@ predicts <- predicts[!predicts$Diversity_metric == "percent cover", ]
 # 934845 obs. of 67 variables
 
 # Merge sites that have the same coordinates, from the same study and same taxonomic family (e.g. multiple traps on a single transect)
-predicts <- MergeSites(diversity = predicts)
+predicts <- predictsFunctions::MergeSites(diversity = predicts)
 # 826292 obs. of 67 variables
 
 # remove entries without Order
@@ -229,7 +229,7 @@ sites$LUI <- dplyr::recode(sites$LUI,
                            'Intermediate secondary vegetation_Intense use' = 'Secondary vegetation',
                            'Intermediate secondary vegetation_Light use' = 'Secondary vegetation')
 
-# 15346 obs. of 26 variables
+# 15346 obs. of 29 variables
 
 
 # ...not sure, but it looks like we are re-classifying all secondary vegetation as "Light use"
@@ -245,7 +245,7 @@ sites$LUI <- dplyr::recode(sites$LUI,
 sites <- sites[!sites$LUI == "Urban", ]
 sites <- sites[!is.na(sites$LUI), ]
 
-# 12968 obs. of 26 variables
+# 12968 obs. of 29 variables
 
 sites <- droplevels(sites)
 
@@ -255,7 +255,7 @@ sites$LogAbund <- log(sites$Total_abundance+1)
 # Remove sites without coordinates
 sites <- sites[!is.na(sites$Latitude), ]
 
-# 12962 obs. of 27 variables
+# 12962 obs. of 30 variables
 
 # create a new variable designating sites as Tropical or Non-tropical
 # assign new variable for tropical/temperate, convert to factor, and filter out NA
@@ -415,6 +415,8 @@ write.csv(lat_summary,file = paste0("lat_summary_allorders.csv"))
 # keep top five orders (according to number of sites sampled)
 sites <- sites %>% filter(Order %in% c("Hymenoptera", "Coleoptera", "Lepidoptera", "Diptera", "Hemiptera")) %>% droplevels()
 
+# 8884 obs. of 31 variables
+
 # save the prepared dataset
 saveRDS(object = sites,file = paste0(outDir,"PREDICTSSiteData.rds")) 
 
@@ -487,10 +489,10 @@ sites_summary <- sites %>%
   )
 
 # save table
-gtsave(sites_summary,"sites_summary.png",path = outDir)
+gtsave(sites_summary,"sites_summary_BigFive.png",path = outDir)
 
 # save as csv
-write.csv(sites_summary,file = paste0(outDir,"sites_summary.csv"))
+write.csv(sites_summary,file = paste0(outDir,"sites_summary_BigFive.csv"))
 
 #### 3d. Summarize remaining data by order and latitudinal realm ####
 
@@ -561,7 +563,50 @@ lat_sites_summary <- sites %>%
   )
 
 # save table
-gtsave(lat_sites_summary,"lat_sites_summary.png", path = outDir)
+gtsave(lat_sites_summary,"lat_sites_summary_BigFive.png", path = outDir)
 
 # save as csv
-write.csv(lat_sites_summary, file = paste0(outDir, "lat_sites_summary.csv"))
+write.csv(lat_sites_summary, file = paste0(outDir, "lat_sites_summary_BigFive.csv"))
+
+
+#### site level. big five summaries ####
+
+length(unique(sites$SS))
+# 254 studies
+
+length(unique(sites$SSBS))
+# 6014 sites
+
+pred_sub <- predicts[predicts$SSBS %in% sites$SSBS & predicts$Order %in% sites$Order, ]
+pred_sub <- droplevels(pred_sub)
+nrow(pred_sub) # 741933 records
+table(pred_sub$Order)
+# Coleoptera     Diptera   Hemiptera Hymenoptera Lepidoptera 
+#     377237       24149       45217      144474      150856
+table(pred_sub$Predominant_land_use)
+length(unique(pred_sub$SS)) # 254
+length(unique(pred_sub$SSBS)) # 6014
+length(unique(pred_sub$Species)) # 4324
+
+
+length(unique(pred_sub$Taxon_name_entered)) # 17218
+
+# determine unique taxa counts
+species <- unique(pred_sub[,c('Order',"Family", 'Taxon_name_entered')])
+
+# order level counts
+order.counts <- tapply(X = species$Taxon_name_entered,
+                       INDEX = species$Order,
+                       FUN = function(sp) length(unique(sp)))
+
+# Coleoptera     Diptera   Hemiptera Hymenoptera Lepidoptera 
+#       6037        1477        1302        4528        3874
+
+
+# family level counts
+family.counts <- tapply(X = species$Family,
+                       INDEX = species$Order,
+                       FUN = function(sp) length(unique(sp)))
+
+# Coleoptera     Diptera   Hemiptera Hymenoptera Lepidoptera 
+#        103          76          68          54          60
