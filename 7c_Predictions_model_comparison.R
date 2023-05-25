@@ -39,8 +39,8 @@ predictsSites <- readRDS(paste0(predictsDataDir,"PREDICTSSitesClimate_Data.rds")
 # these values can be retrieved from the info in script 2_RunSimpleLUIModel.R
 # the median values were also used for plotting of Figure 1.
 
-load(file = paste0(moddir1, "Abundance_landuse_model.rdata"))
-load(file = paste0(moddir1, "Richness_landuse_model.rdata"))
+load(file = paste0(moddir1, "Abundance_landuse_model.rdata")) # am3.3
+load(file = paste0(moddir1, "Richness_landuse_model.rdata")) # sm3.3
 
 data_tab <- expand.grid(LUI = factor(c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"), levels = levels(am3.3$data$LUI)), 
                        Order = factor(c("Coleoptera", "Diptera", "Hemiptera", "Hymenoptera", "Lepidoptera"), levels = levels(am3.3$data$Order)),
@@ -68,63 +68,169 @@ Order<- paste0("",result.sr$Order)
 list.result.sr <- split(result.sr,Order)
 list2env(list.result.sr,globalenv())
 
-results_ab <- NULL
+# convert to percentage difference from primary vegetation
+Coleoptera <- as.matrix(Coleoptera[, 1:1000])
+col.preds <- sweep(x = Coleoptera, MARGIN = 2, STATS = Coleoptera[1,], FUN = '/')
+
+# get quantiles
+grp.median <- ((apply(X = col.preds,MARGIN = 1,FUN = median))*100)-100
+grp.upper <- ((apply(X = col.preds,MARGIN = 1,FUN = quantile,probs = 0.975))*100)-100
+grp.lower <- ((apply(X = col.preds,MARGIN = 1,FUN = quantile,probs = 0.025))*100)-100
+
+colres <- as.data.frame(cbind(grp.median, grp.upper, grp.lower))
+colres$LUI <- c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High")
+colres$Order <- "Coleoptera"
+
+# convert to percentage difference from primary vegetation
+Diptera <- as.matrix(Diptera[, 1:1000])
+dip.preds <- sweep(x = Diptera, MARGIN = 2, STATS = Diptera[1,], FUN = '/')
+
+# get quantiles
+grp.median <- ((apply(X = dip.preds,MARGIN = 1,FUN = median))*100)-100
+grp.upper <- ((apply(X = dip.preds,MARGIN = 1,FUN = quantile,probs = 0.975))*100)-100
+grp.lower <- ((apply(X = dip.preds,MARGIN = 1,FUN = quantile,probs = 0.025))*100)-100
+
+dipres <- as.data.frame(cbind(grp.median, grp.upper, grp.lower))
+dipres$LUI <- c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High")
+dipres$Order <- "Diptera"
+
+# convert to percentage difference from primary vegetation
+Hemiptera <- as.matrix(Hemiptera[, 1:1000])
+hem.preds <- sweep(x = Hemiptera, MARGIN = 2, STATS = Hemiptera[1,], FUN = '/')
+
+# get quantiles
+grp.median <- ((apply(X = hem.preds,MARGIN = 1,FUN = median))*100)-100
+grp.upper <- ((apply(X = hem.preds,MARGIN = 1,FUN = quantile,probs = 0.975))*100)-100
+grp.lower <- ((apply(X = hem.preds,MARGIN = 1,FUN = quantile,probs = 0.025))*100)-100
+
+hemres <- as.data.frame(cbind(grp.median, grp.upper, grp.lower))
+hemres$LUI <- c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High")
+hemres$Order <- "Hemiptera"
+
+# convert to percentage difference from primary vegetation
+Hymenoptera <- as.matrix(Hymenoptera[, 1:1000])
+hym.preds <- sweep(x = Hymenoptera, MARGIN = 2, STATS = Hymenoptera[1,], FUN = '/')
+
+# get quantiles
+grp.median <- ((apply(X = hym.preds,MARGIN = 1,FUN = median))*100)-100
+grp.upper <- ((apply(X = hym.preds,MARGIN = 1,FUN = quantile,probs = 0.975))*100)-100
+grp.lower <- ((apply(X = hym.preds,MARGIN = 1,FUN = quantile,probs = 0.025))*100)-100
+
+hymres <- as.data.frame(cbind(grp.median, grp.upper, grp.lower))
+hymres$LUI <- c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High")
+hymres$Order <- "Hymenoptera"
+
+# convert to percentage difference from primary vegetation
+Lepidoptera <- as.matrix(Lepidoptera[, 1:1000])
+lep.preds <- sweep(x = Lepidoptera, MARGIN = 2, STATS = Lepidoptera[1,], FUN = '/')
+
+# get quantiles
+grp.median <- ((apply(X = lep.preds,MARGIN = 1, FUN = median))*100)-100
+grp.upper <- ((apply(X = lep.preds,MARGIN = 1, FUN = quantile, probs = 0.975))*100)-100
+grp.lower <- ((apply(X = lep.preds,MARGIN = 1, FUN = quantile, probs = 0.025))*100)-100
+
+lepres <- as.data.frame(cbind(grp.median, grp.upper, grp.lower))
+lepres$LUI <- c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High")
+lepres$Order <- "Lepidoptera"
+
+# put it back together
+result.sr <- rbind(colres, dipres, hemres, hymres, lepres)
+result.sr$metric <- "species richness"
+
+# now for the abundance model  
+result.ab <- PredictGLMERRandIter(model = am3.3$model, data = data_tab)
+
+# backtransform
+result.ab <- exp(result.ab)-0.01
+
+# convert to dataframe
+result.ab <- as.data.frame(result.ab)
+
+# add in the LU info
+result.ab$LUI <- data_tab$LUI
+
+# add in order info
+result.ab$Order <- data_tab$Order
+
+# express as a percentage of primary
+# break into Orders
+Order<- paste0("",result.ab$Order)
+list.result.ab <- split(result.ab,Order)
+list2env(list.result.ab,globalenv())
 
 # convert to percentage difference from primary vegetation
 Coleoptera <- as.matrix(Coleoptera[, 1:1000])
 col.preds <- sweep(x = Coleoptera, MARGIN = 2, STATS = Coleoptera[1,], FUN = '/')
 
 # get quantiles
-col.median <- ((apply(X = col.preds,MARGIN = 1,FUN = median))*100)-100
-col.upper <- ((apply(X = col.preds,MARGIN = 1,FUN = quantile,probs = 0.975))*100)-100
-col.lower <- ((apply(X = col.preds,MARGIN = 1,FUN = quantile,probs = 0.025))*100)-100
+grp.median <- ((apply(X = col.preds,MARGIN = 1,FUN = median))*100)-100
+grp.upper <- ((apply(X = col.preds,MARGIN = 1,FUN = quantile,probs = 0.975))*100)-100
+grp.lower <- ((apply(X = col.preds,MARGIN = 1,FUN = quantile,probs = 0.025))*100)-100
 
-colres <- as.data.frame(cbind(col.median, col.upper, col.lower))
+colres <- as.data.frame(cbind(grp.median, grp.upper, grp.lower))
 colres$LUI <- c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High")
 colres$Order <- "Coleoptera"
 
-#### UP TO HERE ####
+# convert to percentage difference from primary vegetation
+Diptera <- as.matrix(Diptera[, 1:1000])
+dip.preds <- sweep(x = Diptera, MARGIN = 2, STATS = Diptera[1,], FUN = '/')
 
-# express as a percentage of primary
-Coleoptera$perc <- ((Coleoptera$y/Coleoptera$y[1]) * 100) - 100
-Diptera$perc <- ((Diptera$y/Diptera$y[1]) * 100) - 100
-Hemiptera$perc <- ((Hemiptera$y/Hemiptera$y[1]) * 100) - 100
-Hymenoptera$perc <- ((Hymenoptera$y/Hymenoptera$y[1]) * 100) - 100
-Lepidoptera$perc <- ((Lepidoptera$y/Lepidoptera$y[1]) * 100) - 100
+# get quantiles
+grp.median <- ((apply(X = dip.preds,MARGIN = 1,FUN = median))*100)-100
+grp.upper <- ((apply(X = dip.preds,MARGIN = 1,FUN = quantile,probs = 0.975))*100)-100
+grp.lower <- ((apply(X = dip.preds,MARGIN = 1,FUN = quantile,probs = 0.025))*100)-100
+
+dipres <- as.data.frame(cbind(grp.median, grp.upper, grp.lower))
+dipres$LUI <- c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High")
+dipres$Order <- "Diptera"
+
+# convert to percentage difference from primary vegetation
+Hemiptera <- as.matrix(Hemiptera[, 1:1000])
+hem.preds <- sweep(x = Hemiptera, MARGIN = 2, STATS = Hemiptera[1,], FUN = '/')
+
+# get quantiles
+grp.median <- ((apply(X = hem.preds,MARGIN = 1,FUN = median))*100)-100
+grp.upper <- ((apply(X = hem.preds,MARGIN = 1,FUN = quantile,probs = 0.975))*100)-100
+grp.lower <- ((apply(X = hem.preds,MARGIN = 1,FUN = quantile,probs = 0.025))*100)-100
+
+hemres <- as.data.frame(cbind(grp.median, grp.upper, grp.lower))
+hemres$LUI <- c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High")
+hemres$Order <- "Hemiptera"
+
+# convert to percentage difference from primary vegetation
+Hymenoptera <- as.matrix(Hymenoptera[, 1:1000])
+hym.preds <- sweep(x = Hymenoptera, MARGIN = 2, STATS = Hymenoptera[1,], FUN = '/')
+
+# get quantiles
+grp.median <- ((apply(X = hym.preds,MARGIN = 1,FUN = median))*100)-100
+grp.upper <- ((apply(X = hym.preds,MARGIN = 1,FUN = quantile,probs = 0.975))*100)-100
+grp.lower <- ((apply(X = hym.preds,MARGIN = 1,FUN = quantile,probs = 0.025))*100)-100
+
+hymres <- as.data.frame(cbind(grp.median, grp.upper, grp.lower))
+hymres$LUI <- c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High")
+hymres$Order <- "Hymenoptera"
+
+# convert to percentage difference from primary vegetation
+Lepidoptera <- as.matrix(Lepidoptera[, 1:1000])
+lep.preds <- sweep(x = Lepidoptera, MARGIN = 2, STATS = Lepidoptera[1,], FUN = '/')
+
+# get quantiles
+grp.median <- ((apply(X = lep.preds,MARGIN = 1, FUN = median))*100)-100
+grp.upper <- ((apply(X = lep.preds,MARGIN = 1, FUN = quantile, probs = 0.975))*100)-100
+grp.lower <- ((apply(X = lep.preds,MARGIN = 1, FUN = quantile, probs = 0.025))*100)-100
+
+lepres <- as.data.frame(cbind(grp.median, grp.upper, grp.lower))
+lepres$LUI <- c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High")
+lepres$Order <- "Lepidoptera"
 
 # put it back together
-result.ab <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera)
+result.ab <- rbind(colres, dipres, hemres, hymres, lepres)
+result.ab$metric <- "total abundance"
 
-
-
-# express as a percentage of primary
-result.sr$perc <- ((result.sr$y/result.sr$y[1]) * 100) - 100
-
-# add in SCA vals
-result.sr$SCA <- c(0, 1, 1, 0,0)  
-
-# now for the abundance model  
-result.ab <- PredictGLMER(model = MeanAnomalyModelAbund$model, data = data_tab, se.fit = TRUE, seMultiplier = 1.96)
-
-# backtransform
-result.ab <- exp(result.ab)-0.01
-
-# add in the LU info
-result.ab$UI2 <- data_tab$UI2
-
-# express as a percentage of primary
-result.ab$perc <- ((result.ab$y/result.ab$y[1]) * 100) - 100
-
-# add in SCA vals
-result.ab$SCA <- c(0, 1, 1, 0,0) 
-
-# combine results into a table for saving
 all_res <- rbind(result.ab, result.sr)
 
-all_res$measure <- c(rep("ab", 5), rep("sr", 5))
-
 # save table
-write.csv(all_res, file = paste0(outDir, "/percentage_change_LU_CC.csv"))
+write.csv(all_res, file = paste0(outDir, "/percentage_change_LU_Order.csv"))
 
 
 ###### Hyp 2: Land use and climate anomaly interaction ######
