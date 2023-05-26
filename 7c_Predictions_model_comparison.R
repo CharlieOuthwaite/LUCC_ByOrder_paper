@@ -14,10 +14,10 @@ rm(list = ls())
 # directories
 predictsDataDir <- "5_RunLUIClimateModels/"
 moddir1 <- "2_RunSimpleLUIModel/"
-moddir2 <- "5_LUIClimateModels/"
+moddir2 <- "5_RunLUIClimateModels/"
 outDir <- "7_Predictions/Model_Comparisons/"
-oridir1 <- "C:/Users/charl/Dropbox (UCL)/POSTDOC - BIOTA/0. PROJECTS/6. INSECTS LU CC/LanduseClimateInsects/6_RunLUClimateModels"
-oridir2 <- "C:/Users/charl/Dropbox (UCL)/POSTDOC - BIOTA/0. PROJECTS/6. INSECTS LU CC/LanduseClimateInsects/2_RunSimpleLUIModel"
+oridir1 <- "C:/Users/charl/Dropbox (UCL)/POSTDOC - BIOTA/0. PROJECTS/6. INSECTS LU CC/LanduseClimateInsects/2_RunSimpleLUIModel/"
+oridir2 <- "C:/Users/charl/Dropbox (UCL)/POSTDOC - BIOTA/0. PROJECTS/6. INSECTS LU CC/LanduseClimateInsects/6_RunLUClimateModels/"
 
 if(!dir.exists(outDir)) dir.create(outDir)
 
@@ -25,19 +25,24 @@ if(!dir.exists(outDir)) dir.create(outDir)
 # load libraries
 library(StatisticalModels)
 library(predictsFunctions)
+library(ggplot2)
 source('0_Functions.R')
 
-
-##### 1. This Study #####
 
 # read in the predicts data
 predictsSites <- readRDS(paste0(predictsDataDir,"PREDICTSSitesClimate_Data.rds"))
 
 
-###### Hyp 1: land use effect only ######
+##%######################################################%##
+#                                                          #
+####            Hyp 1: land use effect only             ####
+#                                                          #
+##%######################################################%##
 
-# these values can be retrieved from the info in script 2_RunSimpleLUIModel.R
-# the median values were also used for plotting of Figure 1.
+#### Models in Outhwaite et al 2022) ####
+
+
+##### Models in this study ####
 
 load(file = paste0(moddir1, "Abundance_landuse_model.rdata")) # am3.3
 load(file = paste0(moddir1, "Richness_landuse_model.rdata")) # sm3.3
@@ -233,144 +238,494 @@ all_res <- rbind(result.ab, result.sr)
 write.csv(all_res, file = paste0(outDir, "/percentage_change_LU_Order.csv"))
 
 
-###### Hyp 2: Land use and climate anomaly interaction ######
+##%######################################################%##
+#                                                          #
+####        Figure for percentage changes by LU         ####
+#                                                          #
+##%######################################################%##
 
-# first one, looking at SCA of 1
+# load version including results from Outhwaite et al 2022 and rounded values to 2dp
+all_res <- read.csv(file = paste0(outDir, "/percentage_change_LU_Order_inc_2022.csv"))
+
+all_res$LUI <- factor(all_res$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Low-intensity agriculture", "High-intensity agriculture"))
+all_res$Order <- factor(all_res$Order, levels = c("All insects", "Coleoptera", "Diptera", "Hemiptera", "Hymenoptera", "Lepidoptera"))
+
+
+# create point and error bar plot
+ggplot(data = all_res, aes(col = LUI, group = Order)) + 
+  geom_point(aes(x = LUI, y = perc, shape = Order), size = 1.5, position= position_dodge(width = 1)) + 
+  geom_errorbar(aes(x = LUI, ymin = lower_CI, ymax = upper_CI), position= position_dodge(width = 1), size = 0.2, width = 0.2)+
+  geom_hline(yintercept = 0, linetype = "dashed", size = 0.2) +
+  facet_wrap(~ Metric) +
+  xlab("") +
+  scale_y_continuous(limits = c(-80, 80), breaks = scales::pretty_breaks(n = 10)) +
+  ylab("Percentage change (%)") +
+  scale_color_manual(values = c("#009E73","#0072B2","#E69F00","#D55E00"), guide = "none") +
+  scale_shape_manual(values=c(16, 17, 18, 15, 0, 1))+
+    theme(legend.position = "bottom", 
+        aspect.ratio = 1, 
+        title = element_text(size = 8, face = "bold"),
+        axis.text.y = element_text(size = 7),
+        axis.text.x = element_text(size = 7, angle = 45, vjust = 0.5),
+        axis.title = element_text(size = 7),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.border = element_blank(), 
+        panel.background = element_blank(), 
+        strip.background = element_blank(),
+        axis.ticks = element_line(size = 0.2), 
+        axis.line = element_line(size = 0.2), 
+        text = element_text(size = 7), 
+        legend.key=element_blank(), 
+        legend.title = element_blank())
+
+
+ggsave(filename = paste0(outDir, "Comparison_LU_only.pdf"), plot = last_plot(), width = 150, height = 120, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "Comparison_LU_only.jpeg"), plot = last_plot(), width = 150, height = 120, units = "mm", dpi = 300)
+
+
+
+
+##%######################################################%##
+#                                                          #
+####  Hyp 2: Land use and climate anomaly interaction   ####
+#                                                          #
+##%######################################################%##
+
+#### Outhwaite et al 2022 ####
+
+predictsSites <- readRDS(paste0(oridir2,"PREDICTSSiteData.rds"))
 
 # load in models
-load(file = paste0(moddir, "/MeanAnomalyModelAbund.rdata"))
-load(file = paste0(moddir, "/MeanAnomalyModelRich.rdata"))
-#load(file = paste0(moddir, "/MaxAnomalyModelAbund.rdata"))
-#load(file = paste0(moddir, "/MaxAnomalyModelRich.rdata"))
+load(file = paste0(oridir2, "MeanAnomalyModelAbund.rdata")) # MeanAnomalyModelAbund
+load(file = paste0(oridir2, "MeanAnomalyModelRich.rdata")) # MeanAnomlayModelRich
 
-# create matrix for predictions
-# Primary, Low, High
-# SCA = 1
-# abun and richness = 0
 
-# what is the rescaled value of SCA of 1
-BackTransformCentreredPredictor(transformedX = 0.98, originalX = predictsSites$StdTmeanAnomaly) # 0.98 gives about 1 
+# what is the rescaled value of STA of 1
+BackTransformCentreredPredictor(transformedX = 0.97, originalX = predictsSites$StdTmeanAnomaly) # 0.97 gives about 1 
 
-# what is the rescaled value of SCA of 0
+# what is the rescaled value of STA of 0
 BackTransformCentreredPredictor(transformedX = -1.39, originalX = predictsSites$StdTmeanAnomaly) # -1.39 gives about 0 
 
-# reference is primary with 0 climate change so have 0 for that row
+# set up table for predictions
+nd <- expand.grid(
+  StdTmeanAnomalyRS= c(-1.39, 0.97),
+  UI2=factor(c("Primary vegetation","Secondary vegetation","Agriculture_Low","Agriculture_High"),
+             levels = levels(MeanAnomalyModelAbund$data$UI2)))
 
-data_tab <- data.frame(UI2 = c("Primary vegetation", "Agriculture_Low", "Agriculture_High", "Agriculture_Low", "Agriculture_High"), 
-                       StdTmeanAnomalyRS = c(-1.39,0.98,0.98,-1.39,-1.39),
-                       LogAbund = 0,
-                       Species_richness = 0)
+# back transform the predictors
+nd$StdTmeanAnomaly <- BackTransformCentreredPredictor(
+  transformedX = nd$StdTmeanAnomalyRS,
+  originalX = predictsSites$StdTmeanAnomaly)
 
-# factor the LU info
-data_tab$UI2 <- factor(data_tab$UI2, levels = levels(predictsSites$UI2))
+# set richness and abundance to 0 - to be predicted
+nd$LogAbund <- 0
+nd$Species_richness <- 0
+
+# reference for % difference = primary vegetation and positive anomaly closest to 0
+refRow <- which((nd$UI2=="Primary vegetation") & (nd$StdTmeanAnomaly==min(abs(nd$StdTmeanAnomaly))))
+# row 1
 
 # predict the results
-result.sr <- PredictGLMER(model = MeanAnomalyModelRich$model, data = data_tab, se.fit = TRUE, seMultiplier = 1.96)
+a.preds.tmean <- PredictGLMERRandIter(model = MeanAnomalyModelAbund$model,data = nd)
 
-# backtransform
-result.sr <- exp(result.sr)
+# back transform the abundance values
+a.preds.tmean <- exp(a.preds.tmean)-0.01
+
+# convert to dataframe
+#result.ab <- as.data.frame(a.preds.tmean)
+
+# # add in the LU info
+# result.ab$LUI <- nd$UI2
+
+# convert to percentage difference from primary vegetation
+a.preds <- sweep(x = a.preds.tmean, MARGIN = 2, STATS = a.preds.tmean[1,], FUN = '/')
+
+# get quantiles
+a.preds.median <- ((apply(X = a.preds,MARGIN = 1,FUN = median))*100)-100
+a.preds.upper <- ((apply(X = a.preds,MARGIN = 1,FUN = quantile,probs = 0.975))*100)-100
+a.preds.lower <- ((apply(X = a.preds,MARGIN = 1,FUN = quantile,probs = 0.025))*100)-100
+
+
+## species richness predictions ##
+s.preds <- PredictGLMERRandIter(model = MeanAnomalyModelRich$model, data = nd)
+
+s.preds <- exp(s.preds)
+
+# convert to percentage difference from primary vegetation
+s.preds <- sweep(x = s.preds, MARGIN = 2, STATS = s.preds[1,], FUN = '/')
+
+# get quantiles
+s.preds.median <- ((apply(X = s.preds,MARGIN = 1,FUN = median))*100)-100
+s.preds.upper <- ((apply(X = s.preds,MARGIN = 1,FUN = quantile,probs = 0.975))*100)-100
+s.preds.lower <- ((apply(X = s.preds,MARGIN = 1,FUN = quantile,probs = 0.025))*100)-100
+
+
+# combine data into one table for plotting
+abun_res <- as.data.frame(cbind(a.preds.median, a.preds.lower, a.preds.upper))
+rich_res <- as.data.frame(cbind(s.preds.median, s.preds.lower, s.preds.upper))
+colnames(abun_res) <- c("perc", "lower_CI", "upper_CI")
+colnames(rich_res) <- c("perc", "lower_CI", "upper_CI")
+abun_res$Metric <- "Total abundance"
+rich_res$Metric <- "Species richness"
+abun_res$LUI <- nd$UI2
+rich_res$LUI <- nd$UI2
+
+all_res_ori <- rbind(abun_res, rich_res)
+all_res_ori$Study <- "Outhwaite et al 2022"
+
+all_res_ori$Fixed_effs <- "Land use and climate"
+
+all_res_ori$Order <- "All insects"
+
+all_res_ori$Realm <- "Global"
+
+all_res_ori$STA <- c(0,1)
+
+all_res_ori <- all_res_ori[, c(6, 4, 8, 7, 9, 5, 1:3, 10)]
+
+
+#### This study ####
+
+# need predictions for each land use for 0 and 1 STA for each order
+
+# read in the predicts data
+
+# load in models
+load(file = paste0(moddir2, "MeanAnomalyModelAbund.rdata")) # MeanAnomalyModelAbund
+load(file = paste0(moddir2, "MeanAnomalyModelRich.rdata")) # MeanAnomlayModelRich
+
+#### abundance predictions ####
+
+# what is the rescaled value of STA of 1
+BackTransformCentreredPredictor(transformedX = 0.999, originalX = predictsSites$StdTmeanAnomaly) # 0.999 gives about 1 
+
+# what is the rescaled value of STA of 0
+BackTransformCentreredPredictor(transformedX = -1.39, originalX = predictsSites$StdTmeanAnomaly) # -1.39 gives about 0 
+
+# set up table for predictions
+nd <- expand.grid(
+  StdTmeanAnomalyRS= c(-1.39, 0.999),
+  LUI=factor(c("Primary vegetation","Secondary vegetation","Agriculture_Low","Agriculture_High"),
+             levels = levels(MeanAnomalyModelAbund$data$LUI)),
+  Order=factor(c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera")))
+
+# back transform the predictors
+nd$StdTmeanAnomaly <- BackTransformCentreredPredictor(
+  transformedX = nd$StdTmeanAnomalyRS,
+  originalX = predictsSites$StdTmeanAnomaly)
+
+# set richness and abundance to 0 - to be predicted
+nd$LogAbund <- 0
+nd$Species_richness <- 0
+
+# reference for % difference = primary vegetation and positive anomaly closest to 0
+refRow <- which((nd$LUI=="Primary vegetation") & (nd$StdTmeanAnomaly==min(abs(nd$StdTmeanAnomaly))))
+# row for each order
+
+# predict the results
+a.preds.tmean <- PredictGLMERRandIter(model = MeanAnomalyModelAbund$model,data = nd)
+
+# back transform the abundance values
+a.preds.tmean <- exp(a.preds.tmean)-0.01
+
+# convert to dataframe
+result.ab <- as.data.frame(a.preds.tmean)
 
 # add in the LU info
-result.sr$UI2 <- data_tab$UI2
+result.ab$LUI <- nd$LUI
+
+# add in order info
+result.ab$Order <- nd$Order
 
 # express as a percentage of primary
-result.sr$perc <- ((result.sr$y/result.sr$y[1]) * 100) - 100
+# break into Orders
+Order<- paste0("",result.ab$Order)
+list.result.ab <- split(result.ab,Order)
+list2env(list.result.ab,globalenv())
 
-# add in SCA vals
-result.sr$SCA <- c(0, 1, 1, 0,0)  
+# convert to percentage difference from primary vegetation
+Coleoptera <- as.matrix(Coleoptera[, 1:1000])
+col.preds <- sweep(x = Coleoptera, MARGIN = 2, STATS = Coleoptera[1,], FUN = '/')
 
-# now for the abundance model  
-result.ab <- PredictGLMER(model = MeanAnomalyModelAbund$model, data = data_tab, se.fit = TRUE, seMultiplier = 1.96)
+# get quantiles
+grp.median <- ((apply(X = col.preds,MARGIN = 1,FUN = median))*100)-100
+grp.upper <- ((apply(X = col.preds,MARGIN = 1,FUN = quantile,probs = 0.975))*100)-100
+grp.lower <- ((apply(X = col.preds,MARGIN = 1,FUN = quantile,probs = 0.025))*100)-100
 
-# backtransform
-result.ab <- exp(result.ab)-0.01
+colres <- as.data.frame(cbind(grp.median, grp.upper, grp.lower))
+colres$LUI <- c("Primary vegetation", "Primary vegetation", "Secondary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_Low", "Agriculture_High", "Agriculture_High")
+colres$Order <- "Coleoptera"
+
+# convert to percentage difference from primary vegetation
+Diptera <- as.matrix(Diptera[, 1:1000])
+dip.preds <- sweep(x = Diptera, MARGIN = 2, STATS = Diptera[1,], FUN = '/')
+
+# get quantiles
+grp.median <- ((apply(X = dip.preds,MARGIN = 1,FUN = median))*100)-100
+grp.upper <- ((apply(X = dip.preds,MARGIN = 1,FUN = quantile,probs = 0.975))*100)-100
+grp.lower <- ((apply(X = dip.preds,MARGIN = 1,FUN = quantile,probs = 0.025))*100)-100
+
+dipres <- as.data.frame(cbind(grp.median, grp.upper, grp.lower))
+dipres$LUI <- c("Primary vegetation", "Primary vegetation", "Secondary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_Low", "Agriculture_High", "Agriculture_High")
+dipres$Order <- "Diptera"
+
+# convert to percentage difference from primary vegetation
+Hemiptera <- as.matrix(Hemiptera[, 1:1000])
+hem.preds <- sweep(x = Hemiptera, MARGIN = 2, STATS = Hemiptera[1,], FUN = '/')
+
+# get quantiles
+grp.median <- ((apply(X = hem.preds,MARGIN = 1,FUN = median))*100)-100
+grp.upper <- ((apply(X = hem.preds,MARGIN = 1,FUN = quantile,probs = 0.975))*100)-100
+grp.lower <- ((apply(X = hem.preds,MARGIN = 1,FUN = quantile,probs = 0.025))*100)-100
+
+hemres <- as.data.frame(cbind(grp.median, grp.upper, grp.lower))
+hemres$LUI <- c("Primary vegetation", "Primary vegetation", "Secondary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_Low", "Agriculture_High", "Agriculture_High")
+hemres$Order <- "Hemiptera"
+
+# convert to percentage difference from primary vegetation
+Hymenoptera <- as.matrix(Hymenoptera[, 1:1000])
+hym.preds <- sweep(x = Hymenoptera, MARGIN = 2, STATS = Hymenoptera[1,], FUN = '/')
+
+# get quantiles
+grp.median <- ((apply(X = hym.preds,MARGIN = 1,FUN = median))*100)-100
+grp.upper <- ((apply(X = hym.preds,MARGIN = 1,FUN = quantile,probs = 0.975))*100)-100
+grp.lower <- ((apply(X = hym.preds,MARGIN = 1,FUN = quantile,probs = 0.025))*100)-100
+
+hymres <- as.data.frame(cbind(grp.median, grp.upper, grp.lower))
+hymres$LUI <- c("Primary vegetation", "Primary vegetation", "Secondary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_Low", "Agriculture_High", "Agriculture_High")
+hymres$Order <- "Hymenoptera"
+
+# convert to percentage difference from primary vegetation
+Lepidoptera <- as.matrix(Lepidoptera[, 1:1000])
+lep.preds <- sweep(x = Lepidoptera, MARGIN = 2, STATS = Lepidoptera[1,], FUN = '/')
+
+# get quantiles
+grp.median <- ((apply(X = lep.preds,MARGIN = 1, FUN = median))*100)-100
+grp.upper <- ((apply(X = lep.preds,MARGIN = 1, FUN = quantile, probs = 0.975))*100)-100
+grp.lower <- ((apply(X = lep.preds,MARGIN = 1, FUN = quantile, probs = 0.025))*100)-100
+
+lepres <- as.data.frame(cbind(grp.median, grp.upper, grp.lower))
+lepres$LUI <- c("Primary vegetation", "Primary vegetation", "Secondary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_Low", "Agriculture_High", "Agriculture_High")
+lepres$Order <- "Lepidoptera"
+
+# put it back together
+result.ab <- rbind(colres, dipres, hemres, hymres, lepres)
+result.ab$Metric <- "Total abundance"
+
+#### species richness predictions ####
+
+# set up table for predictions
+nd <- expand.grid(
+  StdTmeanAnomalyRS= c(-1.39, 0.999),
+  LUI=factor(c("Primary vegetation","Secondary vegetation","Agriculture_Low","Agriculture_High"),
+             levels = levels(MeanAnomalyModelRich$data$LUI)),
+  Order=factor(c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera")))
+
+# back transform the predictors
+nd$StdTmeanAnomaly <- BackTransformCentreredPredictor(
+  transformedX = nd$StdTmeanAnomalyRS,
+  originalX = predictsSites$StdTmeanAnomaly)
+
+# set richness and abundance to 0 - to be predicted
+nd$LogAbund <- 0
+nd$Species_richness <- 0
+
+# reference for % difference = primary vegetation and positive anomaly closest to 0
+refRow <- which((nd$LUI=="Primary vegetation") & (nd$StdTmeanAnomaly==min(abs(nd$StdTmeanAnomaly))))
+# row for each order, its the 1st row each time
+
+# predict the results
+s.preds.tmean <- PredictGLMERRandIter(model = MeanAnomalyModelRich$model,data = nd)
+
+# back transform the abundance values
+s.preds.tmean <- exp(s.preds.tmean)
+
+# convert to dataframe
+result.sr <- as.data.frame(s.preds.tmean)
 
 # add in the LU info
-result.ab$UI2 <- data_tab$UI2
+result.sr$LUI <- nd$LUI
+
+# add in order info
+result.sr$Order <- nd$Order
 
 # express as a percentage of primary
-result.ab$perc <- ((result.ab$y/result.ab$y[1]) * 100) - 100
+# break into Orders
+Order<- paste0("",result.sr$Order)
+list.result.sr <- split(result.sr,Order)
+list2env(list.result.sr,globalenv())
 
-# add in SCA vals
-result.ab$SCA <- c(0, 1, 1, 0,0) 
+# convert to percentage difference from primary vegetation
+Coleoptera <- as.matrix(Coleoptera[, 1:1000])
+col.preds <- sweep(x = Coleoptera, MARGIN = 2, STATS = Coleoptera[1,], FUN = '/')
 
-# combine results into a table for saving
+# get quantiles
+grp.median <- ((apply(X = col.preds,MARGIN = 1,FUN = median))*100)-100
+grp.upper <- ((apply(X = col.preds,MARGIN = 1,FUN = quantile,probs = 0.975))*100)-100
+grp.lower <- ((apply(X = col.preds,MARGIN = 1,FUN = quantile,probs = 0.025))*100)-100
+
+colres <- as.data.frame(cbind(grp.median, grp.upper, grp.lower))
+colres$LUI <- c("Primary vegetation", "Primary vegetation", "Secondary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_Low", "Agriculture_High", "Agriculture_High")
+colres$Order <- "Coleoptera"
+
+# convert to percentage difference from primary vegetation
+Diptera <- as.matrix(Diptera[, 1:1000])
+dip.preds <- sweep(x = Diptera, MARGIN = 2, STATS = Diptera[1,], FUN = '/')
+
+# get quantiles
+grp.median <- ((apply(X = dip.preds,MARGIN = 1,FUN = median))*100)-100
+grp.upper <- ((apply(X = dip.preds,MARGIN = 1,FUN = quantile,probs = 0.975))*100)-100
+grp.lower <- ((apply(X = dip.preds,MARGIN = 1,FUN = quantile,probs = 0.025))*100)-100
+
+dipres <- as.data.frame(cbind(grp.median, grp.upper, grp.lower))
+dipres$LUI <- c("Primary vegetation", "Primary vegetation", "Secondary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_Low", "Agriculture_High", "Agriculture_High")
+dipres$Order <- "Diptera"
+
+# convert to percentage difference from primary vegetation
+Hemiptera <- as.matrix(Hemiptera[, 1:1000])
+hem.preds <- sweep(x = Hemiptera, MARGIN = 2, STATS = Hemiptera[1,], FUN = '/')
+
+# get quantiles
+grp.median <- ((apply(X = hem.preds,MARGIN = 1,FUN = median))*100)-100
+grp.upper <- ((apply(X = hem.preds,MARGIN = 1,FUN = quantile,probs = 0.975))*100)-100
+grp.lower <- ((apply(X = hem.preds,MARGIN = 1,FUN = quantile,probs = 0.025))*100)-100
+
+hemres <- as.data.frame(cbind(grp.median, grp.upper, grp.lower))
+hemres$LUI <- c("Primary vegetation", "Primary vegetation", "Secondary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_Low", "Agriculture_High", "Agriculture_High")
+hemres$Order <- "Hemiptera"
+
+# convert to percentage difference from primary vegetation
+Hymenoptera <- as.matrix(Hymenoptera[, 1:1000])
+hym.preds <- sweep(x = Hymenoptera, MARGIN = 2, STATS = Hymenoptera[1,], FUN = '/')
+
+# get quantiles
+grp.median <- ((apply(X = hym.preds,MARGIN = 1,FUN = median))*100)-100
+grp.upper <- ((apply(X = hym.preds,MARGIN = 1,FUN = quantile,probs = 0.975))*100)-100
+grp.lower <- ((apply(X = hym.preds,MARGIN = 1,FUN = quantile,probs = 0.025))*100)-100
+
+hymres <- as.data.frame(cbind(grp.median, grp.upper, grp.lower))
+hymres$LUI <- c("Primary vegetation", "Primary vegetation", "Secondary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_Low", "Agriculture_High", "Agriculture_High")
+hymres$Order <- "Hymenoptera"
+
+# convert to percentage difference from primary vegetation
+Lepidoptera <- as.matrix(Lepidoptera[, 1:1000])
+lep.preds <- sweep(x = Lepidoptera, MARGIN = 2, STATS = Lepidoptera[1,], FUN = '/')
+
+# get quantiles
+grp.median <- ((apply(X = lep.preds,MARGIN = 1, FUN = median))*100)-100
+grp.upper <- ((apply(X = lep.preds,MARGIN = 1, FUN = quantile, probs = 0.975))*100)-100
+grp.lower <- ((apply(X = lep.preds,MARGIN = 1, FUN = quantile, probs = 0.025))*100)-100
+
+lepres <- as.data.frame(cbind(grp.median, grp.upper, grp.lower))
+lepres$LUI <- c("Primary vegetation", "Primary vegetation", "Secondary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_Low", "Agriculture_High", "Agriculture_High")
+lepres$Order <- "Lepidoptera"
+
+# put it back together
+result.sr <- rbind(colres, dipres, hemres, hymres, lepres)
+result.sr$Metric <- "Species Richness"
+
+
 all_res <- rbind(result.ab, result.sr)
 
-all_res$measure <- c(rep("ab", 5), rep("sr", 5))
+all_res$Study <- "This study"
+
+all_res$Fixed_effs <- "Land use and climate"
+
+all_res$Realm <- "Global"
+
+all_res$STA <- c(0, 1)
+
+all_res <- all_res[ , c(7,6,5, 8, 9, 4, 1:3, 10)]
+
+names(all_res)[7:9] <- c("perc", "lower_CI", "upper_CI")
+
+final_res <- rbind(all_res_ori, all_res)
 
 # save table
-write.csv(all_res, file = paste0(outDir, "/percentage_change_LU_CC.csv"))
+write.csv(final_res, file = paste0(outDir, "/percentage_change_LU_STA_Order_inc2022.csv"))
 
 
-### Hyp 3:  Land use, climate and natural habitat interactions ###
+##%######################################################%##
+#                                                          #
+####     Figure for percentage changes by LU and STA    ####
+#                                                          #
+##%######################################################%##
 
-# 25% NH cover = -1.05 in rescaled values
-# 50% NH cover = 0.01493712 in rescaled values
-# 75% NH cover = 1.045653 in rescaled values
-# 100% NH cover = 2.073849 in rescaled values
+# load version including results from Outhwaite et al 2022 and rounded values to 2dp
+final_res <- read.csv(file = paste0(outDir, "/percentage_change_LU_STA_Order_inc2022.csv"))
 
-# what is the reference here
-# primary vegetation, SCA = 0, NH = 100
+final_res$Order <- factor(final_res$Order, levels = c("All insects", "Coleoptera", "Diptera", "Hemiptera", "Hymenoptera", "Lepidoptera"))
 
-# what is the resscaled value of NH
-#BackTransformCentreredPredictor(transformedX = 2.073849, originalX = predictsSites$NH_5000) # -0.99 gives about 0 
+final_res$STA <- factor(final_res$STA, levels = c("0", "1"))
 
+final_res$LUI <- factor(final_res$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
 
-load(file = "7_RunLUClimateNHModels/MeanAnomalyModelAbun_NH.rdata")
-load(file = "7_RunLUClimateNHModels/RichMeanAnomalyModel_NH.rdata")
-
-
-
-data_tab <- data.frame(UI2 = c("Primary vegetation", rep("Agriculture_Low", 2), rep("Agriculture_High", 2)), 
-                       StdTmeanAnomalyRS = c(-0.95,1.66,1.66, 1.66,1.66),
-                       NH_5000.rs = c(2.073849, 1.045653, -1.05, 1.045653, -1.05 ), #100, 75, 25
-                       LogAbund = 0,
-                       Species_richness = 0)
-
-# factor the LU info
-data_tab$UI2 <- factor(data_tab$UI2, levels = levels(predictsSites$UI2))
+plot_data <- final_res[final_res$Metric == "Total abundance", ]
 
 
-# now for the abundance model  
-result.ab <- PredictGLMER(model = AbundMeanAnomalyModel1$model, data = data_tab, se.fit = TRUE, seMultiplier = 1.96)
-
-# backtransform
-result.ab <- exp(result.ab)-0.01
-
-# add in the LU info
-result.ab$UI2 <- data_tab$UI2
-
-result.ab$NH <- c(100, 75, 25, 75, 25)
-result.ab$CC <- c(0, 1, 1, 1, 1)
-
-# express as a percentage of primary
-result.ab$perc <- ((result.ab$y/result.ab$y[1]) * 100) - 100
-
-result.ab$metric <- "ab"
-
-
-result.sr <- PredictGLMER(model = RichMeanAnomalyModel1$model, data = data_tab, se.fit = TRUE, seMultiplier = 1.96)
-
-# backtransform
-result.sr <- exp(result.sr)
-
-# add in the LU info
-result.sr$UI2 <- data_tab$UI2
-
-result.sr$NH <- c(100, 75, 25, 75, 25)
-result.sr$CC <- c(0, 1, 1, 1, 1)
-
-# express as a percentage of primary
-result.sr$perc <- ((result.sr$y/result.sr$y[1]) * 100) - 100
-
-result.sr$metric <- "sr"
-
-# combine results into a table for saving
-all_res <- rbind(result.ab, result.sr)
-
-# save table
-write.csv(all_res, file = paste0(outDir, "/percentage_change_LU_CC_NH.csv"))
+# create point and error bar plot
+ggplot(data = plot_data, aes(col = LUI, group = STA)) + 
+  geom_point(aes(x = LUI, y = perc, shape = STA), size = 1.5, position= position_dodge(width = 1)) + 
+  geom_errorbar(aes(x = LUI, ymin = lower_CI, ymax = upper_CI), position= position_dodge(width = 1), size = 0.2, width = 0.2)+
+  geom_hline(yintercept = 0, linetype = "dashed", size = 0.2) +
+  facet_wrap(~ Order) +
+  xlab("") +
+  scale_y_continuous(limits = c(-100, 120), breaks = scales::pretty_breaks(n = 10)) +
+  ylab("Percentage change in total abundance (%)") +
+  scale_color_manual(values = c("#009E73","#0072B2","#E69F00","#D55E00"), guide = "none") +
+  scale_shape_manual(values=c(16, 17, 18, 15, 0, 1))+
+  theme(legend.position = "bottom", 
+        aspect.ratio = 1, 
+        title = element_text(size = 8, face = "bold"),
+        axis.text.y = element_text(size = 7),
+        axis.text.x = element_text(size = 7, angle = 45, vjust = 0.5),
+        axis.title = element_text(size = 7),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.border = element_blank(), 
+        panel.background = element_blank(), 
+        strip.background = element_blank(),
+        axis.ticks = element_line(size = 0.2), 
+        axis.line = element_line(size = 0.2), 
+        text = element_text(size = 7), 
+        legend.key=element_blank())
 
 
+ggsave(filename = paste0(outDir, "Comparison_LUSTA_Abun.pdf"), plot = last_plot(), width = 150, height = 120, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "Comparison_LUSTA_Abun.jpeg"), plot = last_plot(), width = 150, height = 120, units = "mm", dpi = 300)
+
+### now richness ###
+plot_data <- final_res[final_res$Metric == "Species richness" | final_res$Metric == "Species Richness",]
+
+# create point and error bar plot
+ggplot(data = plot_data, aes(col = LUI, group = STA)) + 
+  geom_point(aes(x = LUI, y = perc, shape = STA), size = 1.5, position= position_dodge(width = 1)) + 
+  geom_errorbar(aes(x = LUI, ymin = lower_CI, ymax = upper_CI), position= position_dodge(width = 1), size = 0.2, width = 0.2)+
+  geom_hline(yintercept = 0, linetype = "dashed", size = 0.2) +
+  facet_wrap(~ Order) +
+  xlab("") +
+  scale_y_continuous(limits = c(-100, 270), breaks = scales::pretty_breaks(n = 10)) +
+  ylab("Percentage change in species richness (%)") +
+  scale_color_manual(values = c("#009E73","#0072B2","#E69F00","#D55E00"), guide = "none") +
+  scale_shape_manual(values=c(16, 17, 18, 15, 0, 1))+
+  theme(legend.position = "bottom", 
+        aspect.ratio = 1, 
+        title = element_text(size = 8, face = "bold"),
+        axis.text.y = element_text(size = 7),
+        axis.text.x = element_text(size = 7, angle = 45, vjust = 0.5),
+        axis.title = element_text(size = 7),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.border = element_blank(), 
+        panel.background = element_blank(), 
+        strip.background = element_blank(),
+        axis.ticks = element_line(size = 0.2), 
+        axis.line = element_line(size = 0.2), 
+        text = element_text(size = 7), 
+        legend.key=element_blank())
+
+
+ggsave(filename = paste0(outDir, "Comparison_LUSTA_Rich.pdf"), plot = last_plot(), width = 150, height = 120, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "Comparison_LUSTA_Rich.jpeg"), plot = last_plot(), width = 150, height = 120, units = "mm", dpi = 300)
 
