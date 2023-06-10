@@ -53,6 +53,10 @@ saveRDS(object = model_data_sr ,file = paste0(outDir,"model_data_sr.rds"))
 length(unique(model_data_sr$SS)) # 254
 length(unique(model_data_sr$SSBS)) # 6014
 
+table(model_data_sr$Order)
+# Coleoptera     Diptera   Hemiptera Hymenoptera Lepidoptera 
+# 2315         721         871        3328        1649
+
 # look at the spread of land use/use intensity categories
 print(table(model_data_sr$LUI))
 
@@ -201,6 +205,10 @@ saveRDS(object = model_data_ab ,file = paste0(outDir,"model_data_ab.rds"))
 # summaries
 length(unique(model_data_ab$SS)) # 236 Studies
 length(unique(model_data_ab$SSBS))# 5706
+
+table(model_data_ab$Order)
+# Coleoptera     Diptera   Hemiptera Hymenoptera Lepidoptera 
+# 2295         701         851        3146        1503 
 
 # look at the spread of land use/use intensity categories
 print(table(model_data_ab$LUI))
