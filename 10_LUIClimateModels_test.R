@@ -63,6 +63,9 @@ MeanAnomalyModelAbund_test <- GLMER(modelData = model_data,responseVar = "LogAbu
 # take a look at the AICs
 AIC_MeanAbund<-print(AIC(MeanAnomalyModelAbund_test$model,MeanAnomalyModelAbund$model))
 
+# save the model output
+save(MeanAnomalyModelAbund_test, file = paste0(outDir, "MeanAnomalyModelAbund_test.rdata"))
+
 # 2. Richness, mean anomaly
 
 model_data <- predictsSites[!is.na(predictsSites$StdTmeanAnomalyRS), ]
@@ -79,6 +82,9 @@ MeanAnomalyModelRich_test <- GLMER(modelData = model_data,responseVar = "Species
 
 # take a look at the AICs
 AIC_MeanRich<-print(AIC(MeanAnomalyModelRich_test$model,MeanAnomalyModelRich$model))
+
+# save the model output
+save(MeanAnomalyModelRich_test, file = paste0(outDir, "MeanAnomalyModelRich_test.rdata"))
 
 # 3. Abundance, max anomaly
 
@@ -99,6 +105,9 @@ MaxAnomalyModelAbund_test <- GLMER(modelData = model_data,responseVar = "LogAbun
 # take a look at the AICs
 AIC_MaxAbund<-print(AIC(MaxAnomalyModelAbund_test$model,MaxAnomalyModelAbund$model))
 
+# save the model output
+save(MaxAnomalyModelAbund_test, file = paste0(outDir, "MaxAnomalyModelAbund_test.rdata"))
+
 # 4. Richness, max anomaly
 
 model_data <- predictsSites[!is.na(predictsSites$StdTmeanAnomalyRS),]
@@ -115,6 +124,9 @@ MaxAnomalyModelRich_test <- GLMER(modelData = model_data,responseVar = "Species_
 
 # take a look at the AICs
 AIC_MaxRich<-print(AIC(MaxAnomalyModelRich_test$model, MaxAnomalyModelRich$model))
+
+# save the model output
+save(MaxAnomalyModelRich_test, file = paste0(outDir, "MaxAnomalyModelRich_test.rdata"))
 
 # put together and save .csv file
 AICs_test <- rbind(AIC_MeanAbund,AIC_MaxAbund,AIC_MeanRich,AIC_MaxRich)
@@ -414,7 +426,7 @@ summary(MaxAnomalyModelRich_trop_test$model)
 # take a look at the AICs
 AIC_MaxRich_trop<-print(AIC(MaxAnomalyModelRich_trop_test$model,MaxAnomalyModelRich_trop$model))
 
-# save model output
+# save the model output
 save(MaxAnomalyModelRich_trop_test, file = paste0(outDirTrop, "MaxAnomalyModelRich_trop_test.rdata"))
 
 
