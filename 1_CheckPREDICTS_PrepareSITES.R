@@ -14,6 +14,8 @@ rm(list = ls())
 dataDir <- "Data/"
 outDir <- "1_CheckPrepareData/"
 if(!dir.exists(outDir)) dir.create(outDir)
+plotDir <- "1_CheckPrepareData/Plots/"
+if(!dir.exists(plotDir)) dir.create(plotDir)
 
 # Load required libraries
 packages <- c("predictsFunctions","patchwork", "dplyr", "ggplot2", "yarg", "lme4", "gt", "broom.mixed", "MASS","webshot")
@@ -610,3 +612,104 @@ family.counts <- tapply(X = species$Family,
 
 # Coleoptera     Diptera   Hemiptera Hymenoptera Lepidoptera 
 #        103          76          68          54          60
+
+
+############################################################
+#                                                          #
+#       Figure 1: map and bar chart of sites/orders        #
+#                                                          #
+############################################################
+
+# load the prepared dataset if not already loaded
+sites <- readRDS(file = paste0(outDir,"PREDICTSSiteData.rds")) # 8884 rows
+
+# load map of country borders using rgdal
+map.borders1 <- readOGR(dsn = paste0(dataDir,"World Map/TM_WORLD_BORDERS-0.3.shp"), #Provide the directory of shp file 
+                        #layer = "TM_WORLD_BORDERS-0.3", #Provide the name of the shp file without extension (.shp)
+                        verbose = FALSE)
+
+# convert to dataframe where the id column will be SUBREGION from the @data
+shp_df <- broom::tidy(map.borders1, region = "SUBREGION")
+
+## 1. plot map of site distribution: scatterplot ##
+
+# plot the raster in ggplot
+
+# map of sites, no colour
+p_map1.1 <- ggplot() +
+  # geom_map(data=map.world, map=map.world,
+  #          aes(x=long, y=lat, group=group, map_id=region),
+  #          fill= "grey", colour="grey", size=0.2) +
+  geom_polygon(data = shp_df, aes(x = long, y = lat, group = group), alpha = 0.5, col = "black", fill = c("grey")) +
+  # scale_fill_paletteer_d("ggsci::default_igv") +
+  coord_fixed() +
+  #labs(fill = "Order") +
+  #geom_point(data = sites, aes(x = Longitude, y = Latitude, col = Order), shape = 20, size=2, position=position_jitter(width=1, height=1, seed = 1)) +
+  geom_point(data = sites, aes(x = Longitude, y = Latitude, col = Order), shape = 21, size=2, col = c("#A4D3EE"), fill = c("#104E8B")) +
+  #scale_colour_manual(values=c("#0F6B99FF","#FFD8B2FF","#A3CC51FF","#8F7EE5FF","#990F0FFF"))+ # option, colouring points by Order
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        plot.background = element_blank(),
+        panel.background = element_blank(),
+        legend.position = "none")
+
+
+## Organise sites and order by UN subregion
+## UN Subregion ##
+
+# need to make a new dataframe with variables:
+# UN_subregion
+# Latitude of centre of subregion
+# Longitude of centre of subregion
+# Order
+# Sum of records for each order in that subregion
+
+mapdf <- sites %>% dplyr::select(UN_subregion,Order,Longitude,Latitude) %>% # filter for rows I want
+  group_by(UN_subregion) %>% # group by subregion
+  summarise(Coleoptera = length(Order[Order == "Coleoptera"]), # count for each subregion, the number of records per order
+            Diptera = length(Order[Order == "Diptera"]),
+            Hemiptera = length(Order[Order == "Hemiptera"]),
+            Hymenoptera = length(Order[Order == "Hymenoptera"]),
+            Lepidoptera = length(Order[Order == "Lepidoptera"]),
+            long = mean(Longitude), lat = mean(Latitude), # calculate the mean coordinates, for plotting the piecharts
+            radius = 25*sqrt(length(UN_subregion)/nrow(sites))) # calculate the radius for each subregion
+
+
+## create a barplot showing n sites in each subregion ##
+
+# need to reorganize dataframe for barplot
+mapdf2 <- mapdf %>% dplyr::select(UN_subregion, Coleoptera, Diptera, Hemiptera, Hymenoptera, Lepidoptera)
+mapdf2 <- cbind(mapdf2[1], stack(mapdf2[2:3:4:5:6]))
+mapdf2 <- mapdf2 %>% rename_at('ind', ~'Order')
+mapdf2 <- dplyr::select(mapdf2,UN_subregion, Order, values)
+
+mapdf2$UN_subregion <- factor(mapdf2$UN_subregion)
+mapdf2$Order <- factor(mapdf2$Order) 
+
+p_bar <- ggplot(data=mapdf2) +
+  # scale_fill_manual(values=c("#2271B2","#F0E442","#359B73","#E69F00","#F748A5"))+
+  scale_fill_manual(values=c("#0F6B99FF","#FFD8B2FF","#A3CC51FF","#8F7EE5FF","#990F0FFF"))+
+  geom_bar(stat="identity",aes(x=UN_subregion, y=values, fill=Order), alpha = 0.7)+
+  labs(x = "UN subregion", y = "Number of sites") +
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) +
+  scale_y_continuous(limits = c(0, 1600), breaks = c(0, 250, 500, 750, 1000, 1250, 1500))+
+  theme_minimal()+
+  theme(axis.text.x = element_text(angle = 50, size = 10, vjust = 0.5, hjust = 0.7),
+        legend.position = "bottom",
+        #legend.key.size = unit(3,"mm"),
+        legend.title = element_blank(),
+        #legend.text = element_text(size = 8)
+        panel.grid = element_blank())
+
+
+# put map and bar chart together
+scatter_bar_mercator <- cowplot::plot_grid(p_map1.1,p_bar, ncol = 1, labels = c("(a)", "(b)"))
+
+# save plot (jpeg)
+ggsave("scatter_bar_mercator_UN.jpeg", device ="jpeg", path = plotDir, width=250, height=300, units="mm", dpi = 350)
+
+
+
+
