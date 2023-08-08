@@ -12,7 +12,6 @@
 # ensure working directory is clear
 rm(list = ls())
 
-
 # set up directories
 inDir <- "1_CheckPrepareData/"
 outDir <- "2_RunSimpleLUIModel/"
@@ -59,7 +58,6 @@ table(model_data_sr$Order)
 
 # look at the spread of land use/use intensity categories
 print(table(model_data_sr$LUI))
-
 # Primary vegetation Secondary vegetation      Agriculture_Low     Agriculture_High 
 #               2093                 2392                 1886                 2513  
 
@@ -129,7 +127,7 @@ sm3.3 <- GLMER(modelData = model_data_sr,responseVar = "Species_richness",fitFam
                fixedStruct = "Order*LUI",randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",REML = FALSE)
 
 # check the R2 values
-R2GLMER(sm3.3$model)
+R2GLMER(sm3.3$model) # with order level interaction
 # $conditional
 # [1] 0.7106989
 # 
@@ -208,13 +206,12 @@ length(unique(model_data_ab$SSBS))# 5706
 
 table(model_data_ab$Order)
 # Coleoptera     Diptera   Hemiptera Hymenoptera Lepidoptera 
-# 2295         701         851        3146        1503 
+#       2295         701         851        3146        1503 
 
 # look at the spread of land use/use intensity categories
 print(table(model_data_ab$LUI))
-
 # Primary vegetation Secondary vegetation      Agriculture_Low     Agriculture_High 
-# 2001                 2255                 1869                 2371
+#               2001                 2255                 1869                 2371
 
 # Run abundance models using 'GLMER' function from StatisticalModels
 
@@ -405,6 +402,27 @@ R2GLMER(sm3.3$model) # check the R2 values
 # [1] 0.05387385
 
 
+# save model output tables for use in supplementary information 
+# use function from sjPlot library to save neat versions of model output table
+tab_model(am3$model, transform = NULL, file = paste0(outDir,"Output_table_abund_noOrder.html"))
+summary(am3$model) # check the table against the outputs
+R2GLMER(am3$model) # check the R2 values 
+# $conditional
+# [1] 0.6838617
+# 
+# $marginal
+# [1] 0.007807586
+
+tab_model(sm3$model, transform = NULL, file = paste0(outDir,"Output_table_rich_noOrder.html"))
+summary(sm3$model) # check the table against the outputs
+R2GLMER(sm3$model) # check the R2 values 
+# $conditional
+# [1] 0.6700185
+# 
+# $marginal
+# [1] 0.007716608
+
+
 ##%######################################################%##
 #                                                          #
 ####           Richness and abundance plots             ####
@@ -569,8 +587,264 @@ gtsave(LUI_predictions,"LUI_predictions.png", path = predsDir)
 # # save as html, if wanted
 # gtsave(LUI_predictions, paste0(predsDir, "LUI_predictions.html"))
 
-# t.end <- Sys.time()
+
+############################################################
+#                                                          #
+#             Plots for models excluding Order             #
+#                                                          #
+############################################################
+
+# Kyra's function above does not seem to work under these circumstances
+## need to fix
+
+
+
 # 
-# print(round(t.end - t.start,0))
+# #### Species Richness Plot ####
+# richness_metric <- predict_effects(iterations = 1000,
+#                                    model = sm3$model,
+#                                    model_data = model_data_sr,
+#                                    response_variable = "Species_richness",
+#                                    fixed_number = 1,
+#                                    fixed_column = "LUI",
+#                                    factor_number_1 = 4,
+#                                    neg_binom = FALSE)
 # 
-# sink()
+# # rename prediction data frame and drop "Species_richness" column
+# result.sr <- fin_conf
+# result.sr <- dplyr::select(result.sr,-c(Species_richness))
+# 
+# richness_metric
+# 
+# model_data <- function(model_plot){
+#   ggplot_build(model_plot)$data[[2]] %>%
+#     dplyr::select(y) %>%
+#     cbind(ggplot_build(model_plot)$data[[3]] %>% dplyr::select(ymin, ymax)) %>%
+#     mutate(LUI = rep(levels(model_data_sr$LUI), 5)[1:20]) %>%
+#     dplyr::select(LUI, y, ymin, ymax)
+# }
+# 
+# # richness data
+# model_data(richness_metric)
+# 
+# # plot species richness alone
+# richness <- richness_metric + xlab(NULL) + 
+#   labs(y ="Species Richness diff. (%)", x = "Order") +
+#   scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75), limits = c(-100, 75)) + 
+#   theme(axis.title = element_text(size = 8),
+#         axis.text.x = element_text(size = 7,angle=45,margin=margin(t=20)),
+#         axis.text.y = element_text(size = 7),
+#         axis.ticks = element_blank(), 
+#         legend.position = "right",
+#         legend.box = "vertical",
+#         legend.text = element_text(size = 7),
+#         legend.title = element_blank())
+# 
+# # save plot (pdf)
+# ggsave(filename = paste0(outDir, "SimpleLUI_Rich.pdf"), plot = last_plot(), width = 250, height = 100, units = "mm", dpi = 300)
+# 
+# # save plot (jpeg)
+# ggsave("SimpleLUI_Rich.jpeg", device ="jpeg", path = outDir, width=25, height=10, units="cm", dpi = 350)
+# 
+# ####  6. Abundance Plot ####
+# 
+# abundance_metric <- predict_effects(iterations = 1000,
+#                                     model = am3.3$model,
+#                                     model_data = model_data_ab,
+#                                     response_variable = "LogAbund",
+#                                     fixed_number = 2,
+#                                     fixed_column = c("Order", "LUI"),
+#                                     factor_number_1 = 5,
+#                                     factor_number_2 = 4,
+#                                     neg_binom = FALSE)
+# 
+# # rename prediction data frame and drop "Abundance" column
+# result.ab <- fin_conf
+# result.ab <- dplyr::select(result.ab,-c(LogAbund))
+# 
+# 
+# abundance_metric
+# 
+# model_data <- function(model_plot){
+#   ggplot_build(model_plot)$data[[2]] %>%
+#     dplyr::select(y) %>%
+#     cbind(ggplot_build(model_plot)$data[[3]] %>% dplyr::select(ymin, ymax)) %>%
+#     mutate(LUI = rep(levels(model_data_ab$LUI), 5)[1:20]) %>%
+#     dplyr::select(LUI, y, ymin, ymax)
+# }
+# 
+# # abundance data
+# model_data(abundance_metric)
+# 
+# # plot abundance alone
+# abundance <- abundance_metric + xlab(NULL) + 
+#   labs(y ="Total abundance diff. (%)", x = "Order") +
+#   scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75), limits = c(-100, 75)) + 
+#   theme(axis.title = element_text(size = 8),
+#         axis.text.x = element_text(size = 7,angle=45,margin=margin(t=20)),
+#         axis.text.y = element_text(size = 7),
+#         axis.ticks = element_blank(), 
+#         legend.position = "right",
+#         legend.box = "vertical",
+#         legend.text = element_text(size = 7),
+#         legend.title = element_blank())
+# 
+# # save plot (pdf)
+# ggsave(filename = paste0(outDir, "SimpleLUI_Abund.pdf"), plot = last_plot(), width = 250, height = 100, units = "mm", dpi = 300)
+# 
+# # save plot (jpeg)
+# ggsave("SimpleLUI_Abund.jpeg", device ="jpeg", path = outDir, width=25, height=10, units="cm", dpi = 350)
+# 
+# ####  7. Plot Together  ####
+# 
+# richness <- richness_metric + 
+#   labs(y ="Species richness diff. (%)", x = NULL) +
+#   guides(scale = "none") +
+#   scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75), limits = c(-100, 75)) +
+#   theme(axis.title = element_text(size = 8),
+#         axis.text.x = element_text(size = 7,angle=45,margin=margin(t=20)),
+#         axis.text.y = element_text(size = 7),
+#         legend.position = "none")+
+#   ggtitle("a")
+# 
+# 
+# abundance <- abundance_metric +
+#   labs(y ="Total abundance diff. (%)", x = "Order") +
+#   scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75), limits = c(-100, 75)) + 
+#   theme(axis.title = element_text(size = 8),
+#         axis.text.x = element_text(size = 7,angle=45,margin=margin(t=20)),
+#         axis.text.y = element_text(size = 7),
+#         legend.position = "none")+
+#   ggtitle("b")
+# 
+# 
+# # get the legend
+# legend <- get_legend(
+#   abundance +
+#     guides(color = guide_legend(ncol = 1)) +
+#     theme(legend.position = "right",
+#           legend.box = "vertical", 
+#           legend.text = element_text(size = 7), 
+#           legend.title = element_blank())
+# )
+# 
+# # plot together
+# plot_figure <- cowplot::plot_grid(richness, abundance, ncol = 1, rel_heights = c(1,1))
+# legend <- cowplot::plot_grid(NULL,legend,NULL, ncol = 1, rel_heights = c(0.5,1,0.5))
+# plot_figure <- cowplot::plot_grid(plot_figure, legend, ncol = 2, rel_widths = c(1,0.2))
+# 
+# # save plot (pdf)
+# ggsave(filename = paste0(outDir, "SimpleLUI.pdf"), plot = last_plot(), width = 250, height = 200, units = "mm", dpi = 300)
+# 
+# # save plot (jpeg)
+# ggsave("SimpleLUI.jpeg", device ="jpeg", path = outDir, width=20, height=15, units="cm", dpi = 350)
+
+
+
+# create dataframe for values to predict response to
+nd <- data.frame(LUI=factor(c("Primary vegetation","Secondary vegetation",
+                              "Agriculture_Low","Agriculture_High"), levels = levels(sm3$data$LUI)),
+                 Species_richness=0,
+                 LogAbund=0)
+
+## species richness predictions ##
+s.preds <- StatisticalModels::PredictGLMERRandIter(model = sm3$model, data = nd)
+
+s.preds <- exp(s.preds)
+
+# convert to percentage difference from primary vegetation
+s.preds <- sweep(x = s.preds, MARGIN = 2, STATS = s.preds[1,], FUN = '/')
+
+# get quantiles
+s.preds.median <- ((apply(X = s.preds,MARGIN = 1,FUN = median))*100)-100
+s.preds.upper <- ((apply(X = s.preds,MARGIN = 1,FUN = quantile,probs = 0.975))*100)-100
+s.preds.lower <- ((apply(X = s.preds,MARGIN = 1,FUN = quantile,probs = 0.025))*100)-100
+
+
+
+## abundance predictions ##
+a.preds <- PredictGLMERRandIter(model = am3$model,data = nd)
+
+a.preds <- exp(a.preds)-1
+
+# convert to percentage difference from primary vegetation
+a.preds <- sweep(x = a.preds,MARGIN = 2,STATS = a.preds[1,],FUN = '/')
+
+# get quantiles
+a.preds.median <- ((apply(X = a.preds,MARGIN = 1,FUN = median))*100)-100
+a.preds.upper <- ((apply(X = a.preds,MARGIN = 1,FUN = quantile,probs = 0.975))*100)-100
+a.preds.lower <- ((apply(X = a.preds,MARGIN = 1,FUN = quantile,probs = 0.025))*100)-100
+
+
+# combine data into one table for plotting
+abun_res <- as.data.frame(cbind(a.preds.median, a.preds.lower, a.preds.upper))
+rich_res <- as.data.frame(cbind(s.preds.median, s.preds.lower, s.preds.upper))
+colnames(abun_res) <- c("median", "lower", "upper")
+colnames(rich_res) <- c("median", "lower", "upper")
+abun_res$metric <- "abun"
+rich_res$metric <- "rich"
+abun_res$LU <- factor(c("Primary vegetation","Secondary vegetation", "Agriculture_Low","Agriculture_High"), levels = c("Primary vegetation","Secondary vegetation", "Agriculture_Low","Agriculture_High"))
+rich_res$LU <- factor(c("Primary vegetation","Secondary vegetation", "Agriculture_Low","Agriculture_High"), levels = c("Primary vegetation","Secondary vegetation", "Agriculture_Low","Agriculture_High"))
+
+abun_res[abun_res$LU == "Primary vegetation", c("lower", "upper")] <- NA
+rich_res[abun_res$LU == "Primary vegetation", c("lower", "upper")] <- NA
+
+
+# point points and error bars
+
+p1 <- ggplot(data = abun_res) +
+  geom_point(aes(x = LU, y = median, col = LU), size = 1.2) + 
+  geom_errorbar(aes(x = LU, ymin = lower, ymax = upper, col = LU), size = 0.2, width = 0.2)+
+  geom_hline(yintercept = 0, linetype = "dashed", size = 0.2) +
+  xlab("") +
+  ylab("Change in total abundance (%)") +
+  scale_color_manual(values = c("#009E73","#0072B2","#E69F00","#D55E00")) +
+  ylim(c(-100, 0)) +
+  theme(legend.position = "none", 
+        aspect.ratio = 1, 
+        title = element_text(size = 8, face = "bold"),
+        axis.text.y = element_text(size = 7),
+        axis.text.x = element_text(size = 7, angle = 45, vjust = 0.5),
+        axis.title = element_text(size = 7),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.border = element_blank(), 
+        panel.background = element_blank(), 
+        axis.ticks = element_line(size = 0.2), 
+        axis.line = element_line(size = 0.2)) +
+  ggtitle("b")
+
+
+p2 <- ggplot(data = rich_res) +
+  geom_point(aes(x = LU, y = median, col = LU), size = 1.2) + 
+  geom_errorbar(aes(x = LU, ymin = lower, ymax = upper, col = LU), size = 0.2, width = 0.2)+
+  geom_hline(yintercept = 0, linetype = "dashed", size = 0.2) +
+  xlab("") +
+  ylab("Change in species richness (%)") +
+  scale_color_manual(values = c("#009E73","#0072B2","#E69F00","#D55E00")) +
+  ylim(c(-100, 0)) +
+  theme(legend.position = "none", 
+        aspect.ratio = 1, 
+        title = element_text(size = 8, face = "bold"),
+        axis.text.y = element_text(size = 7),
+        axis.text.x = element_text(size = 7, angle = 45, vjust = 0.5),
+        axis.title = element_text(size = 7),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.border = element_blank(), 
+        panel.background = element_blank(), 
+        axis.ticks = element_line(size = 0.2), 
+        axis.line = element_line(size = 0.2)) +
+  ggtitle("a")
+
+
+p3 <- cowplot::plot_grid(p2, p1)
+
+ggsave(filename = paste0(outDir, "FIG_No_Order_LandUseOnly.pdf"), plot = last_plot(), width = 160, height = 90, units = "mm", dpi = 300)
+
+
+
+
+
+
+
