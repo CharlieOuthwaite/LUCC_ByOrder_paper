@@ -252,7 +252,7 @@ sites <- sites[!is.na(sites$LUI), ]
 sites <- droplevels(sites)
 
 # transform abundance values 
-sites$LogAbund <- log(sites$Total_abundance+1)
+sites$LogAbund <- log(sites$Total_abundance+0.01)
 
 # Remove sites without coordinates
 sites <- sites[!is.na(sites$Latitude), ]
@@ -616,7 +616,7 @@ family.counts <- tapply(X = species$Family,
 
 ############################################################
 #                                                          #
-#       Figure 1: map and bar chart of sites/orders        #
+####    Figure 1: map and bar chart of sites/orders     ####
 #                                                          #
 ############################################################
 
