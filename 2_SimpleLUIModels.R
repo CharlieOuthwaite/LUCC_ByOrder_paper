@@ -82,6 +82,10 @@ sm2 <- GLMER(modelData = model_data_sr,responseVar = "Species_richness",fitFamil
 sm3 <- GLMER(modelData = model_data_sr,responseVar = "Species_richness",fitFamily = "poisson",
              fixedStruct = "LUI",randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",REML = FALSE)
 
+# save model without interaction with order
+save(sm3, file = paste0(outDir, "Richness_landuse_model_noOrder.rdata"))
+
+
 # check the R2 values
 R2GLMER(sm3$model)
 # $conditional
@@ -226,6 +230,11 @@ am2 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gau
 
 am3 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
              fixedStruct = "LUI",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
+
+# save the model without an interaction with Order
+save(am3, file = paste0(outDir, "Abundance_landuse_model_noOrder.rdata"))
+
+
 
 # check the R2 values
 R2GLMER(am3$model)
