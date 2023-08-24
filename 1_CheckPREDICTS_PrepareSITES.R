@@ -60,15 +60,11 @@ predicts <- droplevels(predicts[(predicts$Order!=""),])
 # 826016 obs. of 67 variables
 
 # check
-table(predicts$Order)
+table(predicts$Order) # 826016 obs. of 67 variables
 
-# recode Isoptera to Blattodea and Phthiraptera to Psocodea
-# Isoptera = infraorder within Blattodea; Phtiraptera = parvorder within Psocodea (Catalogue of Life)
-
-predicts$Order <- recode_factor(predicts$Order,
-                                Isoptera = "Blattodea",
-                                Phthiraptera = "Psocodea")
-# 826016 obs. of 67 variables
+# keep top five orders 
+predicts <- predicts %>% filter(Order %in% c("Hymenoptera", "Coleoptera", "Lepidoptera", "Diptera", "Hemiptera")) %>% droplevels()
+# 810399 obs. of 67  variables
 
 # convert Order to a "factor"
 predicts$Order <- as.factor(predicts$Order)
@@ -85,105 +81,36 @@ by_Order <- split(predicts,OrderName)
 # extract data frames from list into global environment
 list2env(by_Order,globalenv())
 
-# Calculate site metrics of diversity for each order, include extra columns:
-Archaeognatha <- droplevels(Archaeognatha)
-Archaeognatha <- SiteMetrics(diversity = Archaeognatha,
-                          extra.cols = c("Predominant_land_use",
-                                         "SSB","SSBS", "Biome","Order","UN_subregion","Best_guess_binomial"))
-Blattodea <- droplevels(Blattodea)
-Blattodea <- SiteMetrics(diversity = Blattodea,
-                          extra.cols = c("Predominant_land_use",
-                                         "SSB","SSBS", "Biome","Order","UN_subregion","Best_guess_binomial"))
 Coleoptera <- droplevels(Coleoptera)
 Coleoptera <- SiteMetrics(diversity = Coleoptera,
                           extra.cols = c("Predominant_land_use",
                                          "SSB","SSBS", "Biome","Order","UN_subregion","Best_guess_binomial"))
-Dermaptera <- droplevels(Dermaptera)
-Dermaptera <- SiteMetrics(diversity = Dermaptera,
-                          extra.cols = c("Predominant_land_use",
-                                         "SSB","SSBS", "Biome","Order","UN_subregion","Best_guess_binomial"))
+
 Diptera <- droplevels(Diptera)
 Diptera <- SiteMetrics(diversity = Diptera,
                        extra.cols = c("Predominant_land_use",
                                       "SSB","SSBS", "Biome","Order","UN_subregion","Best_guess_binomial"))
-Embioptera <- droplevels(Embioptera)
-Embioptera <- SiteMetrics(diversity = Embioptera,
-                          extra.cols = c("Predominant_land_use",
-                                         "SSB","SSBS", "Biome","Order","UN_subregion","Best_guess_binomial"))
-Ephemeroptera <- droplevels(Ephemeroptera)
-Ephemeroptera <- SiteMetrics(diversity = Ephemeroptera,
-                          extra.cols = c("Predominant_land_use",
-                                         "SSB","SSBS", "Biome","Order","UN_subregion","Best_guess_binomial"))
+
 Hemiptera <- droplevels(Hemiptera)
 Hemiptera <- SiteMetrics(diversity = Hemiptera,
                          extra.cols = c("Predominant_land_use",
                                         "SSB","SSBS", "Biome","Order","UN_subregion","Best_guess_binomial"))
+
 Hymenoptera <- droplevels(Hymenoptera)
 Hymenoptera <- SiteMetrics(diversity = Hymenoptera,
                            extra.cols = c("Predominant_land_use",
                                           "SSB","SSBS", "Biome","Order","UN_subregion","Best_guess_binomial"))
+
 Lepidoptera <- droplevels(Lepidoptera)
 Lepidoptera <- SiteMetrics(diversity = Lepidoptera,
                            extra.cols = c("Predominant_land_use",
                                           "SSB","SSBS", "Biome","Order","UN_subregion","Best_guess_binomial"))
-Mantodea <- droplevels(Mantodea)
-Mantodea <- SiteMetrics(diversity = Mantodea,
-                          extra.cols = c("Predominant_land_use",
-                                         "SSB","SSBS", "Biome","Order","UN_subregion","Best_guess_binomial"))
-Mecoptera <- droplevels(Mecoptera)
-Mecoptera <- SiteMetrics(diversity = Mecoptera,
-                          extra.cols = c("Predominant_land_use",
-                                         "SSB","SSBS", "Biome","Order","UN_subregion","Best_guess_binomial"))
-Neuroptera <- droplevels(Neuroptera)
-Neuroptera <- SiteMetrics(diversity = Neuroptera,
-                          extra.cols = c("Predominant_land_use",
-                                         "SSB","SSBS", "Biome","Order","UN_subregion","Best_guess_binomial"))
-Odonata <- droplevels(Odonata)
-Odonata <- SiteMetrics(diversity = Odonata,
-                          extra.cols = c("Predominant_land_use",
-                                         "SSB","SSBS", "Biome","Order","UN_subregion","Best_guess_binomial"))
-Orthoptera <- droplevels(Orthoptera)
-Orthoptera <- SiteMetrics(diversity = Orthoptera,
-                          extra.cols = c("Predominant_land_use",
-                                         "SSB","SSBS", "Biome","Order","UN_subregion","Best_guess_binomial"))
-Phasmida <- droplevels(Phasmida)
-Phasmida <- SiteMetrics(diversity = Phasmida,
-                          extra.cols = c("Predominant_land_use",
-                                         "SSB","SSBS", "Biome","Order","UN_subregion","Best_guess_binomial"))
-Psocodea <- droplevels(Psocodea)
-Psocodea <- SiteMetrics(diversity = Psocodea,
-                          extra.cols = c("Predominant_land_use",
-                                         "SSB","SSBS", "Biome","Order","UN_subregion","Best_guess_binomial"))
-Siphonaptera <- droplevels(Siphonaptera)
-Siphonaptera <- SiteMetrics(diversity = Siphonaptera,
-                          extra.cols = c("Predominant_land_use",
-                                         "SSB","SSBS", "Biome","Order","UN_subregion","Best_guess_binomial"))
-Thysanoptera <- droplevels(Thysanoptera)
-Thysanoptera <- SiteMetrics(diversity = Thysanoptera,
-                          extra.cols = c("Predominant_land_use",
-                                         "SSB","SSBS", "Biome","Order","UN_subregion","Best_guess_binomial"))
-Trichoptera <- droplevels(Trichoptera)
-Trichoptera <- SiteMetrics(diversity = Trichoptera,
-                          extra.cols = c("Predominant_land_use",
-                                         "SSB","SSBS", "Biome","Order","UN_subregion","Best_guess_binomial"))
-Zoraptera <- droplevels(Zoraptera)
-Zoraptera <- SiteMetrics(diversity = Zoraptera,
-                          extra.cols = c("Predominant_land_use",
-                                         "SSB","SSBS", "Biome","Order","UN_subregion","Best_guess_binomial"))
-Zygentoma <- droplevels(Zygentoma)
-Zygentoma <- SiteMetrics(diversity = Zygentoma,
-                          extra.cols = c("Predominant_land_use",
-                                         "SSB","SSBS", "Biome","Order","UN_subregion","Best_guess_binomial"))
 
 # merge all sites_Order data frames into one called "sites"
-# merge using rbind()
-sites <- rbind(Archaeognatha,Blattodea,Coleoptera,Dermaptera,Diptera,Embioptera,
-               Ephemeroptera,Hemiptera,Hymenoptera,Lepidoptera,Mantodea,
-               Mecoptera,Neuroptera,Odonata,Orthoptera,Phasmida,Psocodea,
-               Siphonaptera,Thysanoptera,Trichoptera,Zoraptera,Zygentoma)
+sites <- rbind(Coleoptera, Diptera, Hemiptera, Hymenoptera, Lepidoptera)
+# 10746 rows
 
-
-# First, we will rearrange the land-use classification a bit
+# First, we will rearrange the land-use classification 
 # rename "Predominant_land_use" to "LandUse"
 sites$LandUse <- paste(sites$Predominant_land_use)
 
@@ -231,23 +158,14 @@ sites$LUI <- dplyr::recode(sites$LUI,
                            'Intermediate secondary vegetation_Intense use' = 'Secondary vegetation',
                            'Intermediate secondary vegetation_Light use' = 'Secondary vegetation')
 
-# 15346 obs. of 29 variables
+# 10746 obs. of 29 variables
 
-
-# ...not sure, but it looks like we are re-classifying all secondary vegetation as "Light use"
-# but why after we have already re-coded the land use type and intensity at all sites?
-# sites$Use_intensity[((sites$LandUse=="Mature secondary vegetation") & 
-#                        (sites$Use_intensity=="Intense use"))] <- "Light use"
-# sites$Use_intensity[((sites$LandUse=="Intermediate secondary vegetation") & 
-#                        (sites$Use_intensity=="Intense use"))] <- "Light use"
-# sites$Use_intensity[((sites$LandUse=="Young secondary vegetation") & 
-#                        (sites$Use_intensity=="Intense use"))] <- "Light use"
 
 # remove the urban sites and sites that are NA in LUI
 sites <- sites[!sites$LUI == "Urban", ]
 sites <- sites[!is.na(sites$LUI), ]
 
-# 12968 obs. of 29 variables
+# 8890 obs. of 29 variables
 
 sites <- droplevels(sites)
 
@@ -257,7 +175,7 @@ sites$LogAbund <- log(sites$Total_abundance+0.01)
 # Remove sites without coordinates
 sites <- sites[!is.na(sites$Latitude), ]
 
-# 12962 obs. of 30 variables
+# 8884 obs. of 30 variables
 
 # create a new variable designating sites as Tropical or Non-tropical
 # assign new variable for tropical/temperate, convert to factor, and filter out NA
@@ -266,163 +184,15 @@ sites$Realm <- factor(sites$Realm, levels = c("NonTropical", "Tropical"))
 sites <- sites %>%
   filter(!is.na(Realm))
 
-#### 3a. Summarise data by order ####
-
-sites_summary <- sites %>%
-  group_by(Order) %>% 
-  mutate(LogAbund = ifelse(is.na(LogAbund), 0, LogAbund)) %>% # replace NA values with 0 for ease of summarising
-  summarise(Sites = length(SSBS),
-            Studies = n_distinct(SS),
-            Species = n_distinct(Best_guess_binomial),
-            sites_1 = length(LUI[LUI == "Primary vegetation"]) ,
-            studies_1 = n_distinct(SS[LUI == "Primary vegetation"]),
-            sites_2 = length(LUI[LUI == "Secondary vegetation"]),
-            studies_2 = n_distinct(SS[LUI == "Secondary vegetation"]),
-            sites_low = length(LUI[LUI == "Agriculture_Low"]),
-            studies_low = n_distinct(SS[LUI == "Agriculture_Low"]),
-            sites_high = length(LUI[LUI == "Agriculture_High"]),
-            studies_high = n_distinct(SS[LUI == "Agriculture_High"]),
-            Abundance = sum(LogAbund>0) ,
-            SpeciesRichness = sum(Species_richness>0)) %>%
-  ungroup() %>%  
-  arrange(desc(Sites))%>%
-  gt() %>%
-  tab_header(title = "Data spread across land-uses"
-  ) %>%
-  tab_spanner(
-    label = "Total",
-    columns = c(Sites,Studies,Species)
-  )  %>%
-  tab_spanner(
-    label = "Primary Vegetation",
-    columns = c(sites_1,studies_1)
-  ) %>%
-  tab_spanner(
-    label = "Secondary vegetation",
-    columns = c(sites_2,studies_2)
-  ) %>%
-  tab_spanner(
-    label = "Low-intensity agriculture",
-    columns = c(sites_low,studies_low)
-  ) %>%
-  tab_spanner(
-    label = "High-intensity agriculture",
-    columns = c(sites_high,studies_high)
-  )  %>%
-  tab_spanner(
-    label = "Diversity Metric",
-    columns = c(Abundance,SpeciesRichness)
-    )  %>% 
-  cols_align(
-    align = "center",
-    columns = c(Order,Sites,Studies,Species,sites_1,studies_1,sites_2,studies_2,sites_low,studies_low,sites_high,studies_high,Abundance,SpeciesRichness)
-  ) %>%
-  cols_label(
-    Order = "Order",
-    Sites = "Sites",
-    Studies = "Studies",
-    Species = "Species",
-    sites_1 = "Sites",
-    studies_1 = "Studies",
-    sites_2 = "Sites",
-    studies_2 = "Studies",
-    sites_low = "Sites",
-    studies_low = "Studies",
-    sites_high = "Sites",
-    studies_high = "Studies",
-    Abundance = "Abundance",
-    SpeciesRichness = "Species richness"
-  )
-
-# save table
-gtsave(sites_summary,"sites_summary_allorders.png",path = outDir)
-
-# save as csv
-write.csv(sites_summary,file = paste0(outDir, "sites_summary_allorders.csv"))
-
-#### 3b. Summarize data by order and latitudinal realm ####
-
-lat_summary <- sites %>%
-  group_by(Order,Realm) %>%
-  mutate(LogAbund = ifelse(is.na(LogAbund), 0, LogAbund)) %>% # replace NA values with 0 for ease of summarising
-  summarise(Sites = length(SSBS),
-            Studies = n_distinct(SS),
-            Species = n_distinct(Best_guess_binomial),
-            sites_1 = length(LUI[LUI == "Primary vegetation"]) ,
-            studies_1 = n_distinct(SS[LUI == "Primary vegetation"]),
-            sites_2 = length(LUI[LUI == "Secondary vegetation"]),
-            studies_2 = n_distinct(SS[LUI == "Secondary vegetation"]),
-            sites_low = length(LUI[LUI == "Agriculture_Low"]),
-            studies_low = n_distinct(SS[LUI == "Agriculture_Low"]),
-            sites_high = length(LUI[LUI == "Agriculture_High"]),
-            studies_high = n_distinct(SS[LUI == "Agriculture_High"]),
-            Abundance = sum(LogAbund>0) ,
-            SpeciesRichness = sum(Species_richness>0)) %>%
-  ungroup() %>%
-  gt() %>%
-  tab_header(title = "Data spread across land-uses, by latitudinal realm"
-  ) %>%
-  tab_spanner(
-    label = "Total",
-    columns = c(Sites,Studies,Species)
-  )  %>%
-  tab_spanner(
-    label = "Primary Vegetation",
-    columns = c(sites_1,studies_1)
-  ) %>%
-  tab_spanner(
-    label = "Secondary vegetation",
-    columns = c(sites_2,studies_2)
-  ) %>%
-  tab_spanner(
-    label = "Low-intensity agriculture",
-    columns = c(sites_low,studies_low)
-  ) %>%
-  tab_spanner(
-    label = "High-intensity agriculture",
-    columns = c(sites_high,studies_high)
-  )  %>%
-  tab_spanner(
-    label = "Diversity Metric",
-    columns = c(Abundance,SpeciesRichness)
-    )  %>% 
-  cols_align(
-    align = "center",
-    columns = c(Order,Realm,Sites,Studies, Species,sites_1,studies_1,sites_2,studies_2,sites_low,studies_low,sites_high,studies_high,Abundance,SpeciesRichness)
-  )%>%
-  cols_label(
-    Order = "Order",
-    Realm = "Realm",
-    Sites = "Sites",
-    Studies = "Studies",
-    Species = "Species",
-    sites_1 = "Sites",
-    studies_1 = "Studies",
-    sites_2 = "Sites",
-    studies_2 = "Studies",
-    sites_low = "Sites",
-    studies_low = "Studies",
-    sites_high = "Sites",
-    studies_high = "Studies",
-    Abundance = "Abundance",
-    SpeciesRichness = "Species richness"
-  )
-
-# save table
-gtsave(lat_summary,"lat_summary_allorders.png",path = outDir)
-
-# save as csv
-write.csv(lat_summary,file = paste0(outDir, "lat_summary_allorders.csv"))
-
-# keep top five orders (according to number of sites sampled)
-sites <- sites %>% filter(Order %in% c("Hymenoptera", "Coleoptera", "Lepidoptera", "Diptera", "Hemiptera")) %>% droplevels()
-
-# 8884 obs. of 31 variables
-
 # save the prepared dataset
 saveRDS(object = sites,file = paste0(outDir,"PREDICTSSiteData.rds")) 
 
-#### 3c. Summarise remaining data by order ####
+#### 3a. Summarise data by order ####
+
+length(unique(sites$SSBS)) # 6014
+
+length(unique(sites$SS)) # 254
+
 
 sites_summary <- sites %>%
   group_by(Order) %>% 
@@ -438,8 +208,8 @@ sites_summary <- sites %>%
             studies_low = n_distinct(SS[LUI == "Agriculture_Low"]),
             sites_high = length(LUI[LUI == "Agriculture_High"]),
             studies_high = n_distinct(SS[LUI == "Agriculture_High"]),
-            Abundance = sum(LogAbund>0) ,
-            SpeciesRichness = sum(Species_richness>0)) %>%
+            Abundance = sum(LogAbund>=0) ,
+            SpeciesRichness = sum(Species_richness>=0)) %>%
   ungroup() %>%  
   arrange(desc(Sites))%>%
   gt() %>%
@@ -468,7 +238,7 @@ sites_summary <- sites %>%
   tab_spanner(
     label = "Diversity Metric",
     columns = c(Abundance,SpeciesRichness)
-  )  %>% 
+    )  %>% 
   cols_align(
     align = "center",
     columns = c(Order,Sites,Studies,Species,sites_1,studies_1,sites_2,studies_2,sites_low,studies_low,sites_high,studies_high,Abundance,SpeciesRichness)
@@ -491,87 +261,86 @@ sites_summary <- sites %>%
   )
 
 # save table
-gtsave(sites_summary,"sites_summary_BigFive.png",path = outDir)
+gtsave(sites_summary,"sites_summary_SuppTab1.png",path = outDir)
 
 # save as csv
-write.csv(sites_summary,file = paste0(outDir,"sites_summary_BigFive.csv"))
+write.csv(sites_summary,file = paste0(outDir, "sites_summary_SuppTab1.csv"))
 
-#### 3d. Summarize remaining data by order and latitudinal realm ####
+# #### 3b. Summarize data by order and latitudinal realm ####
+# 
+# lat_summary <- sites %>%
+#   group_by(Order,Realm) %>%
+#   mutate(LogAbund = ifelse(is.na(LogAbund), 0, LogAbund)) %>% # replace NA values with 0 for ease of summarising
+#   summarise(Sites = length(SSBS),
+#             Studies = n_distinct(SS),
+#             Species = n_distinct(Best_guess_binomial),
+#             sites_1 = length(LUI[LUI == "Primary vegetation"]) ,
+#             studies_1 = n_distinct(SS[LUI == "Primary vegetation"]),
+#             sites_2 = length(LUI[LUI == "Secondary vegetation"]),
+#             studies_2 = n_distinct(SS[LUI == "Secondary vegetation"]),
+#             sites_low = length(LUI[LUI == "Agriculture_Low"]),
+#             studies_low = n_distinct(SS[LUI == "Agriculture_Low"]),
+#             sites_high = length(LUI[LUI == "Agriculture_High"]),
+#             studies_high = n_distinct(SS[LUI == "Agriculture_High"]),
+#             Abundance = sum(LogAbund>0) ,
+#             SpeciesRichness = sum(Species_richness>0)) %>%
+#   ungroup() %>%
+#   gt() %>%
+#   tab_header(title = "Data spread across land-uses, by latitudinal realm"
+#   ) %>%
+#   tab_spanner(
+#     label = "Total",
+#     columns = c(Sites,Studies,Species)
+#   )  %>%
+#   tab_spanner(
+#     label = "Primary Vegetation",
+#     columns = c(sites_1,studies_1)
+#   ) %>%
+#   tab_spanner(
+#     label = "Secondary vegetation",
+#     columns = c(sites_2,studies_2)
+#   ) %>%
+#   tab_spanner(
+#     label = "Low-intensity agriculture",
+#     columns = c(sites_low,studies_low)
+#   ) %>%
+#   tab_spanner(
+#     label = "High-intensity agriculture",
+#     columns = c(sites_high,studies_high)
+#   )  %>%
+#   tab_spanner(
+#     label = "Diversity Metric",
+#     columns = c(Abundance,SpeciesRichness)
+#     )  %>% 
+#   cols_align(
+#     align = "center",
+#     columns = c(Order,Realm,Sites,Studies, Species,sites_1,studies_1,sites_2,studies_2,sites_low,studies_low,sites_high,studies_high,Abundance,SpeciesRichness)
+#   )%>%
+#   cols_label(
+#     Order = "Order",
+#     Realm = "Realm",
+#     Sites = "Sites",
+#     Studies = "Studies",
+#     Species = "Species",
+#     sites_1 = "Sites",
+#     studies_1 = "Studies",
+#     sites_2 = "Sites",
+#     studies_2 = "Studies",
+#     sites_low = "Sites",
+#     studies_low = "Studies",
+#     sites_high = "Sites",
+#     studies_high = "Studies",
+#     Abundance = "Abundance",
+#     SpeciesRichness = "Species richness"
+#   )
 
-lat_sites_summary <- sites %>%
-  group_by(Order,Realm) %>%
-  mutate(LogAbund = ifelse(is.na(LogAbund), 0, LogAbund)) %>% # replace NA values with 0 for ease of summarising
-  summarise(Sites = length(SSBS),
-            Studies = n_distinct(SS),
-            Species = n_distinct(Best_guess_binomial),
-            sites_1 = length(LUI[LUI == "Primary vegetation"]) ,
-            studies_1 = n_distinct(SS[LUI == "Primary vegetation"]),
-            sites_2 = length(LUI[LUI == "Secondary vegetation"]),
-            studies_2 = n_distinct(SS[LUI == "Secondary vegetation"]),
-            sites_low = length(LUI[LUI == "Agriculture_Low"]),
-            studies_low = n_distinct(SS[LUI == "Agriculture_Low"]),
-            sites_high = length(LUI[LUI == "Agriculture_High"]),
-            studies_high = n_distinct(SS[LUI == "Agriculture_High"]),
-            Abundance = sum(LogAbund>0) ,
-            SpeciesRichness = sum(Species_richness>0)) %>%
-  ungroup() %>%
-  gt() %>%
-  tab_header(title = "Data spread across land-uses, by latitudinal realm"
-  ) %>%
-  tab_spanner(
-    label = "Total",
-    columns = c(Sites,Studies,Species)
-  )  %>%
-  tab_spanner(
-    label = "Primary Vegetation",
-    columns = c(sites_1,studies_1)
-  ) %>%
-  tab_spanner(
-    label = "Secondary vegetation",
-    columns = c(sites_2,studies_2)
-  ) %>%
-  tab_spanner(
-    label = "Low-intensity agriculture",
-    columns = c(sites_low,studies_low)
-  ) %>%
-  tab_spanner(
-    label = "High-intensity agriculture",
-    columns = c(sites_high,studies_high)
-  )  %>%
-  tab_spanner(
-    label = "Diversity Metric",
-    columns = c(Abundance,SpeciesRichness)
-  )  %>% 
-  cols_align(
-    align = "center",
-    columns = c(Order,Realm,Sites,Studies,Species,sites_1,studies_1,sites_2,studies_2,sites_low,studies_low,sites_high,studies_high,Abundance,SpeciesRichness)
-  )%>%
-  cols_label(
-    Order = "Order",
-    Realm = "Realm",
-    Sites = "Sites",
-    Species = "Species",
-    Studies = "Studies",
-    sites_1 = "Sites",
-    studies_1 = "Studies",
-    sites_2 = "Sites",
-    studies_2 = "Studies",
-    sites_low = "Sites",
-    studies_low = "Studies",
-    sites_high = "Sites",
-    studies_high = "Studies",
-    Abundance = "Abundance",
-    SpeciesRichness = "Species richness"
-  )
-
-# save table
-gtsave(lat_sites_summary,"lat_sites_summary_BigFive.png", path = outDir)
-
-# save as csv
-write.csv(lat_sites_summary, file = paste0(outDir, "lat_sites_summary_BigFive.csv"))
+# # save table
+# gtsave(lat_summary,"lat_summary_allorders.png",path = outDir)
+# 
+# # save as csv
+# write.csv(lat_summary,file = paste0(outDir, "lat_summary_allorders.csv"))
 
 
-#### site level. big five summaries ####
 
 length(unique(sites$SS))
 # 254 studies
@@ -579,6 +348,7 @@ length(unique(sites$SS))
 length(unique(sites$SSBS))
 # 6014 sites
 
+# assess the record level dataset
 pred_sub <- predicts[predicts$SSBS %in% sites$SSBS & predicts$Order %in% sites$Order, ]
 pred_sub <- droplevels(pred_sub)
 nrow(pred_sub) # 741933 records
