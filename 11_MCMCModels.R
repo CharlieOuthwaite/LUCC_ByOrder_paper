@@ -12,6 +12,8 @@ library(brms)
 # directories
 datadir1 <- "2_RunSimpleLUIModel/"
 datadir2 <- "5_RunLUIClimateModels/"
+outdir <- "10_Additional_Tests/MCMCModels/"
+if(!dir.exists(outdir)) dir.create(outdir)
 
 # load in the datasets
 sr_data <- readRDS(paste0(datadir1, "model_data_sr.rds")) # LU only model
@@ -37,21 +39,39 @@ rich_LU <- brm(Species_richness ~ LUI + (1|SS)+(1|SSB)+(1|SSBS),
                warmup = 1000, 
                thin = 1)
 
+# take a look
+rich_LU
+# check plots
+plot(rich_LU)
+# check model fit
+pp_check(rich_LU)
+# save output
+save(rich_LU, file = paste0(outdir, "Richness_LU_bayesmod.Rdata"))
 
 
 ## abundance
-rich_LU <- brm(LogAbund ~ LUI + (1|SS)+(1|SSB), 
+abun_LU <- brm(LogAbund ~ LUI + (1|SS)+(1|SSB), 
                data = ab_data, 
-               family = gaussian(), 
+               family = hurdle_lognormal(), #####
                chains = 4, 
                iter = 5000, 
                warmup = 1000, 
                thin = 1)
 
+# take a look
+abun_LU
+# check plots
+plot(abun_LU)
+# check model fit
+pp_check(abun_LU)
+# save output
+save(abun_LU, file = paste0(outdir, "Abundance_LU_bayesmod.Rdata"))
+
+
 # 2. Land use and Order --------------------------------------------------------
 
 ## richness
-rich_LU <- brm(Species_richness ~ LUI * Order + (1|SS)+(1|SSB)+(1|SSBS), 
+rich_LUOr <- brm(Species_richness ~ LUI * Order + (1|SS)+(1|SSB)+(1|SSBS), 
                data = sr_data, 
                family = poisson("log"), 
                chains = 4, 
@@ -62,7 +82,7 @@ rich_LU <- brm(Species_richness ~ LUI * Order + (1|SS)+(1|SSB)+(1|SSBS),
 
 
 ## abundance
-rich_LU <- brm(LogAbund ~ LUI * Order + (1|SS)+(1|SSB), 
+rich_LUOr <- brm(LogAbund ~ LUI * Order + (1|SS)+(1|SSB), 
                data = ab_data, 
                family = gaussian(), 
                chains = 4, 
