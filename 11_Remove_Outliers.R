@@ -9,8 +9,6 @@
 # dataset and reruns the models to see if they have an effect on the results.
 
 
-# Here looking for influential studies using the influence.ME package
-
 rm(list = ls())
 
 # directories
@@ -18,18 +16,13 @@ moddir <- "5_RunLUIClimateModels/"
 outdir <- "10_Additional_Tests/Outliers/"
 if(!dir.exists(outdir)) dir.create(outdir)
 
-sink(paste0(outdir,"log.txt"))
-
-t.start <- Sys.time()
-
-print(t.start)
-
 # libraries
 library(performance)
 source("0_Functions.R")
 library(influence.ME)
 library(StatisticalModels)
 library(cowplot)
+library(sjPlot)
 
 # load in models
 load(paste0(moddir, "MeanAnomalyModelAbund.rdata")) # MeanAnomalyModelAbund
@@ -70,15 +63,13 @@ View(result1[result1$V1 >= 1,])
 
 abun_ss <- result1[result1$V1 >= 1, "study"]
 
-# 3 studies
+# 3 studies are classed as outliers
 
 # studies with cook's distance >= 1
-# SC1_2005__Richardson 
-# HW1_2011__Summerville 
-# AD1_2008__Billeter 
+# "AD1_2008__Billeter 6"    "HW1_2011__Summerville 1" "SC1_2005__Richardson 1" 
 
 test <- modelData[modelData$SS %in% abun_ss, ]
-nrow(test) # 583
+length(unique(test$SSBS)) # 203
 
 
 
@@ -104,9 +95,10 @@ rich_ss <- result2[result2$V1 >= 1, "study"]
 length(rich_ss) # 14
 
 test <- modelData[modelData$SS %in% rich_ss, ]
+length(unique(test$SSBS)) # 803
 
 nrow(test) # 2207
-
+table(test$Order)
 
 
 ##%######################################################%##
@@ -115,10 +107,11 @@ nrow(test) # 2207
 #                                                          #
 ##%######################################################%##
 
+# here the models are rerun after the outliers have been removed from the dataset
+
+# reload data if required
 datadir <- "5_RunLUIClimateModels/"
-
 predictsSites <- readRDS(file = paste0(datadir,"PREDICTSSitesClimate_Data.rds"))
-
 
 
 # 1. Abundance, mean anomaly
@@ -154,9 +147,9 @@ outliers <- rich_ss
 # subset the data to exclude the potential outliers
 model_data <- predictsSites[!predictsSites$SS %in% outliers, ] # 6651 rows
 
-model_data <- model_data[!is.na(model_data$StdTmeanAnomalyRS), ]
+model_data <- model_data[!is.na(model_data$StdTmeanAnomalyRS), ] # 6651 rows
 
-nrow(predictsSites[is.na(predictsSites$StdTmeanAnomalyRS), ])
+nrow(predictsSites[is.na(predictsSites$StdTmeanAnomalyRS), ]) # 0
 
 length(unique(model_data$SS)) # 239
 
@@ -172,15 +165,38 @@ save(MeanAnomalyModelRich, file = paste0(outdir, "/MeanAnomalyModelRich_rmout.rd
 MeanAnomalyModelRich$model
 
 
+
+##### save model output tables ####
+
+tab_model(MeanAnomalyModelAbund$model, MeanAnomalyModelRich$model, 
+          show.ci = F, 
+          show.se = T, 
+          show.est = T, 
+          transform = NULL, 
+          show.icc = F, 
+          show.re.var = F,
+          file = paste0(outdir, "/Abun_Rich_outlierrm_output.html"))
+
+
+R2GLMER(MeanAnomalyModelAbund$model)
+# $conditional
+# [1] 0.445493
+# 
+# $marginal
+# [1] 0.1009416
+R2GLMER(MeanAnomalyModelRich$model) # tab_model function gives incorrect values for the richness models
+# $conditional
+# [1] 0.7189628
+# 
+# $marginal
+# [1] 0.05395956
+
+
 ##%######################################################%##
 #                                                          #
 ####                3. Replot Figures                   ####
 #                                                          #
 ##%######################################################%##
-
-
-## copy over code from other script
-
 
 
 # set quantiles of predicted result to be presented in the plots
@@ -207,20 +223,6 @@ nd$Species_richness <- 0
 
 # reference for % difference = primary vegetation and positive anomaly closest to 0
 refRow <- which((nd$LUI=="Primary vegetation") & (nd$StdTmeanAnomaly==min(abs(nd$StdTmeanAnomaly))))
-
-# # set quantiles
-# QPV <- quantile(x = MeanAnomalyModelAbund$data$StdTmeanAnomalyRS[
-#   MeanAnomalyModelAbund$data$LUI=="Primary vegetation"],
-#   probs = exclQuantiles)
-# QSV <- quantile(x = MeanAnomalyModelAbund$data$StdTmeanAnomalyRS[
-#   MeanAnomalyModelAbund$data$LUI=="Secondary vegetation"],
-#   probs = exclQuantiles)
-# QAL <- quantile(x = MeanAnomalyModelAbund$data$StdTmeanAnomalyRS[
-#   MeanAnomalyModelAbund$data$LUI=="Agriculture_Low"],
-#   probs = exclQuantiles)
-# QAH <- quantile(x = MeanAnomalyModelAbund$data$StdTmeanAnomalyRS[
-#   MeanAnomalyModelAbund$data$LUI=="Agriculture_High"],
-#   probs = exclQuantiles)
 
 # set quantiles by Order
 # coleoptera
@@ -932,8 +934,8 @@ ss_abun <- unique(pred_abun$SS[!pred_abun$SS %in% MeanAnomalyModelAbund$data$SS]
 ss_rich <- unique(predictsSites$SS[!predictsSites$SS %in% MeanAnomalyModelRich$data$SS]) # 14
 
 pred_about <- predictsSites[predictsSites$SS %in% ss_abun, ]
-pred_about <- pred_about[!is.na(pred_about$LogAbund), ] # 583 sites
-pred_srout <- predictsSites[predictsSites$SS %in% ss_rich, ] # 2207 sites
+pred_about <- pred_about[!is.na(pred_about$LogAbund), ] # 583 rows
+pred_srout <- predictsSites[predictsSites$SS %in% ss_rich, ] # 2207 rows
 
 
 
@@ -1020,10 +1022,4 @@ theme_bw()  +
 theme(legend.position = "none")
   
 ggsave(filename = paste0(outdir, "PLOT_Rich_STA_rich_ALL_focus.png"))
-
-t.end <- Sys.time()
-
-print(round(t.end - t.start,0))
-
-sink()
 
