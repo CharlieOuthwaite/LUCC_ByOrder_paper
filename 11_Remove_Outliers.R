@@ -71,7 +71,21 @@ abun_ss <- result1[result1$V1 >= 1, "study"]
 test <- modelData[modelData$SS %in% abun_ss, ]
 length(unique(test$SSBS)) # 203
 
+table(test$Order)
+# Coleoptera     Diptera   Hemiptera Hymenoptera Lepidoptera 
+# 139         123          59         123         139 
 
+table(test$Order)/table(modelData$Order) *100
+# Coleoptera     Diptera   Hemiptera Hymenoptera Lepidoptera 
+# 6.056645   17.571429    6.933020    3.938521    9.272849 
+
+table(test$Order, test$LUI)
+#             Primary vegetation Agriculture_High Agriculture_Low Secondary vegetation
+# Coleoptera                   0                0               0                  139
+# Diptera                      0               32              32                   59
+# Hemiptera                    0                0               0                   59
+# Hymenoptera                  0               32              32                   59
+# Lepidoptera                  0                0               0                  139
 
 # 2. Richness mean anomaly
 
@@ -99,7 +113,23 @@ length(unique(test$SSBS)) # 803
 
 nrow(test) # 2207
 table(test$Order)
+# Coleoptera     Diptera   Hemiptera Hymenoptera Lepidoptera 
+#        526         258         382         338         703 
 
+table(test$Order)/table(modelData$Order) *100
+# Coleoptera     Diptera   Hemiptera Hymenoptera Lepidoptera 
+#   22.72138    35.83333    43.85763    10.23312    42.63190 
+
+#test <- modelData[modelData$SS %in% rich_ss, ]
+
+table(test$Order, test$LUI)
+
+#             Primary vegetation Agriculture_High Agriculture_Low Secondary vegetation
+# Coleoptera                 101               96             111                  218
+# Diptera                      0              104              68                   86
+# Hemiptera                   78               84              95                  125
+# Hymenoptera                 23              116              98                  101
+# Lepidoptera                104               99             239                  261
 
 ##%######################################################%##
 #                                                          #
