@@ -4,9 +4,6 @@
 #                                                          #
 ##%######################################################%##
 
-
-# Charlie Outhwaite 25/10/22
-
 # In this script, I will look into the spread of climate data available for 
 # sites in primary vegetation. This is to check whether some studies with more
 # broadly distributed sites are driving the negative/positive trends in this 
@@ -22,10 +19,9 @@ library(cowplot)
 
 # directories
 datadir <- "5_RunLUIClimateModels/"
-outdir <- "11_Explore_primveg/"
+outdir <- "10_Additional_Tests/Explore_primveg/"
 if(!dir.exists(outdir)) dir.create(outdir)
 source("0_Functions.R")
-
 
 # load in the dataset that includes the climate info
 pred <- readRDS(file = paste0(datadir,"PREDICTSSitesClimate_Data.rds"))
@@ -36,8 +32,8 @@ length(unique(pred$SS)) # 253
 
 # number of sites within studies
 site_tab <- data.frame(table(pred$SS))
+#View(site_tab)
 range(site_tab$Freq) # number of sites ranges from 1 to 456
-
 
 
 #### 1. look at range of anomaly values for each study. ####
@@ -46,7 +42,7 @@ range(site_tab$Freq) # number of sites ranges from 1 to 456
 prim <- pred[pred$Predominant_land_use == "Primary vegetation", ]
 prim <- droplevels(prim)
 
-
+# determine the min, max and range of STA values at each sites within each study
 prim_sum <- prim %>% group_by(SS) %>% summarise(min = min(StdTmeanAnomaly), max = max(StdTmeanAnomaly), dif = (max(StdTmeanAnomaly- min(StdTmeanAnomaly))) )
 
 # save the table
@@ -62,7 +58,12 @@ View(prim[prim$SS %in% c("AD1_2010__Davis 1", "SC1_2006__Benedick 1"), ]) # 22 s
 
 # SH1_2002__Bonham 1 has a lower range ~0.5 but it is across a low to mid STA range 
 
-View(prim[prim$SS %in% c("SH1_2002__Bonham 1"), ]) # 18 sites in Tasmania
+View(prim[prim$SS %in% c("SH1_2002__Bonham 1"), ]) # 28 sites in Tasmania
+
+# AR1_2011__Slade 1 has bit of a lower range, but only 2 sites in primary veg.
+
+View(prim[prim$SS %in% c("AR1_2011__Slade 1"), ]) # 2 sites in Borneo, very high STA values
+
 
 
 #### 2. plot sites within a study ####
@@ -112,7 +113,7 @@ for(i in site_tab$Var1){
 
 
 # In this test, the analyses of the interaction between land use, 
-# climate anomaly and insect order are rerun with the two primary
+# climate anomaly and insect order are rerun with the three primary
 # vegetation sites identified above removed. 
 
 
@@ -122,13 +123,13 @@ predictsSites <- readRDS(file = "5_RunLUIClimateModels/PREDICTSSitesClimate_Data
 
 
 # remove the data for the two studies
-# AD1_2010__Davis 1 (sites spread across the UK), SC1_2006__Benedick 1 (some sites in Borneo)
+# AD1_2010__Davis 1 (sites spread across the UK), SC1_2006__Benedick 1 (some sites in Borneo), SH1_2002__Bonham 1 (sites in Tasmania)
 predictsSites <- predictsSites[!predictsSites$SS %in% c("AD1_2010__Davis 1", "SC1_2006__Benedick 1", "SH1_2002__Bonham 1"), ] # 8743 rows
 
 predictsSites <- droplevels(predictsSites)
 
 
-#### 4. Model Selection ####
+#### 4. Run models ####
 
 # 1. Abundance, mean anomaly
 
@@ -136,7 +137,7 @@ model_data <- predictsSites[!is.na(predictsSites$LogAbund), ] # 8353 rows
 model_data <- model_data[!is.na(model_data$StdTmeanAnomalyRS), ]
 
 
-MeanAnomalyModelAbund <- GLMER(modelData = model_data,responseVar = "LogAbund",fitFamily = "gaussian",
+MeanAnomalyModelAbund <- GLMER(modelData = model_data,responseVar = "LogAbund", fitFamily = "gaussian",
                                fixedStruct = "LUI * StdTmeanAnomalyRS * Order",
                                randomStruct = "(1|SS)+(1|SSB)",
                                saveVars = c("SSBS"))
@@ -151,15 +152,17 @@ save(MeanAnomalyModelAbund, file = paste0(outdir, "MeanAnomalyModelAbund.rdata")
 
 # 2. Richness, mean anomaly
 
-model_data <- predictsSites[!is.na(predictsSites$StdTmeanAnomalyRS), ]
+model_data <- predictsSites[!is.na(predictsSites$StdTmeanAnomalyRS), ] # 8743 rows
 
-MeanAnomalyModelRich <- GLMER(modelData = model_data,responseVar = "Species_richness",fitFamily = "poisson",
+MeanAnomalyModelRich <- GLMER(modelData = model_data,responseVar = "Species_richness", fitFamily = "poisson",
                               fixedStruct = "LUI * StdTmeanAnomalyRS * Order",
                               randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",
                               saveVars = c("SSBS"))
 
+# get summary
 summary(MeanAnomalyModelRich$model)
 
+# save the model output
 save(MeanAnomalyModelRich, file = paste0(outdir, "MeanAnomalyModelRich.rdata"))
 
 
@@ -175,8 +178,6 @@ save(MeanAnomalyModelRich, file = paste0(outdir, "MeanAnomalyModelRich.rdata"))
 # predictsSites <- readRDS(file = paste0(outDir,"PREDICTSSitesClimate_Data.rds"))
 # load(paste0(outdir, "MeanAnomalyModelAbund.rdata"))
 # load(paste0(outdir, "MeanAnomalyModelRich.rdata"))
-# load(paste0(outdir, "MaxAnomalyModelAbund.rdata"))
-# load(paste0(outdir, "MaxAnomalyModelRich.rdata"))
 
 
 # set quantiles of predicted result to be presented in the plots
@@ -361,7 +362,7 @@ p_coleoptera <- ggplot(data = nd_Coleoptera, aes(x = StdTmeanAnomaly, y = PredMe
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   #scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
-  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500), limits = c(-100, 500)) +
+  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150, 200), limits = c(-100, 200)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") +
   #xlim(c(-1, 5)) +
@@ -390,7 +391,7 @@ p_diptera <- ggplot(data = nd_Diptera, aes(x = StdTmeanAnomaly, y = PredMedian))
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   #scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
-  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500), limits = c(-100, 500)) +
+  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150, 200), limits = c(-100, 200)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") +
   #xlim(c(-1, 5)) +
@@ -419,7 +420,7 @@ p_hemiptera <- ggplot(data = nd_Hemiptera, aes(x = StdTmeanAnomaly, y = PredMedi
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   #scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
-  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500), limits = c(-100, 500)) +
+  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150, 200), limits = c(-100, 200)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") +
   #xlim(c(-1, 5)) +
@@ -448,7 +449,7 @@ p_hymenoptera <- ggplot(data = nd_Hymenoptera, aes(x = StdTmeanAnomaly, y = Pred
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   #scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
-  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500), limits = c(-100, 500)) +
+  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150, 200), limits = c(-100, 200)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") +
   #xlim(c(-1, 5)) +
@@ -477,7 +478,7 @@ p_lepidoptera <- ggplot(data = nd_Lepidoptera, aes(x = StdTmeanAnomaly, y = Pred
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   #scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
-  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500), limits = c(-100, 500)) +
+  scale_y_continuous(breaks = c(-100, -50,  0, 50, 100, 150, 200), limits = c(-100, 200)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") +
   #xlim(c(-1, 5)) +
@@ -513,8 +514,7 @@ MeanAnomAbund <- cowplot::plot_grid(p_coleoptera,p_diptera,p_hemiptera,p_hymenop
 MeanAnomAbund <- cowplot::plot_grid(MeanAnomAbund,legend,ncol=1, rel_heights = c(1,0.1))
 
 # save the ggplots
-ggsave(filename = paste0(outdir, "MeanAnomAbund.pdf"), plot = MeanAnomAbund, width = 200, height = 150, units = "mm", dpi = 300)
-# ggsave(filename = paste0(plotDir, "MeanAnomAbund_extended yaxis.pdf"), plot = MeanAnomAbund, width = 200, height = 150, units = "mm", dpi = 300)
+ggsave(filename = paste0(outdir, "MeanAnomAbund_primtest.pdf"), plot = MeanAnomAbund, width = 200, height = 150, units = "mm", dpi = 300)
 
 #### 5b. Richness, Mean Anomaly ####
 
@@ -841,7 +841,6 @@ MeanAnomRich <- cowplot::plot_grid(MeanAnomRich,legend,ncol=1, rel_heights = c(1
 
 # save the ggplots
 ggsave(filename = paste0(outdir, "MeanAnomRich.pdf"), plot = MeanAnomRich, width = 200, height = 150, units = "mm", dpi = 300)
-# ggsave(filename = paste0(plotDir, "MeanAnomRich_extended yaxis.pdf"), plot = MeanAnomRich, width = 200, height = 150, units = "mm", dpi = 300)
 
 
 
