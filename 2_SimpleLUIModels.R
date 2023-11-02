@@ -31,7 +31,12 @@ suppressWarnings(suppressMessages(lapply(packages_plot, require, character.only 
 source("0_Functions.R")
 
 
-#### 1. Organise data ####
+##%######################################################%##
+#                                                          #
+####                 1. Organise data                   ####
+#                                                          #
+##%######################################################%##
+
 
 # read in the Site data
 sites <- readRDS(file = paste0(inDir,"PREDICTSSiteData.rds")) # 8884 rows
@@ -39,7 +44,7 @@ sites <- readRDS(file = paste0(inDir,"PREDICTSSiteData.rds")) # 8884 rows
 ## Species Richness Model ##
 
 # remove NAs in the specified columns
-model_data_sr <- na.omit(sites[,c('Species_richness','LandUse','Use_intensity','LUI','SS','SSB','SSBS','Order')]) # 8884 rows
+model_data_sr <- na.omit(sites[,c('Species_richness','LandUse','Use_intensity','LUI','SS','SSB','SSBS','Order', 'Latitude', 'Longitude')]) # 8884 rows
 
 # order data
 model_data_sr$LUI <- factor(model_data_sr$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
@@ -54,33 +59,25 @@ length(unique(model_data_sr$SSBS)) # 6014
 
 table(model_data_sr$Order)
 # Coleoptera     Diptera   Hemiptera Hymenoptera Lepidoptera 
-# 2315         721         871        3328        1649
+#       2315         721         871        3328        1649
 
 # look at the spread of land use/use intensity categories
-print(table(model_data_sr$LUI))
+table(model_data_sr$LUI)
 # Primary vegetation Secondary vegetation      Agriculture_Low     Agriculture_High 
 #               2093                 2392                 1886                 2513  
 
 
-#### 2. Species Richness models ####
+##%######################################################%##
+#                                                          #
+####            2. Species Richness models              ####
+#                                                          #
+##%######################################################%##
+
 
 # Run species richness models using GLMER function from StatisticalModels
-
-# null (intercept-only) model
-sm0 <-GLMER(modelData = model_data_sr,responseVar = "Species_richness",fitFamily = "poisson",
-            fixedStruct = "1",randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",REML = FALSE)
-
-# effect of Land Use
-sm1 <- GLMER(modelData = model_data_sr,responseVar = "Species_richness",fitFamily = "poisson",
-             fixedStruct = "LandUse",randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",REML = FALSE)
-
-# additive effects of land use and use intensity
-sm2 <- GLMER(modelData = model_data_sr,responseVar = "Species_richness",fitFamily = "poisson",
-             fixedStruct = "LandUse+Use_intensity",randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",REML = FALSE)
-
-# effect of LUI
+# land use alone
 sm3 <- GLMER(modelData = model_data_sr,responseVar = "Species_richness",fitFamily = "poisson",
-             fixedStruct = "LUI",randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",REML = FALSE)
+             fixedStruct = "LUI",randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",REML = FALSE, saveVars = c('Latitude', 'Longitude'))
 
 # save model without interaction with order
 save(sm3, file = paste0(outDir, "Richness_landuse_model_noOrder.rdata"))
@@ -89,110 +86,54 @@ save(sm3, file = paste0(outDir, "Richness_landuse_model_noOrder.rdata"))
 # check the R2 values
 R2GLMER(sm3$model)
 # $conditional
-# [1] 0.6700198
+# [1] 0.6700182
 # 
 # $marginal
-# [1] 0.007716616
+# [1] 0.007716681
 
-# interactive effects of land use and use intensity
-sm4 <- GLMER(modelData = model_data_sr,responseVar = "Species_richness",fitFamily = "poisson",
-             fixedStruct = "LandUse*Use_intensity",randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",REML = FALSE)
-
-# effect of order only
-sm0.2 <- GLMER(modelData = model_data_sr,responseVar = "Species_richness",fitFamily = "poisson",
-               fixedStruct = "Order",randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",REML = FALSE)
-
-# additive effects of order and land use
-sm1.2 <- GLMER(modelData = model_data_sr,responseVar = "Species_richness",fitFamily = "poisson",
-               fixedStruct = "Order+LandUse",randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",REML = FALSE)
-
-# additive effects of order and land use and use intensity
-sm2.2 <- GLMER(modelData = model_data_sr,responseVar = "Species_richness",fitFamily = "poisson",
-               fixedStruct = "Order+LandUse+Use_intensity",randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",REML = FALSE)
-
-# additive effects of order and LUI
-sm3.2 <- GLMER(modelData = model_data_sr,responseVar = "Species_richness",fitFamily = "poisson",
-               fixedStruct = "Order+LUI",randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",REML = FALSE)
-
-# additive effects of order and interactive effects of land use and use intensity
-sm4.2 <- GLMER(modelData = model_data_sr,responseVar = "Species_richness",fitFamily = "poisson",
-               fixedStruct = "Order+LandUse*Use_intensity",randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",REML = FALSE)
-
-# interactive effect of order and land use
-sm1.3 <- GLMER(modelData = model_data_sr,responseVar = "Species_richness",fitFamily = "poisson",
-               fixedStruct = "Order*LandUse",randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",REML = FALSE)
-
-# interactive effects of order and additive effects of land use and use intensity
-sm2.3 <- GLMER(modelData = model_data_sr,responseVar = "Species_richness",fitFamily = "poisson",
-               fixedStruct = "Order*LandUse+Use_intensity",randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",REML = FALSE)
-
-# additive effect of order and LUI
+# interaction order and LUI
 sm3.3 <- GLMER(modelData = model_data_sr,responseVar = "Species_richness",fitFamily = "poisson",
-               fixedStruct = "Order*LUI",randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",REML = FALSE)
+               fixedStruct = "Order*LUI",randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",REML = FALSE, saveVars = c('Latitude', 'Longitude'))
+
+save(sm3.3, file = paste0(outDir, "Richness_landuse_model.rdata"))
 
 # check the R2 values
 R2GLMER(sm3.3$model) # with order level interaction
 # $conditional
-# [1] 0.7106989
+# [1] 0.7106983
 # 
 # $marginal
-# [1] 0.05387385
+# [1] 0.05387397
 
-# interactive effects of order, land use, and use intensity
-sm4.3 <- GLMER(modelData = model_data_sr,responseVar = "Species_richness",fitFamily = "poisson",
-               fixedStruct = "Order*LandUse*Use_intensity",randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",REML = FALSE)
 
-# take a look at the AICs
-AIC_sm<-print(AIC(sm0$model,sm1$model,sm2$model,sm3$model,sm4$model,
-                  sm0.2$model,sm1.2$model,sm2.2$model,sm3.2$model,sm4.2$model,
-                  sm1.3$model,sm2.3$model,sm3.3$model,sm4.3$model))
+# # Run richness models using 'glmr' function from lme4
+# # need these to run allFit()
+# # need to run allFit() to test the models
 
-write.csv(AIC_sm, file = paste0(outDir,"AIC_sm.csv"))
-
-# Run richness models using 'glmr' function from lme4
-# need these to run allFit()
-# need to run allFit() to test the models
-
-g_sm0 <- glmer(Species_richness~1+(1|SS)+(1|SSB)+(1|SSBS), data = model_data_sr, family = poisson)
-g_sm1 <- glmer(Species_richness~LandUse+(1|SS)+(1|SSB)+(1|SSBS), data = model_data_sr, family = poisson)
-g_sm2 <- glmer(Species_richness~LandUse+Use_intensity+(1|SS)+(1|SSB)+(1|SSBS), data = model_data_sr, family = poisson)
 g_sm3 <- glmer(Species_richness~LUI+(1|SS)+(1|SSB)+(1|SSBS), data = model_data_sr, family = poisson)
-g_sm4 <- glmer(Species_richness~LandUse*Use_intensity+(1|SS)+(1|SSB)+(1|SSBS), data = model_data_sr, family = poisson)
-g_sm0.2 <- glmer(Species_richness~Order+(1|SS)+(1|SSB)+(1|SSBS), data = model_data_sr, family = poisson)
-g_sm1.2 <- glmer(Species_richness~Order+LandUse+(1|SS)+(1|SSB)+(1|SSBS), data = model_data_sr, family = poisson)
-g_sm2.2 <- glmer(Species_richness~Order+LandUse+Use_intensity+(1|SS)+(1|SSB)+(1|SSBS), data = model_data_sr, family = poisson)
-g_sm3.2 <- glmer(Species_richness~Order+LUI+(1|SS)+(1|SSB)+(1|SSBS), data = model_data_sr, family = poisson)
-g_sm4.2 <- glmer(Species_richness~Order+LandUse*Use_intensity+(1|SS)+(1|SSB)+(1|SSBS), data = model_data_sr, family = poisson)
-g_sm1.3 <- glmer(Species_richness~Order*LandUse+(1|SS)+(1|SSB)+(1|SSBS), data = model_data_sr, family = poisson)
-g_sm2.3 <- glmer(Species_richness~Order*LandUse+Use_intensity+(1|SS)+(1|SSB)+(1|SSBS), data = model_data_sr, family = poisson)
 g_sm3.3 <- glmer(Species_richness~Order*LUI+(1|SS)+(1|SSB)+(1|SSBS), data = model_data_sr, family = poisson)
-g_sm4.3 <- glmer(Species_richness~Order*LandUse*Use_intensity+(1|SS)+(1|SSB)+(1|SSBS), data = model_data_sr, family = poisson)
 
-# take a look at the AICs
-AIC_g_sm<-print(AIC(g_sm0,g_sm1,g_sm2,g_sm3,g_sm4,
-                    g_sm0.2,g_sm1.2,g_sm2.2,g_sm3.2,g_sm4.2,
-                    g_sm1.3,g_sm2.3,g_sm3.3,g_sm4.3))
-
-write.csv(AIC_g_sm, file = paste0(outDir,"AIC_g_sm.csv"))
+AIC(g_sm3, g_sm3.3)
+#         df      AIC
+# g_sm3    7 64132.71
+# g_sm3.3 23 59449.28
 
 # Testing richness models with allFit()
 
-g_sm0.2_all <-allFit(g_sm0.2)
-g_sm1.2_all <-allFit(g_sm1.2)
-g_sm2.2_all <-allFit(g_sm2.2)
-g_sm3.2_all <-allFit(g_sm3.2)
-g_sm4.2_all <-allFit(g_sm4.2)
-g_sm1.3_all <-allFit(g_sm1.3)
-g_sm2.3_all <-allFit(g_sm2.3)
-g_sm3.3_all <-allFit(g_sm3.3)
-g_sm4.3_all <-allFit(g_sm4.3)
+g_sm3_all <- allFit(g_sm3)
+g_sm3.3_all <- allFit(g_sm3.3)
 
-save(sm3.3, file = paste0(outDir, "Richness_landuse_model.rdata"))
 
-#### 3. Abundance Models  #####
+
+##%######################################################%##
+#                                                          #
+####                3. Abundance Models                 ####
+#                                                          #
+##%######################################################%##
+
 
 # remove NAs in the specified columns
-model_data_ab <- na.omit(sites[,c('LogAbund','LandUse','Use_intensity','LUI','SS','SSB','SSBS','Order')])
+model_data_ab <- na.omit(sites[,c('LogAbund','LandUse','Use_intensity','LUI','SS','SSB','SSBS','Order', 'Latitude', 'Longitude')])
 
 # order data
 model_data_ab$LUI <- factor(model_data_ab$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
@@ -210,26 +151,26 @@ length(unique(model_data_ab$SSBS))# 5706
 
 table(model_data_ab$Order)
 # Coleoptera     Diptera   Hemiptera Hymenoptera Lepidoptera 
-#       2295         701         851        3146        1503 
+#       2295         701         851        3146        1499
 
 # look at the spread of land use/use intensity categories
 print(table(model_data_ab$LUI))
 # Primary vegetation Secondary vegetation      Agriculture_Low     Agriculture_High 
-#               2001                 2255                 1869                 2371
+#               2001                 2254                  1867                2370
 
 # Run abundance models using 'GLMER' function from StatisticalModels
 
-am0 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
-             fixedStruct = "1",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
-
-am1 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
-             fixedStruct = "LandUse",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
-
-am2 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
-             fixedStruct = "LandUse+Use_intensity",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
+# am0 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
+#              fixedStruct = "1",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
+# 
+# am1 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
+#              fixedStruct = "LandUse",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
+# 
+# am2 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
+#              fixedStruct = "LandUse+Use_intensity",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
 
 am3 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
-             fixedStruct = "LUI",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
+             fixedStruct = "LUI",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE, saveVars = c('Latitude', 'Longitude'))
 
 # save the model without an interaction with Order
 save(am3, file = paste0(outDir, "Abundance_landuse_model_noOrder.rdata"))
@@ -238,108 +179,107 @@ save(am3, file = paste0(outDir, "Abundance_landuse_model_noOrder.rdata"))
 
 # check the R2 values
 R2GLMER(am3$model)
-# $conditional
-# [1] 0.6838617
+# [1] 0.4900226
 # 
 # $marginal
-# [1] 0.007807588
+# [1] 0.009584923
 
-am4 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
-             fixedStruct = "LandUse*Use_intensity",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
-
-am0.2 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
-               fixedStruct = "Order",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
-
-am1.2 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
-               fixedStruct = "Order+LandUse",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
-
-am2.2 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
-               fixedStruct = "Order+LandUse+Use_intensity",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
-
-am3.2<- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
-              fixedStruct = "Order+LUI",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
-
-am4.2 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
-               fixedStruct = "Order+LandUse*Use_intensity",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
-
-am1.3 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
-               fixedStruct = "Order*LandUse",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
-
-am2.3 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
-               fixedStruct = "Order*LandUse+Use_intensity",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
-
-# check the R2 values
-R2GLMER(am3.3$model)
-# $conditional
-# [1] 0.7623785
+# am4 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
+#              fixedStruct = "LandUse*Use_intensity",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
 # 
-# $marginal
-# [1] 0.06004844
+# am0.2 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
+#                fixedStruct = "Order",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
+# 
+# am1.2 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
+#                fixedStruct = "Order+LandUse",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
+# 
+# am2.2 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
+#                fixedStruct = "Order+LandUse+Use_intensity",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
+# 
+# am3.2<- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
+#               fixedStruct = "Order+LUI",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
+# 
+# am4.2 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
+#                fixedStruct = "Order+LandUse*Use_intensity",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
+# 
+# am1.3 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
+#                fixedStruct = "Order*LandUse",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
+# 
+# am2.3 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
+#                fixedStruct = "Order*LandUse+Use_intensity",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
 
 am3.3 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
-               fixedStruct = "Order*LUI",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
+               fixedStruct = "Order*LUI",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE, saveVars = c('Latitude', 'Longitude'))
 
-am4.3 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
-               fixedStruct = "Order*LandUse*Use_intensity",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
-
-# take a look at the AICs
-AIC_am <-print(AIC(am0$model,am1$model,am2$model,am3$model,am4$model,
-                   am0.2$model,am1.2$model,am2.2$model,am3.2$model,am4.2$model,
-                   am1.3$model,am2.3$model,am3.3$model,am4.3$model))
-
-write.csv(AIC_am, file = paste0(outDir,"AIC_am.csv"))
-
-# save 
-saveRDS(object = sm0 ,file = paste0(outDir,"sm0.rd"))
-saveRDS(object = sm3 ,file = paste0(outDir,"sm3.rds"))
-saveRDS(object = sm0.2 ,file = paste0(outDir,"sm0.2.rds"))
-saveRDS(object = sm3.2 ,file = paste0(outDir,"sm3.2.rds"))
-saveRDS(object = sm3.3 ,file = paste0(outDir,"sm3.3.rds"))
-saveRDS(object = am0 ,file = paste0(outDir,"am0.rds"))
-saveRDS(object = am3 ,file = paste0(outDir,"am3.rds"))
-saveRDS(object = am0.2 ,file = paste0(outDir,"am0.2.rds"))
-saveRDS(object = am3.2 ,file = paste0(outDir,"am3.2.rds"))
-saveRDS(object = am3.3 ,file = paste0(outDir,"am3.3.rds"))
+# am4.3 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
+#                fixedStruct = "Order*LandUse*Use_intensity",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
+# warning
 
 save(am3.3, file = paste0(outDir, "Abundance_landuse_model.rdata"))
 
 
-# read in model data
-sm0 <- readRDS(file = paste0(outDir,"sm0.rds"))
-sm3 <- readRDS(file = paste0(outDir,"sm3.rds"))
-sm0.2 <- readRDS(file = paste0(outDir,"sm0.2.rds"))
-sm3.2 <- readRDS(file = paste0(outDir,"sm3.2.rds"))
-sm3.3 <- readRDS(file = paste0(outDir,"sm3.3.rds"))
-am0 <- readRDS(file = paste0(outDir,"am0.rds"))
-am3 <- readRDS(file = paste0(outDir,"am3.rds"))
-am0.2 <- readRDS(file = paste0(outDir,"am0.2.rds"))
-am3.2 <- readRDS(file = paste0(outDir,"am3.2.rds"))
-am3.3 <- readRDS(file = paste0(outDir,"am3.3.rds"))
-model_data_sr <- readRDS(file = paste0(outDir,"model_data_sr.rds"))
-model_data_ab <- readRDS(file = paste0(outDir,"model_data_ab.rds"))
+# check the R2 values
+R2GLMER(am3.3$model)
+# $conditional
+# [1] 0.602671
+# 
+# $marginal
+# [1] 0.07881957
+
+# # take a look at the AICs
+# AIC_am <-print(AIC(am0$model,am1$model,am2$model,am3$model,am4$model,
+#                    am0.2$model,am1.2$model,am2.2$model,am3.2$model,am4.2$model,
+#                    am1.3$model,am2.3$model,am3.3$model,am4.3$model))
+
+AIC(am3$model, am3.3$model)
+
+write.csv(AIC_am, file = paste0(outDir,"AIC_am.csv"))
+
+# save 
+# saveRDS(object = sm0 ,file = paste0(outDir,"sm0.rd"))
+saveRDS(object = sm3 ,file = paste0(outDir,"sm3.rds"))
+# saveRDS(object = sm0.2 ,file = paste0(outDir,"sm0.2.rds"))
+# saveRDS(object = sm3.2 ,file = paste0(outDir,"sm3.2.rds"))
+saveRDS(object = sm3.3 ,file = paste0(outDir,"sm3.3.rds"))
+# saveRDS(object = am0 ,file = paste0(outDir,"am0.rds"))
+saveRDS(object = am3 ,file = paste0(outDir,"am3.rds"))
+# saveRDS(object = am0.2 ,file = paste0(outDir,"am0.2.rds"))
+# saveRDS(object = am3.2 ,file = paste0(outDir,"am3.2.rds"))
+saveRDS(object = am3.3 ,file = paste0(outDir,"am3.3.rds"))
+
+
+# 
+# # read in model data
+# sm0 <- readRDS(file = paste0(outDir,"sm0.rds"))
+# sm3 <- readRDS(file = paste0(outDir,"sm3.rds"))
+# sm0.2 <- readRDS(file = paste0(outDir,"sm0.2.rds"))
+# sm3.2 <- readRDS(file = paste0(outDir,"sm3.2.rds"))
+# sm3.3 <- readRDS(file = paste0(outDir,"sm3.3.rds"))
+# am0 <- readRDS(file = paste0(outDir,"am0.rds"))
+# am3 <- readRDS(file = paste0(outDir,"am3.rds"))
+# am0.2 <- readRDS(file = paste0(outDir,"am0.2.rds"))
+# am3.2 <- readRDS(file = paste0(outDir,"am3.2.rds"))
+# am3.3 <- readRDS(file = paste0(outDir,"am3.3.rds"))
+# model_data_sr <- readRDS(file = paste0(outDir,"model_data_sr.rds"))
+# model_data_ab <- readRDS(file = paste0(outDir,"model_data_ab.rds"))
 
 
 #### 4. Table of AICs ####
 
 # species richness and abundance together
-selection_table <- data.frame("Response" = c(rep("Species richness", 5),
-                                             rep("Abundance", 5)),
-                              "Model" = c("Species richness ~ 1 + (1|SS) + (1|SSB) + (1|SSBS)",
-                                          "Species richness ~ LUI + (1|SS) + (1|SSB) + (1|SSBS)",
-                                          "Species richness ~ Order + (1|SS) + (1|SSB) + (1|SSBS)",
-                                          "Species richness ~ Order + LUI + (1|SS) + (1|SSB) + (1|SSBS)",
+selection_table <- data.frame("Response" = c(rep("Species richness", 2),
+                                             rep("Abundance", 2)),
+                              "Model" = c("Species richness ~ LUI + (1|SS) + (1|SSB) + (1|SSBS)",
                                           "Species richness ~ Order * LUI + (1|SS) + (1|SSB) + (1|SSBS)",
-                                          "Abundance ~ 1 + (1|SS) + (1|SSB)",
                                           "Abundance ~ LUI + (1|SS) + (1|SSB)",
-                                          "Abundance ~ Order + (1|SS) + (1|SSB)",
-                                          "Abundance ~ Order + LUI + (1|SS) + (1|SSB)",
                                           "Abundance ~ Order * LUI + (1|SS) + (1|SSB)"),
-                              "AIC" = c(AIC(sm0$model), AIC(sm3$model), AIC(sm0.2$model), AIC(sm3.2$model), AIC(sm3.3$model),  
-                                        AIC(am0$model), AIC(am3$model), AIC(am0.2$model), AIC(am3.2$model),AIC(am3.3$model))) %>%
+                              "AIC" = c(AIC(sm3$model), AIC(sm3.3$model), AIC(am3$model), AIC(am3.3$model)),
+                              "Conditional_Rsquared" = c(R2GLMER(sm3$model)[[1]], R2GLMER(sm3.3$model)[[1]], R2GLMER(am3$model)[[1]], R2GLMER(am3.3$model)[[1]]),
+                              "Marginal_Rsquared" = c(R2GLMER(sm3$model)[[2]], R2GLMER(sm3.3$model)[[2]], R2GLMER(am3$model)[[2]], R2GLMER(am3.3$model)[[2]])) %>%
   group_by(Response) %>%                              
   mutate(deltaAIC = cumsum(c(0, diff(AIC)))) %>%
   ungroup() %>%
-  dplyr::select(Model,AIC,deltaAIC) %>%
+  dplyr::select(Model, AIC, deltaAIC, Conditional_Rsquared, Marginal_Rsquared) %>%
   gt(rowname_col = "Model") %>%
   tab_row_group(
     label = "Species Richness",
@@ -356,50 +296,19 @@ selection_table <- data.frame("Response" = c(rep("Species richness", 5),
   tab_stubhead(label = "Models")
 
 # save it
-gtsave(selection_table, "SimpleLUIModel_Selection.png", path = outDir)
+gtsave(selection_table, "TableSX_RSquaredAIC.png", path = outDir)
 
-# species richness only
-selection_table_sr <- data.frame("Response" = c(rep("Species richness", 5)),
-                                 "Model" = c("Species_richness ~ 1 + (1|SS) + (1|SSB) + (1|SSBS)",
-                                             "Species_richness ~ LUI + (1|SS) + (1|SSB) + (1|SSBS)",
-                                             "Species_richness ~ Order + (1|SS) + (1|SSB) + (1|SSBS)",
-                                             "Species_richness ~ Order + LUI + (1|SS) + (1|SSB) + (1|SSBS)",
-                                             "Species_richness ~ Order * LUI + (1|SS) + (1|SSB) + (1|SSBS)"),
-                                 "AIC" = c(AIC(sm0$model), AIC(sm3$model), AIC(sm0.2$model), AIC(sm3.2$model), AIC(sm3.3$model))) %>%
-  group_by(Response) %>%                              
-  mutate(deltaAIC = cumsum(c(0, diff(AIC)))) %>%
-  ungroup() %>%
-  gt()
-
-# save it
-gtsave(selection_table_sr,"SimpleLUIModel_Selection_Rich.png", path = outDir)
-
-# total abundance only
-selection_table_ab <- data.frame("Response" = c(rep("Total abundance", 5)),
-                                 "Model" = c("Total_abundance ~ 1 + (1|SS) + (1|SSB)",
-                                             "Total_abundance ~ LUI + (1|SS) + (1|SSB)",
-                                             "Total_abundance ~ Order + (1|SS) + (1|SSB)",
-                                             "Total_abundance ~ Order + LUI + (1|SS) + (1|SSB)",
-                                             "Total_abundance ~ Order * LUI + (1|SS) + (1|SSB)"),
-                                 "AIC" = c(AIC(am0$model), AIC(am3$model), AIC(am0.2$model), AIC(am3.2$model),AIC(am3.3$model))) %>%
-  group_by(Response) %>%                              
-  mutate(deltaAIC = cumsum(c(0, diff(AIC)))) %>%
-  ungroup() %>%
-  gt()
-
-# save it
-gtsave(selection_table_ab,"SimpleLUIModel_Selection_Abund.png", path = outDir)
 
 # save model output tables for use in supplementary information 
 # use function from sjPlot library to save neat versions of model output table
-tab_model(am3.3$model, transform = NULL, file = paste0(outDir,"Output_table_abund.html"))
+tab_model(am3.3$model, transform = NULL, file = paste0(outDir,"SupptabX_Output_table_abund.html"))
 summary(am3.3$model) # check the table against the outputs
 R2GLMER(am3.3$model) # check the R2 values 
 # $conditional
-# [1] 0.7623785
+# [1] 0.3775368
 # 
 # $marginal
-# [1] 0.06004844
+# [1] 0.04830284
 
 tab_model(sm3.3$model, transform = NULL, file = paste0(outDir,"Output_table_rich.html"))
 summary(sm3.3$model) # check the table against the outputs
@@ -417,10 +326,10 @@ tab_model(am3$model, transform = NULL, file = paste0(outDir,"Output_table_abund_
 summary(am3$model) # check the table against the outputs
 R2GLMER(am3$model) # check the R2 values 
 # $conditional
-# [1] 0.6838617
+# [1] 0.3364167
 # 
 # $marginal
-# [1] 0.007807586
+# [1] 0.02482347
 
 tab_model(sm3$model, transform = NULL, file = paste0(outDir,"Output_table_rich_noOrder.html"))
 summary(sm3$model) # check the table against the outputs
@@ -468,25 +377,6 @@ model_data <- function(model_plot){
 # richness data
 model_data(richness_metric)
 
-# plot species richness alone
-richness <- richness_metric + xlab(NULL) + 
-  labs(y ="Species Richness diff. (%)", x = "Order") +
-  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75), limits = c(-100, 75)) + 
-  theme(axis.title = element_text(size = 8),
-        axis.text.x = element_text(size = 7,angle=45,margin=margin(t=20)),
-        axis.text.y = element_text(size = 7),
-        axis.ticks = element_blank(), 
-        legend.position = "right",
-        legend.box = "vertical",
-        legend.text = element_text(size = 7),
-        legend.title = element_blank())
-
-# save plot (pdf)
-ggsave(filename = paste0(outDir, "SimpleLUI_Rich.pdf"), plot = last_plot(), width = 250, height = 100, units = "mm", dpi = 300)
-
-# save plot (jpeg)
-ggsave("SimpleLUI_Rich.jpeg", device ="jpeg", path = outDir, width=25, height=10, units="cm", dpi = 350)
-
 ####  6. Abundance Plot ####
 
 abundance_metric <- predict_effects(iterations = 1000,
@@ -517,24 +407,6 @@ model_data <- function(model_plot){
 # abundance data
 model_data(abundance_metric)
 
-# plot abundance alone
-abundance <- abundance_metric + xlab(NULL) + 
-  labs(y ="Total abundance diff. (%)", x = "Order") +
-  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75), limits = c(-100, 75)) + 
-  theme(axis.title = element_text(size = 8),
-        axis.text.x = element_text(size = 7,angle=45,margin=margin(t=20)),
-        axis.text.y = element_text(size = 7),
-        axis.ticks = element_blank(), 
-        legend.position = "right",
-        legend.box = "vertical",
-        legend.text = element_text(size = 7),
-        legend.title = element_blank())
-
-# save plot (pdf)
-ggsave(filename = paste0(outDir, "SimpleLUI_Abund.pdf"), plot = last_plot(), width = 250, height = 100, units = "mm", dpi = 300)
-
-# save plot (jpeg)
-ggsave("SimpleLUI_Abund.jpeg", device ="jpeg", path = outDir, width=25, height=10, units="cm", dpi = 350)
 
 ####  7. Plot Together  ####
 
@@ -562,8 +434,8 @@ abundance <- abundance_metric +
 # get the legend
 legend <- get_legend(
   abundance +
-    guides(color = guide_legend(ncol = 1)) +
-    theme(legend.position = "right",
+    guides(color = guide_legend(ncol = 4)) +
+    theme(legend.position = "bottom",
           legend.box = "vertical", 
           legend.text = element_text(size = 7), 
           legend.title = element_blank())
@@ -571,11 +443,11 @@ legend <- get_legend(
 
 # plot together
 plot_figure <- cowplot::plot_grid(richness, abundance, ncol = 1, rel_heights = c(1,1))
-legend <- cowplot::plot_grid(NULL,legend,NULL, ncol = 1, rel_heights = c(0.5,1,0.5))
-plot_figure <- cowplot::plot_grid(plot_figure, legend, ncol = 2, rel_widths = c(1,0.2))
+legend <- cowplot::plot_grid(legend, ncol = 1, rel_heights = c(0.5,1,0.5))
+plot_figure <- cowplot::plot_grid(plot_figure, legend, nrow = 2, rel_heights = c(1,0.2))
 
 # save plot (pdf)
-ggsave(filename = paste0(outDir, "SimpleLUI.pdf"), plot = last_plot(), width = 250, height = 200, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "SimpleLUI.pdf"), plot = last_plot(), width = 150, height = 200, units = "mm", dpi = 300)
 
 # save plot (jpeg)
 ggsave("SimpleLUI.jpeg", device ="jpeg", path = outDir, width=20, height=15, units="cm", dpi = 350)
@@ -593,162 +465,12 @@ write.csv(all_res, file = paste0(predsDir,"LUI_predictions.csv"))
 LUI_predictions <- all_res %>% gt()
 gtsave(LUI_predictions,"LUI_predictions.png", path = predsDir)
 
-# # save as html, if wanted
-# gtsave(LUI_predictions, paste0(predsDir, "LUI_predictions.html"))
-
 
 ############################################################
 #                                                          #
 #             Plots for models excluding Order             #
 #                                                          #
 ############################################################
-
-# Kyra's function above does not seem to work under these circumstances
-## need to fix
-
-
-
-# 
-# #### Species Richness Plot ####
-# richness_metric <- predict_effects(iterations = 1000,
-#                                    model = sm3$model,
-#                                    model_data = model_data_sr,
-#                                    response_variable = "Species_richness",
-#                                    fixed_number = 1,
-#                                    fixed_column = "LUI",
-#                                    factor_number_1 = 4,
-#                                    neg_binom = FALSE)
-# 
-# # rename prediction data frame and drop "Species_richness" column
-# result.sr <- fin_conf
-# result.sr <- dplyr::select(result.sr,-c(Species_richness))
-# 
-# richness_metric
-# 
-# model_data <- function(model_plot){
-#   ggplot_build(model_plot)$data[[2]] %>%
-#     dplyr::select(y) %>%
-#     cbind(ggplot_build(model_plot)$data[[3]] %>% dplyr::select(ymin, ymax)) %>%
-#     mutate(LUI = rep(levels(model_data_sr$LUI), 5)[1:20]) %>%
-#     dplyr::select(LUI, y, ymin, ymax)
-# }
-# 
-# # richness data
-# model_data(richness_metric)
-# 
-# # plot species richness alone
-# richness <- richness_metric + xlab(NULL) + 
-#   labs(y ="Species Richness diff. (%)", x = "Order") +
-#   scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75), limits = c(-100, 75)) + 
-#   theme(axis.title = element_text(size = 8),
-#         axis.text.x = element_text(size = 7,angle=45,margin=margin(t=20)),
-#         axis.text.y = element_text(size = 7),
-#         axis.ticks = element_blank(), 
-#         legend.position = "right",
-#         legend.box = "vertical",
-#         legend.text = element_text(size = 7),
-#         legend.title = element_blank())
-# 
-# # save plot (pdf)
-# ggsave(filename = paste0(outDir, "SimpleLUI_Rich.pdf"), plot = last_plot(), width = 250, height = 100, units = "mm", dpi = 300)
-# 
-# # save plot (jpeg)
-# ggsave("SimpleLUI_Rich.jpeg", device ="jpeg", path = outDir, width=25, height=10, units="cm", dpi = 350)
-# 
-# ####  6. Abundance Plot ####
-# 
-# abundance_metric <- predict_effects(iterations = 1000,
-#                                     model = am3.3$model,
-#                                     model_data = model_data_ab,
-#                                     response_variable = "LogAbund",
-#                                     fixed_number = 2,
-#                                     fixed_column = c("Order", "LUI"),
-#                                     factor_number_1 = 5,
-#                                     factor_number_2 = 4,
-#                                     neg_binom = FALSE)
-# 
-# # rename prediction data frame and drop "Abundance" column
-# result.ab <- fin_conf
-# result.ab <- dplyr::select(result.ab,-c(LogAbund))
-# 
-# 
-# abundance_metric
-# 
-# model_data <- function(model_plot){
-#   ggplot_build(model_plot)$data[[2]] %>%
-#     dplyr::select(y) %>%
-#     cbind(ggplot_build(model_plot)$data[[3]] %>% dplyr::select(ymin, ymax)) %>%
-#     mutate(LUI = rep(levels(model_data_ab$LUI), 5)[1:20]) %>%
-#     dplyr::select(LUI, y, ymin, ymax)
-# }
-# 
-# # abundance data
-# model_data(abundance_metric)
-# 
-# # plot abundance alone
-# abundance <- abundance_metric + xlab(NULL) + 
-#   labs(y ="Total abundance diff. (%)", x = "Order") +
-#   scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75), limits = c(-100, 75)) + 
-#   theme(axis.title = element_text(size = 8),
-#         axis.text.x = element_text(size = 7,angle=45,margin=margin(t=20)),
-#         axis.text.y = element_text(size = 7),
-#         axis.ticks = element_blank(), 
-#         legend.position = "right",
-#         legend.box = "vertical",
-#         legend.text = element_text(size = 7),
-#         legend.title = element_blank())
-# 
-# # save plot (pdf)
-# ggsave(filename = paste0(outDir, "SimpleLUI_Abund.pdf"), plot = last_plot(), width = 250, height = 100, units = "mm", dpi = 300)
-# 
-# # save plot (jpeg)
-# ggsave("SimpleLUI_Abund.jpeg", device ="jpeg", path = outDir, width=25, height=10, units="cm", dpi = 350)
-# 
-# ####  7. Plot Together  ####
-# 
-# richness <- richness_metric + 
-#   labs(y ="Species richness diff. (%)", x = NULL) +
-#   guides(scale = "none") +
-#   scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75), limits = c(-100, 75)) +
-#   theme(axis.title = element_text(size = 8),
-#         axis.text.x = element_text(size = 7,angle=45,margin=margin(t=20)),
-#         axis.text.y = element_text(size = 7),
-#         legend.position = "none")+
-#   ggtitle("a")
-# 
-# 
-# abundance <- abundance_metric +
-#   labs(y ="Total abundance diff. (%)", x = "Order") +
-#   scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75), limits = c(-100, 75)) + 
-#   theme(axis.title = element_text(size = 8),
-#         axis.text.x = element_text(size = 7,angle=45,margin=margin(t=20)),
-#         axis.text.y = element_text(size = 7),
-#         legend.position = "none")+
-#   ggtitle("b")
-# 
-# 
-# # get the legend
-# legend <- get_legend(
-#   abundance +
-#     guides(color = guide_legend(ncol = 1)) +
-#     theme(legend.position = "right",
-#           legend.box = "vertical", 
-#           legend.text = element_text(size = 7), 
-#           legend.title = element_blank())
-# )
-# 
-# # plot together
-# plot_figure <- cowplot::plot_grid(richness, abundance, ncol = 1, rel_heights = c(1,1))
-# legend <- cowplot::plot_grid(NULL,legend,NULL, ncol = 1, rel_heights = c(0.5,1,0.5))
-# plot_figure <- cowplot::plot_grid(plot_figure, legend, ncol = 2, rel_widths = c(1,0.2))
-# 
-# # save plot (pdf)
-# ggsave(filename = paste0(outDir, "SimpleLUI.pdf"), plot = last_plot(), width = 250, height = 200, units = "mm", dpi = 300)
-# 
-# # save plot (jpeg)
-# ggsave("SimpleLUI.jpeg", device ="jpeg", path = outDir, width=20, height=15, units="cm", dpi = 350)
-
-
 
 # create dataframe for values to predict response to
 nd <- data.frame(LUI=factor(c("Primary vegetation","Secondary vegetation",
@@ -774,10 +496,10 @@ s.preds.lower <- ((apply(X = s.preds,MARGIN = 1,FUN = quantile,probs = 0.025))*1
 ## abundance predictions ##
 a.preds <- PredictGLMERRandIter(model = am3$model,data = nd)
 
-a.preds <- exp(a.preds)-1
+a.preds <- exp(a.preds)-0.01
 
 # convert to percentage difference from primary vegetation
-a.preds <- sweep(x = a.preds,MARGIN = 2,STATS = a.preds[1,],FUN = '/')
+a.preds <- sweep(x = a.preds, MARGIN = 2, STATS = a.preds[1,], FUN = '/')
 
 # get quantiles
 a.preds.median <- ((apply(X = a.preds,MARGIN = 1,FUN = median))*100)-100
@@ -849,6 +571,7 @@ p2 <- ggplot(data = rich_res) +
 
 p3 <- cowplot::plot_grid(p2, p1)
 
+# save
 ggsave(filename = paste0(outDir, "FIG_No_Order_LandUseOnly.pdf"), plot = last_plot(), width = 160, height = 90, units = "mm", dpi = 300)
 
 
