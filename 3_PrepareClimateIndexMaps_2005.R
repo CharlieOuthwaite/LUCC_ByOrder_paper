@@ -33,7 +33,7 @@ library(dismo)
 library(rgdal)
 library(RColorBrewer)
 library(ncdf4)
-library(rasterVis)
+#library(rasterVis)
 library(gridExtra)
 library(cowplot)
 library(ggplot2)
@@ -54,19 +54,14 @@ tmp1901_1930 <- tmp[[names(tmp)[1:360]]] # (30 years of data) x (12 months/year)
 # tmp1901_1910 <- tmp[[names(tmp)[1:120]]]
 # tmp1901_1920 <- tmp[[names(tmp)[1:240]]]
 
-
 # present day temperature range (mid year 2005)
 tmp2004_6 <- tmp[[names(tmp)[1237:1272]]]
 
-# more recent data, used for maps in Extended Data Figure 7.
-#tmp2016_18<- tmp[[names(tmp)[1381:1416]]]
-
 # what is the active months threshold
-thresh <- 10 # 6, 8, 10 degrees C # because are treating any month with an average temp of 10 or higher as Insect Active Months
+thresh <- 10 # 6, 8, 10 degrees C 
 
 # which raster to use as present
 pre_ras <- tmp2004_6 
-#pre_ras <- tmp2016_18
 
 # get vector of positions in values of raster that are not NA # a vector of positions
 ras <- pre_ras[[1]] 
@@ -74,11 +69,11 @@ vals <- values(ras)
 
 # create a set of points based on the non NA cells
 
-wgs84 <- crs(tmp) # World Geodetic System 1984 & crs: retrieve coordinate reference system from object
-
+# World Geodetic System 1984 & crs: retrieve coordinate reference system from object
+wgs84 <- crs(tmp) 
 pnts <- rasterToPoints(ras, spatial = T)
 
-SP <- SpatialPoints(pnts, proj4string=wgs84) # proj4string: the notation used to describe the CRS (we are telling R to use wgs84)
+SP <- SpatialPoints(pnts, proj4string=wgs84) 
 
 
 #### 2. Determine anomaly values for "present" ####
@@ -87,7 +82,8 @@ nCores <- parallel::detectCores() # detect the number of CPU cores on the curren
 
 st1 <- Sys.time()
 
-cl <- snow::makeCluster(nCores-1) # snow: Simple Network of Workstations # Support for simple parallel computing in R. 
+# snow: Simple Network of Workstations # Support for simple parallel computing in R. 
+cl <- snow::makeCluster(nCores-1) 
 
 # export to clusters
 snow::clusterExport(
@@ -105,7 +101,7 @@ temperatureVars <- data.frame(t(parSapply(
     
     # #for testing
     # #anomVars <- NULL
-    #  temperatureVars <-NULL
+    # temperatureVars <-NULL
     # #for(i in 1:length(SP)){
     # for(i in 20208:20500){
     # print(i)
@@ -116,19 +112,20 @@ temperatureVars <- data.frame(t(parSapply(
     mask <- trim(rasterize(SP[i, ], pre_ras[[1]])) 
     mapCrop <- crop(pre_ras, mask)
     
-    if(!length(names(mapCrop)[values(mapCrop) >= thresh]) == 0 & length(values(mapCrop)[!is.na(values(mapCrop))]) > 0 ){ ## what ##
+    # if there are cells that are above the threshold and not NA...
+    if(!length(names(mapCrop)[values(mapCrop) >= thresh]) == 0 & length(values(mapCrop)[!is.na(values(mapCrop))]) > 0 ){
       
       # first identify insect active months for that cell. 
       
-      # Get the average temperature for each month across 5 years
+      # Get the average temperature for each month across 3 years
       vals <- NULL 
       
-      # for each month, get the average temp over the 5 years
+      # for each month, get the average temp over the 3 years
       for(j in 1:12){
         
-        if(j < 10){ mon <- paste0(0, j) }else {mon <- j} # if the temperature is less than 10, replace with zero. If 10 or higher, keep.
+        if(j < 10){ mon <- paste0(0, j) }else {mon <- j} # if the temperature is less than 10, add a 0 to name. If 10 or higher, keep.
         
-        monthmean <- values(mean(mapCrop[[grep(mon, sapply(strsplit(names(mapCrop), "[.]"), "[[", 2))  ]])) # grep: search for matches to argument pattern within each element of a character vector
+        monthmean <- values(mean(mapCrop[[grep(mon, sapply(strsplit(names(mapCrop), "[.]"), "[[", 2))  ]])) 
         
         vals <- rbind(vals, c(mon, monthmean))
         
@@ -137,11 +134,11 @@ temperatureVars <- data.frame(t(parSapply(
       vals <- as.data.frame(vals)
       vals$V2 <- as.numeric(as.character(vals$V2))
       
-      # which months are the 5 year average >= the threshold
-      vals <- vals[vals$V2 >= thresh, ] ## ok ##
+      # which months are the 3 year average >= the threshold
+      vals <- vals[vals$V2 >= thresh, ] 
       
       
-      # sometimes the mean values don't make it over the threshold even if odd months are above ## odd months?? ##
+      # sometimes the mean values don't make it over the threshold even if some months are above
       if(nrow(vals) == 0){
         
         avg_temp = NA
@@ -158,7 +155,7 @@ temperatureVars <- data.frame(t(parSapply(
         
         
         
-        # which are the good months ## good months? ##
+        # which are the good months
         months <- vals$V1
         
         # how many months are at or above the threshold?
@@ -175,7 +172,7 @@ temperatureVars <- data.frame(t(parSapply(
         #baseline <- crop(tmp1901_1910, mask)
         #baseline <- crop(tmp1901_1920, mask)
         
-        # subset the baseline to just the required months ## what is this doing? ##
+        # subset the baseline to the same months as present in the present
         baseline <-  baseline[[names(baseline)[sapply(strsplit(names(baseline), "[.]"), "[[", 2) %in% months]]]
         
         # get the mean and sd
@@ -222,27 +219,20 @@ st2 <- Sys.time()
 
 print(st2 - st1) # Time difference of 1.013413 hours
 
-# save, alternative labels depending on selections made
-#save(temperatureVars, file = paste0(outDir, "Map_data_tempvars_2004_06_thresh_ALLMonths.rdata"))
+# save
 save(temperatureVars, file = paste0(outDir, "Map_data_tempvars_2004_06_thresh_", thresh, ".rdata"))
-#save(temperatureVars, file = paste0(outDir, "Map_data_tempvars_2016_18_thresh_", thresh, ".rdata"))
-#save(temperatureVars, file = paste0(outDir, "Map_data_tempvars_2004_06_thresh_", thresh, "_baseline5.rdata"))
-#save(temperatureVars, file = paste0(outDir, "Map_data_tempvars_2004_06_thresh_", thresh, "_baseline10.rdata"))
-#save(temperatureVars, file = paste0(outDir, "Map_data_tempvars_2004_06_thresh_", thresh, "_baseline20.rdata"))
 
 
 #### 3. take a look at correlations between the different metrics ####
 
 load(file = paste0(outDir, "Map_data_tempvars_2004_06_thresh_10.rdata"))
-# load(file = paste0(outDir, "Map_data_tempvars_2016_18.rdata"))
-
-# Using the 2004_06 data here
 
 temperatureVars <- as.data.frame(temperatureVars) # 67420 rows
 
 # remove the NAs
 temp_data <- temperatureVars[!is.na(temperatureVars$avg_temp), ] # 58319 rows
 
+# assess correlation, mean temp and anomaly
 cor(temp_data$avg_temp, temp_data$Anom) # -0.21, 2004-6 version, thresh 10
 
 ggplot(data = temp_data, aes(x = avg_temp, y = Anom)) + 
@@ -259,6 +249,7 @@ ggsave(filename = paste0(outDir, "Correlation_global_avgtemp_Anom.pdf"),width = 
 nrow(temp_data[temp_data$StdAnom >12, ]) # 6 rows
 temp_data <- temp_data[temp_data$StdAnom < 12, ] # 58313 rows
 
+# assess correlation mean temp and standardised anomaly
 cor(temp_data$avg_temp, temp_data$StdAnom) # -0.15, 2004-06, thresh 10
 
 ggplot(data = temp_data, aes(x = avg_temp, y = StdAnom)) + 
@@ -282,71 +273,8 @@ ggplot(data = temp_data[temp_data$StdAnom <=3, ], aes(x = avg_temp, y = StdAnom)
 
 ggsave(filename = paste0(outDir, "Correlation_global_avgtemp_StdAnom_outliersrem.pdf"),width = 20, height = 20, units = "cm")
 
-
+# assess correlation anomaly and standardised anomaly
 cor(temp_data$Anom, temp_data$StdAnom) # 0.36, 2004-06, thresh 10
-
-# now take a look at the realms
-# add in the lat/lons
-# add data to the point lat/lons
-SP_df <- as.data.frame(SP)
-
-SP_df <- cbind(SP_df, temperatureVars)
-
-# split by realm
-SP_df$Tropical <- NA 
-
-SP_df[SP_df$y > -23.44 & SP_df$y < 23.44, 'Tropical'] <- "Tropical"
-SP_df[is.na(SP_df$Tropical), 'Tropical'] <- "Temperate"
-
-SP_df <- SP_df[!is.na(SP_df$avg_temp), ]
-
-table(SP_df$Tropical)
-# Temperate  Tropical 
-# 40042     18277
-
-cor_temp <- round(cor(SP_df[SP_df$Tropical == "Temperate", "avg_temp"], SP_df[SP_df$Tropical == "Temperate", "Anom"]), digits = 2) # 0.02
-cor_trop <- round(cor(SP_df[SP_df$Tropical == "Tropical", "avg_temp"], SP_df[SP_df$Tropical == "Tropical", "Anom"]), digits = 2) # 0.14
-
-SP_df$Tropical[SP_df$Tropical == "Temperate"] <- paste0("Temperate, cor = ", cor_temp)
-SP_df$Tropical[SP_df$Tropical == "Tropical"] <- paste0("Tropical, cor = ", cor_trop)
-
-ggplot(data = SP_df, aes(x = avg_temp, y = Anom)) + 
-  geom_point( size = 0.5) + 
-  geom_smooth(method = "lm", size = 2) +
-  facet_wrap(~ Tropical) +
-  theme_bw() + 
-  xlab("Average temperature of the location\n (2004-2006, active months)") +
-  ylab("Anomaly (difference between \npresent and baseline temperatures)") 
-
-ggsave(filename = paste0(outDir, "Correlation_global_avgtemp_Anom_REALM.pdf"),width = 20, height = 20, units = "cm")
-
-# split by realm ## again, but without outliers ##
-SP_df$Tropical <- NA
-
-SP_df[SP_df$y > -23.44 & SP_df$y < 23.44, 'Tropical'] <- "Tropical"
-SP_df[is.na(SP_df$Tropical), 'Tropical'] <- "Temperate"
-
-# remove the few outliers
-SP_df <- SP_df[SP_df$StdAnom < 12, ] # 58313 rows
-
-cor_temp <- round(cor(SP_df[SP_df$Tropical == "Temperate", "avg_temp"], SP_df[SP_df$Tropical == "Temperate", "StdAnom"]), digits = 2) # -0.55
-cor_trop <- round(cor(SP_df[SP_df$Tropical == "Tropical", "avg_temp"], SP_df[SP_df$Tropical == "Tropical", "StdAnom"]), digits = 2) # 0.08
-
-SP_df$Tropical[SP_df$Tropical == "Temperate"] <- paste0("Temperate, cor = ", cor_temp)
-SP_df$Tropical[SP_df$Tropical == "Tropical"] <- paste0("Tropical, cor = ", cor_trop)
-
-ggplot(data = SP_df, aes(x = avg_temp, y = StdAnom)) + 
-  geom_point( size = 0.5) + 
-  geom_smooth(method = "lm", size = 2) +
-  facet_wrap(~ Tropical, scales = "free") +
-  theme_bw() + 
-  xlab("Average temperature of the location\n (2004-2006, active months)") +
-  ylab("Standardised climate anomaly") 
-
-ggsave(filename = paste0(outDir, "Correlation_global_avgtemp_StdAnom_REALM_0406.pdf"))
-
-
-cor_temp <- round(cor(SP_df[SP_df$Tropical == "Temperate", "Anom"], SP_df[SP_df$Tropical == "Temperate", "StdAnom"]), digits = 2) # 0.37, 2004-6
 
 
 ##%######################################################%##
@@ -542,8 +470,8 @@ final_plot <- cowplot::plot_grid(
 
 # save as a pdf
 # stacked
-ggsave(filename = paste0(outDir, "Extended_Data1_maps_thresh_", thresh, ".pdf"), plot = last_plot(), width = 183, height = 200, units = "mm", dpi = 300)
-ggsave(filename = paste0(outDir, "Extended_Data1_maps_thresh_", thresh, ".jpeg"), plot = last_plot(), width = 183, height = 200, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "SUPP_FIG_maps_thresh_", thresh, ".pdf"), plot = last_plot(), width = 183, height = 200, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "SUPP_FIG_Data1_maps_thresh_", thresh, ".jpeg"), plot = last_plot(), width = 183, height = 200, units = "mm", dpi = 300)
 
 
 #### Figure - map of number of active months ####
@@ -568,7 +496,7 @@ ggplot(map_data[!is.na(map_data$n_months),]) +
   guides(colour = guide_colourbar(show.limits = TRUE)) 
 
 
-ggsave(filename = paste0(outDir, "Nmonths_plot_thresh_", thresh, ".pdf"), width = 4, height = 3)
+ggsave(filename = paste0(outDir, "SUPP_FIG_Nmonths_plot_thresh_", thresh, ".pdf"), width = 4, height = 3)
 
 
 t.end <- Sys.time()
