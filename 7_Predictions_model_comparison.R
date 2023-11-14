@@ -15,13 +15,12 @@ rm(list = ls())
 predictsDataDir <- "5_RunLUIClimateModels/"
 moddir1 <- "2_RunSimpleLUIModel/"
 moddir2 <- "5_RunLUIClimateModels/"
-#moddir3 <- "6_TropicalModels/"
 outDir <- "7_Predictions/Model_Comparisons/"
-oridir1 <- "C:/Users/charl/Dropbox (UCL)/POSTDOC - BIOTA/0. PROJECTS/6. INSECTS LU CC/LanduseClimateInsects/2_RunSimpleLUIModel/"
-oridir2 <- "C:/Users/charl/Dropbox (UCL)/POSTDOC - BIOTA/0. PROJECTS/6. INSECTS LU CC/LanduseClimateInsects/6_RunLUClimateModels/"
-
 if(!dir.exists(outDir)) dir.create(outDir)
 
+# directories for outputs from Outhwaite (2022)
+oridir1 <- "C:/Users/charl/Dropbox (UCL)/POSTDOC - BIOTA/0. PROJECTS/6. INSECTS LU CC/LanduseClimateInsects/2_RunSimpleLUIModel/"
+oridir2 <- "C:/Users/charl/Dropbox (UCL)/POSTDOC - BIOTA/0. PROJECTS/6. INSECTS LU CC/LanduseClimateInsects/6_RunLUClimateModels/"
 
 # load libraries
 library(StatisticalModels)
@@ -30,9 +29,8 @@ library(ggplot2)
 library(paletteer) 
 source('0_Functions.R')
 
-
 # read in the predicts data
-predictsSites <- readRDS(paste0(predictsDataDir,"PREDICTSSitesClimate_Data.rds"))
+predictsSites <- readRDS(paste0(predictsDataDir, "PREDICTSSitesClimate_Data.rds")) # 8858 rows
 
 
 ##%######################################################%##
@@ -72,7 +70,7 @@ s.preds.lower <- ((apply(X = s.preds,MARGIN = 1,FUN = quantile,probs = 0.025))*1
 
 a.preds <- PredictGLMERRandIter(model = am3$model,data = nd)
 
-a.preds <- exp(a.preds)-1
+a.preds <- exp(a.preds)-0.01
 
 # convert to percentage difference from primary vegetation
 a.preds <- sweep(x = a.preds,MARGIN = 2,STATS = a.preds[1,],FUN = '/')
@@ -157,14 +155,13 @@ p3 <- cowplot::plot_grid(p1, p2)
 ggsave(filename = paste0(outDir, "FIGURE_landuse_noOrder.pdf"), plot = last_plot(), width = 120, height = 60, units = "mm", dpi = 300)
 
 
-
-
-
 ##### Models from this study including interaction with order ####
 
+# load model outputs
 load(file = paste0(moddir1, "Abundance_landuse_model.rdata")) # am3.3
 load(file = paste0(moddir1, "Richness_landuse_model.rdata")) # sm3.3
 
+# create table for predictions
 data_tab <- expand.grid(LUI = factor(c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"), levels = levels(am3.3$data$LUI)), 
                        Order = factor(c("Coleoptera", "Diptera", "Hemiptera", "Hymenoptera", "Lepidoptera"), levels = levels(am3.3$data$Order)),
                        LogAbund = 0,
@@ -379,7 +376,7 @@ names(all_res) <- c("Study", "Metric", "Order", "Fixed_effs", "LUI", "Median", "
 all_res[, 6:8] <- round(all_res[, 6:8], 3)
 
 # save table
-write.csv(all_res, file = paste0(outDir, "/percentage_change_LU_Order.csv"), row.names = F)
+write.csv(all_res, file = paste0(outDir, "/TABLE_percentage_change_LU_Order.csv"), row.names = F)
 
 
 ##%######################################################%##
@@ -404,10 +401,9 @@ ggplot(data = all_res, aes(col = LUI, group = LUI)) +
   geom_errorbar(aes(x = Order, ymin = Lower_CI, ymax = Upper_CI), position= position_dodge(width = 1), size = 0.5, width = 0.2)+
   facet_wrap(~ Metric) +
   xlab("") +
-  scale_y_continuous(limits = c(-90, 80), breaks = scales::pretty_breaks(n = 10)) +
+  scale_y_continuous(limits = c(-100, 145), breaks = scales::pretty_breaks(n = 10)) +
   ylab("Percentage change (%)") +
   scale_color_manual(values = c("#009E73","#0072B2","#E69F00","#D55E00")) +
-  #scale_shape_manual(values=c(16, 17, 18, 15, 0, 1))+
   theme(legend.position = "bottom", 
         aspect.ratio = 1, 
         title = element_text(size = 8, face = "bold"),
@@ -427,9 +423,8 @@ ggplot(data = all_res, aes(col = LUI, group = LUI)) +
         legend.text = element_text(size = 10))
 
 
-ggsave(filename = paste0(outDir, "Comparison_LU_only_incNoOrder.pdf"), plot = last_plot(), width = 200, height = 130, units = "mm", dpi = 300)
-ggsave(filename = paste0(outDir, "Comparison_LU_only_incNoOrder.jpeg"), plot = last_plot(), width = 200, height = 130, units = "mm", dpi = 300)
-
+ggsave(filename = paste0(outDir, "FIGURE_1_Comparison_LU_only_incNoOrder.pdf"), plot = last_plot(), width = 200, height = 130, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "FIGURE_1_Comparison_LU_only_incNoOrder.jpeg"), plot = last_plot(), width = 200, height = 130, units = "mm", dpi = 300)
 
 
 
@@ -439,104 +434,9 @@ ggsave(filename = paste0(outDir, "Comparison_LU_only_incNoOrder.jpeg"), plot = l
 #                                                          #
 ##%######################################################%##
 
-# #### Outhwaite et al 2022 ####
-# 
-# predictsSites <- readRDS(paste0(oridir2,"PREDICTSSiteData.rds"))
-# 
-# # load in models
-# load(file = paste0(oridir2, "MeanAnomalyModelAbund.rdata")) # MeanAnomalyModelAbund
-# load(file = paste0(oridir2, "MeanAnomalyModelRich.rdata")) # MeanAnomlayModelRich
-# 
-# 
-# # what is the rescaled value of STA of 1
-# BackTransformCentreredPredictor(transformedX = 0.97, originalX = predictsSites$StdTmeanAnomaly) # 0.97 gives about 1 
-# 
-# # what is the rescaled value of STA of 0
-# BackTransformCentreredPredictor(transformedX = -1.39, originalX = predictsSites$StdTmeanAnomaly) # -1.39 gives about 0 
-# 
-# # set up table for predictions
-# nd <- expand.grid(
-#   StdTmeanAnomalyRS= c(-1.39, 0.97),
-#   UI2=factor(c("Primary vegetation","Secondary vegetation","Agriculture_Low","Agriculture_High"),
-#              levels = levels(MeanAnomalyModelAbund$data$UI2)))
-# 
-# # back transform the predictors
-# nd$StdTmeanAnomaly <- BackTransformCentreredPredictor(
-#   transformedX = nd$StdTmeanAnomalyRS,
-#   originalX = predictsSites$StdTmeanAnomaly)
-# 
-# # set richness and abundance to 0 - to be predicted
-# nd$LogAbund <- 0
-# nd$Species_richness <- 0
-# 
-# # reference for % difference = primary vegetation and positive anomaly closest to 0
-# refRow <- which((nd$UI2=="Primary vegetation") & (nd$StdTmeanAnomaly==min(abs(nd$StdTmeanAnomaly))))
-# # row 1
-# 
-# # predict the results
-# a.preds.tmean <- PredictGLMERRandIter(model = MeanAnomalyModelAbund$model,data = nd)
-# 
-# # back transform the abundance values
-# a.preds.tmean <- exp(a.preds.tmean)-0.01
-# 
-# # convert to dataframe
-# #result.ab <- as.data.frame(a.preds.tmean)
-# 
-# # # add in the LU info
-# # result.ab$LUI <- nd$UI2
-# 
-# # convert to percentage difference from primary vegetation
-# a.preds <- sweep(x = a.preds.tmean, MARGIN = 2, STATS = a.preds.tmean[1,], FUN = '/')
-# 
-# # get quantiles
-# a.preds.median <- ((apply(X = a.preds,MARGIN = 1,FUN = median))*100)-100
-# a.preds.upper <- ((apply(X = a.preds,MARGIN = 1,FUN = quantile,probs = 0.975))*100)-100
-# a.preds.lower <- ((apply(X = a.preds,MARGIN = 1,FUN = quantile,probs = 0.025))*100)-100
-# 
-# 
-# ## species richness predictions ##
-# s.preds <- PredictGLMERRandIter(model = MeanAnomalyModelRich$model, data = nd)
-# 
-# s.preds <- exp(s.preds)
-# 
-# # convert to percentage difference from primary vegetation
-# s.preds <- sweep(x = s.preds, MARGIN = 2, STATS = s.preds[1,], FUN = '/')
-# 
-# # get quantiles
-# s.preds.median <- ((apply(X = s.preds,MARGIN = 1,FUN = median))*100)-100
-# s.preds.upper <- ((apply(X = s.preds,MARGIN = 1,FUN = quantile,probs = 0.975))*100)-100
-# s.preds.lower <- ((apply(X = s.preds,MARGIN = 1,FUN = quantile,probs = 0.025))*100)-100
-# 
-# 
-# # combine data into one table for plotting
-# abun_res <- as.data.frame(cbind(a.preds.median, a.preds.lower, a.preds.upper))
-# rich_res <- as.data.frame(cbind(s.preds.median, s.preds.lower, s.preds.upper))
-# colnames(abun_res) <- c("perc", "lower_CI", "upper_CI")
-# colnames(rich_res) <- c("perc", "lower_CI", "upper_CI")
-# abun_res$Metric <- "Total abundance"
-# rich_res$Metric <- "Species richness"
-# abun_res$LUI <- nd$UI2
-# rich_res$LUI <- nd$UI2
-# 
-# all_res_ori <- rbind(abun_res, rich_res)
-# all_res_ori$Study <- "Outhwaite et al 2022"
-# 
-# all_res_ori$Fixed_effs <- "Land use and climate"
-# 
-# all_res_ori$Order <- "All insects"
-# 
-# all_res_ori$Realm <- "Global"
-# 
-# all_res_ori$STA <- c(0,1)
-# 
-# all_res_ori <- all_res_ori[, c(6, 4, 8, 7, 9, 5, 1:3, 10)]
-# 
 
 #### This study including interaction with Order ####
-
 # need predictions for each land use for 0 and 1 STA for each order
-
-# read in the predicts data
 
 # load in models
 load(file = paste0(moddir2, "MeanAnomalyModelAbund.rdata")) # MeanAnomalyModelAbund
@@ -787,14 +687,7 @@ all_res <- all_res[ , c(7,6,5, 8, 9, 4, 1, 3, 2, 10)]
 
 names(all_res)[7:9] <- c("Median", "Lower_CI", "Upper_CI")
 
-# final_res <- rbind(all_res_ori, all_res)
-# 
-# # save table
-# write.csv(final_res, file = paste0(outDir, "/percentage_change_LU_STA_Order_inc2022.csv"))
-
-
 #### This study excluding interaction with Order ####
-
 
 # load in models
 load(file = paste0(moddir2, "/MeanAnomalyModelAbund_noOrder.rdata")) # MeanAnomalyModelAbund2
@@ -884,9 +777,7 @@ names(res) <- names(all_res)
 all_res <- rbind(all_res, res)
 
 # save table
-write.csv(all_res, file = paste0(outDir, "/percentage_change_LU_CC_incNoOrder.csv"), row.names = F)
-
-
+write.csv(all_res, file = paste0(outDir, "/TABLE_percentage_change_LU_CC_incNoOrder.csv"), row.names = F)
 
 
 ##%######################################################%##
@@ -896,7 +787,7 @@ write.csv(all_res, file = paste0(outDir, "/percentage_change_LU_CC_incNoOrder.cs
 ##%######################################################%##
 
 # load version including results from Outhwaite et al 2022 and rounded values to 2dp
-final_res <- read.csv(file = paste0(outDir, "/percentage_change_LU_CC_incNoOrder.csv"))
+final_res <- read.csv(file = paste0(outDir, "/TABLE_percentage_change_LU_CC_incNoOrder.csv"))
 
 final_res$Order <- factor(final_res$Order, levels = c("All insects", "Coleoptera", "Diptera", "Hemiptera", "Hymenoptera", "Lepidoptera"))
 
@@ -937,8 +828,8 @@ ggplot(data = plot_data, aes(col = LUI, group = STA)) +
         legend.text = element_text(size = 8))
 
 
-ggsave(filename = paste0(outDir, "Comparison_LUSTA_Abun.pdf"), plot = last_plot(), width = 150, height = 120, units = "mm", dpi = 300)
-ggsave(filename = paste0(outDir, "Comparison_LUSTA_Abun.jpeg"), plot = last_plot(), width = 150, height = 120, units = "mm", dpi = 600)
+ggsave(filename = paste0(outDir, "FIGURE_4_Comparison_LUSTA_Abun.pdf"), plot = last_plot(), width = 150, height = 120, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "FIGURE_4_Comparison_LUSTA_Abun.jpeg"), plot = last_plot(), width = 150, height = 120, units = "mm", dpi = 600)
 
 ### now richness ###
 plot_data <- final_res[final_res$Metric == "Species richness" | final_res$Metric == "Species Richness",]
@@ -973,10 +864,6 @@ ggplot(data = plot_data, aes(col = LUI, group = STA)) +
         legend.text = element_text(size = 8))
 
 
-ggsave(filename = paste0(outDir, "Comparison_LUSTA_Rich.pdf"), plot = last_plot(), width = 150, height = 120, units = "mm", dpi = 300)
-ggsave(filename = paste0(outDir, "Comparison_LUSTA_Rich.jpeg"), plot = last_plot(), width = 150, height = 120, units = "mm", dpi = 600)
-
-
-
-
+ggsave(filename = paste0(outDir, "FIGURE_3_Comparison_LUSTA_Rich.pdf"), plot = last_plot(), width = 150, height = 120, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "FIGURE_3_Comparison_LUSTA_Rich.jpeg"), plot = last_plot(), width = 150, height = 120, units = "mm", dpi = 600)
 
