@@ -423,8 +423,8 @@ ggplot(data = all_res, aes(col = LUI, group = LUI)) +
         legend.text = element_text(size = 10))
 
 
-ggsave(filename = paste0(outDir, "FIGURE_1_Comparison_LU_only_incNoOrder.pdf"), plot = last_plot(), width = 200, height = 130, units = "mm", dpi = 300)
-ggsave(filename = paste0(outDir, "FIGURE_1_Comparison_LU_only_incNoOrder.jpeg"), plot = last_plot(), width = 200, height = 130, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "FIGURE_2_Comparison_LU_only_incNoOrder.pdf"), plot = last_plot(), width = 200, height = 130, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "FIGURE_2_Comparison_LU_only_incNoOrder.jpeg"), plot = last_plot(), width = 200, height = 130, units = "mm", dpi = 300)
 
 
 
