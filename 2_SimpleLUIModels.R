@@ -134,13 +134,11 @@ g_sm3.3_all <- allFit(g_sm3.3)
 
 # remove NAs in the specified columns
 model_data_ab <- na.omit(sites[,c('LogAbund','LandUse','Use_intensity','LUI','SS','SSB','SSBS','Order', 'Latitude', 'Longitude')])
+# 8492 rows
 
 # order data
 model_data_ab$LUI <- factor(model_data_ab$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
 model_data_ab$Order <- factor(model_data_ab$Order, levels = c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera"))
-
-# relevel
-model_data_ab$LUI <- relevel(model_data_ab$LUI, ref = "Primary vegetation")
 
 #save model_data_ab
 saveRDS(object = model_data_ab ,file = paste0(outDir,"model_data_ab.rds"))
@@ -179,10 +177,12 @@ save(am3, file = paste0(outDir, "Abundance_landuse_model_noOrder.rdata"))
 
 # check the R2 values
 R2GLMER(am3$model)
-# [1] 0.4900226
+# $conditional
+# [1] 0.3364167
 # 
 # $marginal
-# [1] 0.009584923
+# [1] 0.02482347
+
 
 # am4 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund",fitFamily = "gaussian",
 #              fixedStruct = "LandUse*Use_intensity",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE)
@@ -221,10 +221,10 @@ save(am3.3, file = paste0(outDir, "Abundance_landuse_model.rdata"))
 # check the R2 values
 R2GLMER(am3.3$model)
 # $conditional
-# [1] 0.602671
+# [1] 0.3775368
 # 
 # $marginal
-# [1] 0.07881957
+# [1] 0.04830284
 
 # # take a look at the AICs
 # AIC_am <-print(AIC(am0$model,am1$model,am2$model,am3$model,am4$model,
