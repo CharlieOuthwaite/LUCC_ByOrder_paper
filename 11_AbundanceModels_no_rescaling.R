@@ -4,9 +4,9 @@
 #                                                          #
 ############################################################
 
-# In this script, the models for land use and land use/ climate impacts
-# are rerun for total abundance, however abundance values are not rescaled. 
-
+# In this script, the models for land use and land use/climate impacts
+# are rerun for total abundance, however abundance values are not rescaled
+# within study/order. 
 
 # ensure working directory is clear
 rm(list = ls())
@@ -30,6 +30,98 @@ suppressWarnings(suppressMessages(lapply(packages_plot, require, character.only 
 source("0_Functions.R")
 
 
+##%######################################################%##
+#                                                          #
+####                Land use only models                ####
+#                                                          #
+##%######################################################%##
+
+# read in the Site data
+sites <- readRDS(file = paste0(inDir,"PREDICTSSiteData.rds")) # 8884 rows
+
+# remove NAs in the specified columns
+model_data_ab <- na.omit(sites[,c('LogAbund_noRS','LandUse','Use_intensity','LUI','SS','SSB','SSBS','Order', 'Latitude', 'Longitude')])
+# 8492 rows
+
+# order data
+model_data_ab$LUI <- factor(model_data_ab$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
+model_data_ab$Order <- factor(model_data_ab$Order, levels = c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera"))
+
+# Run the abundance model using the log abundance data that has not been rescaled 
+am3.3 <- GLMER(modelData = model_data_ab,responseVar = "LogAbund_noRS",fitFamily = "gaussian",
+               fixedStruct = "Order*LUI",randomStruct = "(1|SS)+(1|SSB)",REML = FALSE, saveVars = c('Latitude', 'Longitude'))
+
+# save model output
+save(am3.3, file = paste0(outDir, "Abundance_landuse_model_noRS.rdata"))
+
+
+# check the R2 values
+R2GLMER(am3.3$model)
+# $conditional
+# [1] 0.602671
+# 
+# $marginal
+# [1] 0.07881956
+
+library(sjPlot)
+# save model output tables for use in supplementary information 
+# use function from sjPlot library to save neat versions of model output table
+tab_model(am3.3$model, transform = NULL, file = paste0(outDir,"SupptabX_Output_table_abund_noRS.html"))
+summary(am3.3$model) # check the table against the outputs
+R2GLMER(am3.3$model) # check the R2 values 
+# $conditional
+# [1] 0.602671
+# 
+# $marginal
+# [1] 0.07881956
+
+
+
+#### Abundance Plot ####
+
+abundance_metric <- predict_effects(iterations = 1000,
+                                    model = am3.3$model,
+                                    model_data = model_data_ab,
+                                    response_variable = "LogAbund_noRS",
+                                    fixed_number = 2,
+                                    fixed_column = c("Order", "LUI"),
+                                    factor_number_1 = 5,
+                                    factor_number_2 = 4,
+                                    neg_binom = FALSE)
+
+# rename prediction data frame and drop "Abundance" column
+result.ab <- fin_conf
+result.ab <- dplyr::select(result.ab,-c(LogAbund))
+
+# adjust plot
+abundance <- abundance_metric +
+  labs(y ="Total abundance diff. (%)", x = "Order") +
+  scale_y_continuous(limits = c(-100, 140)) + 
+  theme(axis.title = element_text(size = 8),
+        axis.text.x = element_text(size = 7,angle=45,margin=margin(t=20)),
+        axis.text.y = element_text(size = 7),
+        legend.position = "right")
+
+
+# save plot (pdf)
+ggsave(filename = paste0(outDir, "SimpleLUI_ab_noRS.pdf"), plot = last_plot(), width = 150, height = 100, units = "mm", dpi = 300)
+
+# function to extract prediction data
+model_data <- function(model_plot){
+  ggplot_build(model_plot)$data[[2]] %>%
+    dplyr::select(y) %>%
+    cbind(ggplot_build(model_plot)$data[[3]] %>% dplyr::select(ymin, ymax)) %>%
+    mutate(LUI = rep(levels(model_data_ab$LUI), 5)[1:20]) %>%
+    dplyr::select(LUI, y, ymin, ymax)
+}
+
+# abundance data
+ab_pred <- model_data(abundance_metric)
+
+# save prediction data
+write.csv(ab_pred, file = paste0(outDir, "/Predictions_simplemod_ab_noRS.csv"), row.names = F)
+
+
 
 ############################################################
 #                                                          #
@@ -38,57 +130,43 @@ source("0_Functions.R")
 ############################################################
 
 
-# load in the data
+# load in the data with climate variable
 predictsSites <- readRDS(file = paste0(dataDir,"PREDICTSSitesClimate_Data.rds"))
 
-# create new variable where abundance data is not rescaled
-predictsSites$LogAbund_norescaling <- log(predictsSites$Total_abundance + 0.01)
 
-# hist(predictsSites$LogAbund_norescaling)
+# hist(predictsSites$LogAbund_noRS)
 # hist(predictsSites$LogAbund)
 
 
 # i. Abundance, mean anomaly including interaction
+# subset to those sites with abundance data
+model_data <- predictsSites[!is.na(predictsSites$LogAbund_noRS), ]
 
-model_data <- predictsSites[!is.na(predictsSites$LogAbund_norescaling), ]
-model_data <- model_data[!is.na(model_data$StdTmeanAnomalyRS), ]
-
-
-MeanAnomalyModelAbund_noresc <- GLMER(modelData = model_data,responseVar = "LogAbund_norescaling",fitFamily = "gaussian",
-                               fixedStruct = "LUI * StdTmeanAnomalyRS * Order",
-                               randomStruct = "(1|SS)+(1|SSB)",
-                               saveVars = c("SSBS"))
+MeanAnomalyModelAbund_noresc <- GLMER(modelData = model_data, 
+                                      responseVar = "LogAbund_noRS",
+                                      fitFamily = "gaussian",
+                                      fixedStruct = "LUI * StdTmeanAnomalyRS * Order",
+                                      randomStruct = "(1|SS)+(1|SSB)",
+                                      saveVars = c("SSBS", 'Latitude', 'Longitude'))
 
 # get summary
 summary(MeanAnomalyModelAbund_noresc$model)
 
 
 # save the model output
-save(MeanAnomalyModelAbund_noresc, file = paste0(outDir, "MeanAnomalyModelAbund_incOrder_norescaling.rdata"))
+save(MeanAnomalyModelAbund_noresc, file = paste0(outDir, "LUICCmodel_abun_norescaling.rdata"))
+
+tab_model(MeanAnomalyModelAbund_noresc$model, transform = NULL, file = paste0(outDir,"SupptabX_Output_table_abund_CC_noRS.html"))
+summary(MeanAnomalyModelAbund_noresc$model) # check the table against the outputs
+R2GLMER(MeanAnomalyModelAbund_noresc$model) # check the R2 values 
+# $conditional
+# [1] 0.6593063
+# 
+# $marginal
+# [1] 0.1331049
 
 
-
-# i. Abundance, mean anomaly excluding interaction with order
-
-MeanAnomalyModelAbund2_noresc <- GLMER(modelData = model_data,responseVar = "LogAbund_norescaling",fitFamily = "gaussian",
-                                fixedStruct = "LUI * StdTmeanAnomalyRS",
-                                randomStruct = "(1|SS)+(1|SSB)",
-                                saveVars = c("SSBS"))
-
-# get summary
-summary(MeanAnomalyModelAbund2_noresc$model)
-
-
-# save the model output
-save(MeanAnomalyModelAbund2_noresc, file = paste0(outDir, "MeanAnomalyModelAbund_noOrder_norescaling.rdata"))
-
-
-
-############################################################
-#                                                          #
-####              Abundance predictions                 ####   
-#                                                          #
-############################################################
+##### predictions for LUI CC model #####
 
 
 # what is the rescaled value of STA of 1
@@ -96,9 +174,6 @@ BackTransformCentreredPredictor(transformedX = 0.999, originalX = predictsSites$
 
 # what is the rescaled value of STA of 0
 BackTransformCentreredPredictor(transformedX = -1.39, originalX = predictsSites$StdTmeanAnomaly) # -1.39 gives about 0 
-
-
-#### 1. No rescaling but including interaction with Order ####
 
 # set up table for predictions
 nd <- expand.grid(
@@ -113,7 +188,7 @@ nd$StdTmeanAnomaly <- BackTransformCentreredPredictor(
   originalX = predictsSites$StdTmeanAnomaly)
 
 # set richness and abundance to 0 - to be predicted
-nd$LogAbund_norescaling <- 0
+nd$LogAbund_noRS <- 0
 
 # reference for % difference = primary vegetation and positive anomaly closest to 0
 refRow <- which((nd$LUI=="Primary vegetation") & (nd$StdTmeanAnomaly==min(abs(nd$StdTmeanAnomaly))))
@@ -209,85 +284,27 @@ lepres$Order <- "Lepidoptera"
 result.ab <- rbind(colres, dipres, hemres, hymres, lepres)
 result.ab$Metric <- "Total abundance"
 
-all_res <- result.ab
 
-#### 2. No rescaling but excluding interaction with Order ####
+final_res <- result.ab
 
+final_res$Order <- factor(final_res$Order, levels = c("All insects", "Coleoptera", "Diptera", "Hemiptera", "Hymenoptera", "Lepidoptera"))
 
-# reference is primary with 0 climate change so have 0 for that row
-nd <- expand.grid(
-  StdTmeanAnomalyRS= c(-1.39, 0.999),
-  LUI=factor(c("Primary vegetation","Secondary vegetation","Agriculture_Low","Agriculture_High"),
-             levels = levels(MeanAnomalyModelAbund2_noresc$data$LUI)))
+final_res$STA <- c(0, 1)
+final_res$STA <- factor(final_res$STA, levels = c("0", "1"))
 
-# set values for prediction
-nd$LogAbund_norescaling <- 0
+final_res$LUI <- factor(final_res$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
 
-# back transform the predictors and round
-nd$StdTmeanAnomaly <- round(BackTransformCentreredPredictor(
-  transformedX = nd$StdTmeanAnomalyRS,
-  originalX = predictsSites$StdTmeanAnomaly))
-
-# predict the results
-result.ab2 <- PredictGLMERRandIter(model = MeanAnomalyModelAbund2_noresc$model, data = nd)
-
-
-# backtransform
-result.ab2 <- exp(result.ab2)-0.01
-
-# convert to percentage difference from primary vegetation
-result.ab2 <- sweep(x = result.ab2, MARGIN = 2, STATS = result.ab2[1,], FUN = '/')
-
-# get quantiles
-a.preds.median <- ((apply(X = result.ab2,MARGIN = 1,FUN = median))*100)-100
-a.preds.upper <- ((apply(X = result.ab2,MARGIN = 1,FUN = quantile,probs = 0.975))*100)-100
-a.preds.lower <- ((apply(X = result.ab2,MARGIN = 1,FUN = quantile,probs = 0.025))*100)-100
-
-
-# combine data into one table for plotting
-abun_res <- as.data.frame(cbind(a.preds.median, a.preds.lower, a.preds.upper))
-colnames(abun_res) <- c("median", "lower", "upper")
-abun_res$Metric <- "Total abundance"
-abun_res$LUI <- factor(c("Primary vegetation", "Primary vegetation", "Secondary vegetation", "Secondary vegetation", "Agriculture_Low","Agriculture_Low", "Agriculture_High",  "Agriculture_High"), levels = c("Primary vegetation","Secondary vegetation", "Agriculture_Low","Agriculture_High"))
-
-abun_res$STA <- nd$StdTmeanAnomaly
-
-abun_res$Study <- "This study"
-abun_res$Order <- "All insects"
-abun_res$Fixed_effs <- "Land use and climate"
-abun_res$Realm <- "Global"
-
-res <- abun_res[, c(7, 4, 8:10, 5, 1:3, 6)]
-
-all_res$Study <- "This study"
-all_res$Fixed_effs <- "Land use and climate"
-all_res$Realm <- "Global"
-all_res$STA <- c(0, 1)
-names(all_res)[1:3] <- c("median", "lower", "upper")
-all_res <- all_res[, c(7, 6, 5, 8, 9, 4, 1:3, 10)]
-
-all_res <- rbind(all_res, res)
-
-# save table
-write.csv(all_res, file = paste0(outDir, "/percentage_change_LU_CC_abundance_norescaling.csv"), row.names = F)
-
-
-
-all_res$Order <- factor(all_res$Order, levels = c("All insects", "Coleoptera", "Diptera", "Hemiptera", "Hymenoptera", "Lepidoptera"))
-
-all_res$STA <- factor(all_res$STA, levels = c("0", "1"))
-
-all_res$LUI <- factor(all_res$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
+names(final_res)[1:3] <- c("Median",  "Upper_CI", "Lower_CI")
 
 
 # create point and error bar plot
-ggplot(data = all_res, aes(col = LUI, group = STA)) + 
+ggplot(data = final_res, aes(col = LUI, group = STA)) + 
   geom_hline(yintercept = 0, linetype = "dashed", size = 0.2) +
-  geom_point(aes(x = LUI, y = median, shape = STA), size = 1.5, position= position_dodge(width = 1)) + 
-  geom_errorbar(aes(x = LUI, ymin = lower, ymax = upper), position= position_dodge(width = 1), size = 0.5, width = 0.2)+
-  facet_wrap(~ Order) +
+  geom_point(aes(x = LUI, y = Median, shape = STA), size = 1.5, position= position_dodge(width = 1)) + 
+  geom_errorbar(aes(x = LUI, ymin = Lower_CI, ymax = Upper_CI), position= position_dodge(width = 1), size = 0.5, width = 0.2)+
+  facet_wrap(~ Order, scales = "free") +
   xlab("") +
-  scale_y_continuous(limits = c(-100, 180), breaks = scales::pretty_breaks(n = 10)) +
+  #scale_y_continuous(limits = c(-100, 150), breaks = scales::pretty_breaks(n = 10)) +
   ylab("Percentage change in total abundance (%)") +
   scale_color_manual(values = c("#009E73","#0072B2","#E69F00","#D55E00"), guide = "none") +
   scale_shape_manual(values=c(16, 17, 18, 15, 0, 1), name = "STA")+
@@ -309,9 +326,6 @@ ggplot(data = all_res, aes(col = LUI, group = STA)) +
         #legend.title = element_blank(),
         legend.text = element_text(size = 8))
 
-
-ggsave(filename = paste0(outDir, "Comparison_LUSTA_Abun_norescaling.pdf"), plot = last_plot(), width = 150, height = 120, units = "mm", dpi = 300)
-ggsave(filename = paste0(outDir, "Comparison_LUSTA_Abun_norescaling.jpeg"), plot = last_plot(), width = 150, height = 120, units = "mm", dpi = 600)
-
-
-
+# save the plot
+ggsave(filename = paste0(outDir, "SuppFIGX_LUSTA_Abun_noRS.pdf"), plot = last_plot(), width = 120, height = 150, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "SuppFIGX_LUSTA_Abun_noRS.jpeg"), plot = last_plot(), width = 120, height = 150, units = "mm", dpi = 600)
