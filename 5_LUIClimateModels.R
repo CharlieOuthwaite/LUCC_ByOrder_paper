@@ -83,7 +83,7 @@ model_data <- model_data[!is.na(model_data$StdTmeanAnomalyRS), ] # 8468 rows
 MeanAnomalyModelAbund <- GLMER(modelData = model_data,responseVar = "LogAbund",fitFamily = "gaussian",
                                fixedStruct = "LUI * StdTmeanAnomalyRS * Order",
                                randomStruct = "(1|SS)+(1|SSB)",
-                               saveVars = c("SSBS"))
+                               saveVars = c("SSBS", 'Latitude', 'Longitude'))
 
 # get summary
 summary(MeanAnomalyModelAbund$model)
@@ -97,7 +97,7 @@ save(MeanAnomalyModelAbund, file = paste0(outDir, "MeanAnomalyModelAbund.rdata")
 MeanAnomalyModelAbund2 <- GLMER(modelData = model_data,responseVar = "LogAbund",fitFamily = "gaussian",
                                fixedStruct = "LUI * StdTmeanAnomalyRS",
                                randomStruct = "(1|SS)+(1|SSB)",
-                               saveVars = c("SSBS"))
+                               saveVars = c("SSBS", 'Latitude', 'Longitude'))
 
 # get summary
 summary(MeanAnomalyModelAbund2$model)
@@ -114,7 +114,7 @@ model_data <- predictsSites[!is.na(predictsSites$StdTmeanAnomalyRS), ] # 8858 ro
 MeanAnomalyModelRich <- GLMER(modelData = model_data,responseVar = "Species_richness",fitFamily = "poisson",
                               fixedStruct = "LUI * StdTmeanAnomalyRS * Order",
                               randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",
-                              saveVars = c("SSBS"))
+                              saveVars = c("SSBS", 'Latitude', 'Longitude'))
 
 # get summary
 summary(MeanAnomalyModelRich$model)
@@ -127,7 +127,7 @@ save(MeanAnomalyModelRich, file = paste0(outDir, "MeanAnomalyModelRich.rdata"))
 MeanAnomalyModelRich2 <- GLMER(modelData = model_data,responseVar = "Species_richness",fitFamily = "poisson",
                               fixedStruct = "LUI * StdTmeanAnomalyRS",
                               randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",
-                              saveVars = c("SSBS"))
+                              saveVars = c("SSBS", 'Latitude', 'Longitude'))
 
 # save the model output
 summary(MeanAnomalyModelRich2$model)
