@@ -4,19 +4,23 @@
 #                                                          #
 ##%######################################################%##
 
-# rather than including order as an interactive term, we run a
+# Rather than including order as an interactive term, we run a
 # separate model for each insect order using a subset of the data. 
 
 # clear working environment
 rm(list = ls())
+
+# load libraries
+library(StatisticalModels)
+library(ggplot2)
 
 # set directories 
 datadir <- "5_RunLUIClimateModels/"
 outdir <- "10_Additional_Tests/Order_level_models/"
 if(!dir.exists(outdir)) dir.create(outdir)
 
+# read in functions
 source("0_Functions.R")
-
 
 # load in the data
 predictsSites <- readRDS(file = paste0(datadir,"PREDICTSSitesClimate_Data.rds"))
@@ -26,19 +30,21 @@ predictsSites <- readRDS(file = paste0(datadir,"PREDICTSSitesClimate_Data.rds"))
 
 orders <- c("Coleoptera", "Diptera", "Hemiptera", "Hymenoptera", "Lepidoptera")
 
-# order <- orders[1]
-
+# order <- orders[5]
 for(order in orders){
   
+  print(order)
+  
+  # subset the data to just those sites for the order of interest
   order_data <- predictsSites[predictsSites$Order == order, ]
   
+  # remove any rows with NAs in 
+  abun_data <- order_data[!is.na(order_data$LogAbund), ]
   
-  model_data <- order_data[!is.na(order_data$LogAbund), ]
-  model_data <- model_data[!is.na(model_data$StdTmeanAnomalyRS), ]
-  
+  print("abundance")
 
-  # run  model
-  MeanAnomalyModelAbund <- GLMER(modelData = model_data,responseVar = "LogAbund",fitFamily = "gaussian",
+  # run abundance model
+  MeanAnomalyModelAbund <- GLMER(modelData =  abun_data, responseVar = "LogAbund", fitFamily = "gaussian",
                                  fixedStruct = "LUI * StdTmeanAnomalyRS",
                                  randomStruct = "(1|SS)+(1|SSB)",
                                  saveVars = c("SSBS"))
@@ -49,14 +55,12 @@ for(order in orders){
   
   # ii. Richness, mean anomaly
   
-  model_data <- order_data[!is.na(order_data$StdTmeanAnomalyRS), ]
+  print("richness")
   
-  MeanAnomalyModelRich <- GLMER(modelData = model_data,responseVar = "Species_richness",fitFamily = "poisson",
+  MeanAnomalyModelRich <- GLMER(modelData = order_data, responseVar = "Species_richness", fitFamily = "poisson",
                                 fixedStruct = "LUI * StdTmeanAnomalyRS",
                                 randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",
                                 saveVars = c("SSBS"))
-  
-  summary(MeanAnomalyModelRich$model)
   
   save(MeanAnomalyModelRich, file = paste0(outdir, "MeanAnomalyModelRich_", order, ".rdata"))
   
@@ -64,9 +68,12 @@ for(order in orders){
   
 }
 
+# Diptera, richness warning:
+# warnings occurred: boundary (singular) fit: see help('isSingular')
 
-#### Loop through orders and plot results ####
 
+
+#### Loop through orders to plot results ####
 
 for(order in orders){
   
@@ -81,8 +88,8 @@ for(order in orders){
   
 
   nd <- expand.grid(
-    StdTmeanAnomalyRS=seq(from = min(MeanAnomalyModelAbund$data$StdTmeanAnomalyRS),
-                          to = max(MeanAnomalyModelAbund$data$StdTmeanAnomalyRS),
+    StdTmeanAnomalyRS=seq(from = min(predictsSites$StdTmeanAnomalyRS),
+                          to = max(predictsSites$StdTmeanAnomalyRS),
                           length.out = 100),
     LUI=factor(c("Primary vegetation","Secondary vegetation","Agriculture_Low","Agriculture_High"),
                levels = levels(MeanAnomalyModelAbund$data$LUI)))
@@ -94,8 +101,7 @@ for(order in orders){
   
   # set richness and abundance to 0 - to be predicted
   nd$LogAbund <- 0
-  nd$Species_richness <- 0
-  
+
   # reference for % difference = primary vegetation and positive anomaly closest to 0
   refRow <- which((nd$LUI=="Primary vegetation") & (nd$StdTmeanAnomaly==min(abs(nd$StdTmeanAnomaly))))
   
@@ -115,23 +121,23 @@ for(order in orders){
     probs = exclQuantiles)
   
   # predict the results
-  a.preds.tmean <- PredictGLMERRandIter(model = MeanAnomalyModelAbund$model,data = nd)
+  a.preds.tmean <- PredictGLMERRandIter(model = MeanAnomalyModelAbund$model, data = nd, nIters = 10000)
   
   # back transform the abundance values
   a.preds.tmean <- exp(a.preds.tmean)-0.01
   
   # convert to relative to reference
-  a.preds.tmean <- sweep(x = a.preds.tmean,MARGIN = 2,STATS = a.preds.tmean[refRow,],FUN = '/')
+  a.preds.tmean <- sweep(x = a.preds.tmean, MARGIN = 2,STATS = a.preds.tmean[refRow,], FUN = '/')
   
   # remove anything above and below the quantiles
-  a.preds.tmean[which((nd$UI2=="Primary vegetation") & (nd$StdTmeanAnomalyRS < QPV[1])),] <- NA
-  a.preds.tmean[which((nd$UI2=="Primary vegetation") & (nd$StdTmeanAnomalyRS > QPV[2])),] <- NA
-  a.preds.tmean[which((nd$UI2=="Secondary vegetation") & (nd$StdTmeanAnomalyRS < QSV[1])),] <- NA
-  a.preds.tmean[which((nd$UI2=="Secondary vegetation") & (nd$StdTmeanAnomalyRS > QSV[2])),] <- NA
-  a.preds.tmean[which((nd$UI2=="Agriculture_Low") & (nd$StdTmeanAnomalyRS < QAL[1])),] <- NA
-  a.preds.tmean[which((nd$UI2=="Agriculture_Low") & (nd$StdTmeanAnomalyRS > QAL[2])),] <- NA
-  a.preds.tmean[which((nd$UI2=="Agriculture_High") & (nd$StdTmeanAnomalyRS < QAH[1])),] <- NA
-  a.preds.tmean[which((nd$UI2=="Agriculture_High") & (nd$StdTmeanAnomalyRS > QAH[2])),] <- NA
+  a.preds.tmean[which((nd$LUI=="Primary vegetation") & (nd$StdTmeanAnomalyRS < QPV[1])),] <- NA
+  a.preds.tmean[which((nd$LUI=="Primary vegetation") & (nd$StdTmeanAnomalyRS > QPV[2])),] <- NA
+  a.preds.tmean[which((nd$LUI=="Secondary vegetation") & (nd$StdTmeanAnomalyRS < QSV[1])),] <- NA
+  a.preds.tmean[which((nd$LUI=="Secondary vegetation") & (nd$StdTmeanAnomalyRS > QSV[2])),] <- NA
+  a.preds.tmean[which((nd$LUI=="Agriculture_Low") & (nd$StdTmeanAnomalyRS < QAL[1])),] <- NA
+  a.preds.tmean[which((nd$LUI=="Agriculture_Low") & (nd$StdTmeanAnomalyRS > QAL[2])),] <- NA
+  a.preds.tmean[which((nd$LUI=="Agriculture_High") & (nd$StdTmeanAnomalyRS < QAH[1])),] <- NA
+  a.preds.tmean[which((nd$LUI=="Agriculture_High") & (nd$StdTmeanAnomalyRS > QAH[2])),] <- NA
   
   # Get the median, upper and lower quants for the plot
   nd$PredMedian <- ((apply(X = a.preds.tmean,MARGIN = 1,
@@ -148,14 +154,14 @@ for(order in orders){
   
   # plot
   p1 <- ggplot(data = nd, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
-    geom_line(aes(col = LUI), size = 0.75) +
+    geom_line(aes(col = LUI), linewidth = 0.75) +
     geom_ribbon(aes(ymin = nd$PredLower, ymax = nd$PredUpper, fill = LUI), alpha = 0.2) +
-    geom_hline(yintercept = 0, lty = "dashed", size = 0.2) +
+    geom_hline(yintercept = 0, lty = "dashed", linewidth = 0.2) +
     scale_fill_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
     scale_colour_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
     theme_bw() + 
     scale_x_continuous(breaks = c(0,0.5, 1,1.5, 2), limits = c(0, 2)) +
-    scale_y_continuous(breaks = c(-100, -75, -50, -25, 0, 25, 50, 75, 100), limits = c(-100, 100)) +
+    scale_y_continuous(breaks = c(-100, -50, 0, 50, 100, 150, 200, 250), limits = c(-100, 250)) +
     ylab("Change in total abundance (%)") +
     xlab("Standardised Temperature Anomaly") +
     #xlim(c(-1, 5)) +
@@ -177,8 +183,8 @@ for(order in orders){
   
   ## now the species richness plot 
   nd2 <- expand.grid(
-    StdTmeanAnomalyRS=seq(from = min(MeanAnomalyModelRich$data$StdTmeanAnomalyRS),
-                          to = max(MeanAnomalyModelRich$data$StdTmeanAnomalyRS),
+    StdTmeanAnomalyRS=seq(from = min(predictsSites$StdTmeanAnomalyRS),
+                          to = max(predictsSites$StdTmeanAnomalyRS),
                           length.out = 100),
     LUI=factor(c("Primary vegetation","Secondary vegetation","Agriculture_Low","Agriculture_High"),
                levels = levels(MeanAnomalyModelRich$data$LUI)))
@@ -189,7 +195,6 @@ for(order in orders){
     originalX = predictsSites$StdTmeanAnomaly)
   
   # set richness and abundance to 0 - to be predicted
-  nd2$LogAbund <- 0
   nd2$Species_richness <- 0
   
   # reference for % difference = primary vegetation and positive anomaly closest to 0
@@ -211,13 +216,13 @@ for(order in orders){
     probs = exclQuantiles)
   
   # predict the results
-  a.preds.tmean <- PredictGLMERRandIter(model = MeanAnomalyModelRich$model,data = nd2, nIters = 10000)
+  a.preds.tmean <- PredictGLMERRandIter(model = MeanAnomalyModelRich$model, data = nd2, nIters = 10000)
   
   # back transform the abundance values
   a.preds.tmean <- exp(a.preds.tmean)
   
   # convert to relative to reference
-  a.preds.tmean <- sweep(x = a.preds.tmean,MARGIN = 2,STATS = a.preds.tmean[refRow,],FUN = '/')
+  a.preds.tmean <- sweep(x = a.preds.tmean, MARGIN = 2, STATS = a.preds.tmean[refRow,], FUN = '/')
   
   # remove anything above and below the quantiles
   a.preds.tmean[which((nd2$LUI=="Primary vegetation") & (nd2$StdTmeanAnomalyRS < QPV[1])),] <- NA
@@ -230,12 +235,12 @@ for(order in orders){
   a.preds.tmean[which((nd2$LUI=="Agriculture_High") & (nd2$StdTmeanAnomalyRS > QAH[2])),] <- NA
   
   # Get the median, upper and lower quants for the plot
-  nd2$PredMedian <- ((apply(X = a.preds.tmean,MARGIN = 1,
-                            FUN = median,na.rm=TRUE))*100)-100
-  nd2$PredUpper <- ((apply(X = a.preds.tmean,MARGIN = 1,
-                           FUN = quantile,probs = 0.975,na.rm=TRUE))*100)-100
-  nd2$PredLower <- ((apply(X = a.preds.tmean,MARGIN = 1,
-                           FUN = quantile,probs = 0.025,na.rm=TRUE))*100)-100
+  nd2$PredMedian <- ((apply(X = a.preds.tmean, MARGIN = 1,
+                            FUN = median, na.rm=TRUE))*100)-100
+  nd2$PredUpper <- ((apply(X = a.preds.tmean, MARGIN = 1,
+                           FUN = quantile, probs = 0.975, na.rm=TRUE))*100)-100
+  nd2$PredLower <- ((apply(X = a.preds.tmean, MARGIN = 1,
+                           FUN = quantile, probs = 0.025, na.rm=TRUE))*100)-100
   
   # set factor levels
   nd2$LUI <- factor(nd2$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
@@ -248,7 +253,7 @@ for(order in orders){
     scale_fill_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
     scale_colour_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
     scale_x_continuous(breaks = c(0,0.5, 1,1.5, 2), limits = c(0, 2)) +
-    scale_y_continuous(breaks = c(-100, -75, -50, -25, 0, 25, 50, 75, 100), limits = c(-100, 100)) +
+    scale_y_continuous(breaks = c(-100, -50, 0, 50, 100, 150, 200, 250), limits = c(-100, 250)) +
     theme_bw() + 
     ylab("Change in species richness (%)") +
     xlab("Standardised Temperature Anomaly") +
@@ -278,74 +283,33 @@ for(order in orders){
   
 }
 
+
+
 # check R-squared values
 
-R2GLMER (MeanAnomalyModelAbund_Coleoptera$model)
-# $conditional
-# [1] 0.5924863
-# 
-# $marginal
-# [1] 0.04200098
+r2tab <- NULL
 
-R2GLMER (MeanAnomalyModelAbund_Diptera$model)
-# $conditional
-# [1] 0.5303029
-# 
-# $marginal
-# [1] 0.06720692
+for(order in orders){
+  
+# load the models
+load(file = paste0(outdir, "MeanAnomalyModelAbund_", order, ".rdata"))
+load(file = paste0(outdir, "MeanAnomalyModelRich_", order, ".rdata"))
 
-R2GLMER (MeanAnomalyModelAbund_Hemiptera$model)
-# $conditional
-# [1] 0.4286731
-# 
-# $marginal
-# [1] 0.07476181
+# organise the r-squared values
+cond1 <- R2GLMER(MeanAnomalyModelAbund$model)[1]
+marg1 <- R2GLMER(MeanAnomalyModelAbund$model)[2]
 
-R2GLMER (MeanAnomalyModelAbund_Hymenoptera$model)
-# $conditional
-# [1] 0.4851417
-# 
-# $marginal
-# [1] 0.01828185
+r2tab <- rbind(r2tab, c(order, cond1, marg1, "Total abundance"))
 
-R2GLMER (MeanAnomalyModelAbund_Lepidoptera$model)
-# $conditional
-# [1] 0.5404108
-# 
-# $marginal
-# [1] 0.03082085
+# organise the r-squared values
+cond2 <- R2GLMER(MeanAnomalyModelRich$model)[1]
+marg2 <- R2GLMER(MeanAnomalyModelRich$model)[2]
 
-R2GLMER (MeanAnomalyModelRich_Coleoptera$model)
-# $conditional
-# [1] 0.7595814
-# 
-# $marginal
-# [1] 0.01589639
 
-R2GLMER (MeanAnomalyModelRich_Diptera$model)
-# $conditional
-# [1] 0.8044178
-# 
-# $marginal
-# [1] 0.1016308
+r2tab <- rbind(r2tab, c(order, cond2, marg2, "Species richness"))
 
-R2GLMER (MeanAnomalyModelRich_Hemiptera$model)
-# $conditional
-# [1] 0.6736128
-# 
-# $marginal
-# [1] 0.06802885
+}
 
-R2GLMER (MeanAnomalyModelRich_Hymenoptera$model)
-# $conditional
-# [1] 0.6459363
-# 
-# $marginal
-# [1] 0.01125481
-
-R2GLMER (MeanAnomalyModelRich_Lepidoptera$model)
-# $conditional
-# [1] 0.8252371
-# 
-# $marginal
-# [1] 0.007577729
+# save the table
+write.csv(r2tab, file = paste0(outdir, "Table_RSquared_order_models.csv"), row.names = F)
+          
