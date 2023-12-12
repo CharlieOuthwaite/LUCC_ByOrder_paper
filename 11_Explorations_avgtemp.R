@@ -28,18 +28,20 @@ library(cowplot)
 # load in the data
 predictsSites <- readRDS(file = paste0(datadir,"PREDICTSSitesClimate_Data.rds"))
 
-
+## assess correlations between mean temperature of the site and the STA
+cor(predictsSites$avg_temp, predictsSites$StdTmeanAnomaly)
+# 0.1973725
 
 #### a. Abundance model ####
 
 model_data <- predictsSites[!is.na(predictsSites$LogAbund), ] # 8468
-model_data <- model_data[!is.na(model_data$StdTmeanAnomalyRS), ]
 
-
-MeanAnomalyModelAbund_avg <- GLMER(modelData = model_data,responseVar = "LogAbund",fitFamily = "gaussian",
-                               fixedStruct = "avg_temp + LUI * StdTmeanAnomalyRS * Order",
-                               randomStruct = "(1|SS)+(1|SSB)",
-                               saveVars = c("SSBS"))
+# include average temperature in the model
+MeanAnomalyModelAbund_avg <- GLMER(modelData = model_data, responseVar = "LogAbund",
+                                   fitFamily = "gaussian",
+                                   fixedStruct = "avg_temp + LUI * StdTmeanAnomalyRS * Order",
+                                   randomStruct = "(1|SS)+(1|SSB)",
+                                   saveVars = c("SSBS"))
 
 # get summary
 summary(MeanAnomalyModelAbund_avg$model)
@@ -52,13 +54,18 @@ save(MeanAnomalyModelAbund_avg, file = paste0(outdir, "MeanAnomalyModelAbund_avg
 
 model_data <- predictsSites[!is.na(predictsSites$StdTmeanAnomalyRS), ] # 8858
 
-MeanAnomalyModelRich_avg <- GLMER(modelData = model_data,responseVar = "Species_richness",fitFamily = "poisson",
-                              fixedStruct = "avg_temp + LUI * StdTmeanAnomalyRS * Order",
-                              randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",
-                              saveVars = c("SSBS"))
+# include average temperature in the model
+MeanAnomalyModelRich_avg <- GLMER(modelData = model_data,
+                                  responseVar = "Species_richness",
+                                  fitFamily = "poisson",
+                                  fixedStruct = "avg_temp + LUI * StdTmeanAnomalyRS * Order",
+                                  randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",
+                                  saveVars = c("SSBS"))
 
+# get summary
 summary(MeanAnomalyModelRich_avg$model)
 
+# save the model output
 save(MeanAnomalyModelRich_avg, file = paste0(outdir, "MeanAnomalyModelRich_avgtemp.rdata"))
 
 # Warning message:
@@ -68,11 +75,14 @@ save(MeanAnomalyModelRich_avg, file = paste0(outdir, "MeanAnomalyModelRich_avgte
 
 #### Read in original models, compare AIC ####
 
+# where are they saved?
 moddir <- "5_RunLUIClimateModels/"
 
+# load abundance and richness data
 load(paste0(moddir, "MeanAnomalyModelAbund.rdata"))
 load(paste0(moddir, "MeanAnomalyModelRich.rdata"))
 
+# assess AICs
 AIC(MeanAnomalyModelAbund_avg$model, MeanAnomalyModelAbund$model)
 
 #                                 df      AIC
@@ -85,13 +95,12 @@ AIC(MeanAnomalyModelRich_avg$model, MeanAnomalyModelRich$model)
 # MeanAnomalyModelRich_avg$model 44 54747.09
 # MeanAnomalyModelRich$model     43 54750.61
 
-
+# There is very little difference in AIC values between the two models
 rm(MeanAnomalyModelRich, MeanAnomalyModelAbund)
 
 # later code uses original names so switch back
 MeanAnomalyModelAbund <- MeanAnomalyModelAbund_avg
 MeanAnomalyModelRich <- MeanAnomalyModelRich_avg
-
 
 
 #### Plots of models with order level random effect ####
@@ -122,20 +131,6 @@ nd$Species_richness <- 0
 
 # reference for % difference = primary vegetation and positive anomaly closest to 0
 refRow <- which((nd$LUI=="Primary vegetation") & (nd$StdTmeanAnomaly==min(abs(nd$StdTmeanAnomaly))))
-
-# # set quantiles
-# QPV <- quantile(x = MeanAnomalyModelAbund$data$StdTmeanAnomalyRS[
-#   MeanAnomalyModelAbund$data$LUI=="Primary vegetation"],
-#   probs = exclQuantiles)
-# QSV <- quantile(x = MeanAnomalyModelAbund$data$StdTmeanAnomalyRS[
-#   MeanAnomalyModelAbund$data$LUI=="Secondary vegetation"],
-#   probs = exclQuantiles)
-# QAL <- quantile(x = MeanAnomalyModelAbund$data$StdTmeanAnomalyRS[
-#   MeanAnomalyModelAbund$data$LUI=="Agriculture_Low"],
-#   probs = exclQuantiles)
-# QAH <- quantile(x = MeanAnomalyModelAbund$data$StdTmeanAnomalyRS[
-#   MeanAnomalyModelAbund$data$LUI=="Agriculture_High"],
-#   probs = exclQuantiles)
 
 # set quantiles by Order
 # coleoptera
