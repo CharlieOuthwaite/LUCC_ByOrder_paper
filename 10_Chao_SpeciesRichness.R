@@ -10,13 +10,13 @@
 #### Set up ####
 
 # set up directories
-dataDir <- "Data/"
-inDir<- "4_PREDICTSMatchClimateIndex/"
+# dataDir <- "Data/"
+inDir<- "5_RunLUIClimateModels/"
 outDir <- "10_Additional_Tests/Chao_SpeciesRichness/"
 if(!dir.exists(outDir)) dir.create(outDir)
 
 # Load required libraries
-library(predictsFunctions)
+library(StatisticalModels)
 library(dplyr)
 library(ggplot2)
 library(cowplot)
@@ -24,258 +24,29 @@ library(cowplot)
 # source in additional functions
 source("0_Functions.R")
 
-# Set the path to copy of the database
-predicts.path <- paste0(dataDir,"database.rds")
-
-# Read in the PREDICTS data
-predicts <- ReadPREDICTS(predicts.path)
-# 3250404 obs. of 67 variables
-
-# Select only data for insects
-predicts <- predicts[(predicts$Class=="Insecta"),]
-# 935078 obs. of 67 variables
-
-# Correct effort-sensitive abundance measures (assumes linear relationship between effort and recorded abundance)
-predicts <- CorrectSamplingEffort(diversity = predicts)
-# Correcting 0 missing sampling effort values
-# Re-scaling sampling effort
-# Correcting 870378 values for sensitivity to sampling effort # matches Outhwaite et al.
-
-# check diversity metrics
-table(predicts$Diversity_metric)
-
-# insects should not have diversity metric "percent cover", this is a mistake in the database
-# remove those entries that are the problem
-predicts <- predicts[!predicts$Diversity_metric == "percent cover", ]
-predicts <- droplevels(predicts)
-# 934845 obs. of 67 variables
-
-# MergeSites
-
-# Merge sites that have the same coordinates, from the same study and same taxonomic family (e.g. multiple traps on a single transect)
-predicts <- predictsFunctions::MergeSites(diversity = predicts)
-
-# prepare PREDICTS
-# remove entries without Order
-predicts <- droplevels(predicts[(predicts$Order!=""),])
-# 826016 obs. of 67 variables
-
-# filter only for the orders with at least 600 unique sites
-predicts <- predicts %>% filter(Order %in% c("Hymenoptera", "Coleoptera", "Lepidoptera", "Diptera", "Hemiptera")) %>% droplevels()
-# 810399 obs. of 67 variables
-
-# convert Order to a "factor"
-predicts$Order <- as.factor(predicts$Order)
-
-# check
-table(predicts$Order)
-
-# Coleoptera     Diptera   Hemiptera Hymenoptera Lepidoptera   
-#     390020       27157       49119      176639      167464      
-
-# Split predicts into separate data frames according to insect Order
-OrderName <- paste0("",predicts$Order)
-
-by_Order <- split(predicts,OrderName)
-
-# extract data frames from list into global environment
-list2env(by_Order,globalenv())
-
-# Calculate site metrics of diversity for each order, include extra columns:
-# Predominant_land_use
-# SSB
-# SSBS
-# Biome
-# Order
-# species richness estimators
-
-# droplevels() drops unused factor levels. 
-# This is particularly useful if we want to drop factor levels that are no longer 
-# used due to subsetting a vector or a data frame (as we did with split()). 
-
-Coleoptera <- droplevels(Coleoptera)
-Coleoptera <- SiteMetrics(diversity = Coleoptera,
-                          extra.cols = c("Predominant_land_use",
-                                         "SSB","SSBS", "Biome","Order"),
-                          srEstimators = "Chao")
-Diptera <- droplevels(Diptera)
-Diptera <- SiteMetrics(diversity = Diptera,
-                       extra.cols = c("Predominant_land_use",
-                                      "SSB","SSBS", "Biome","Order"),
-                       srEstimators = "Chao")
-Hemiptera <- droplevels(Hemiptera)
-Hemiptera <- SiteMetrics(diversity = Hemiptera,
-                         extra.cols = c("Predominant_land_use",
-                                        "SSB","SSBS", "Biome","Order"),
-                         srEstimators = "Chao")
-Hymenoptera <- droplevels(Hymenoptera)
-Hymenoptera <- SiteMetrics(diversity = Hymenoptera,
-                           extra.cols = c("Predominant_land_use",
-                                          "SSB","SSBS", "Biome","Order"),
-                           srEstimators = "Chao")
-Lepidoptera <- droplevels(Lepidoptera)
-Lepidoptera <- SiteMetrics(diversity = Lepidoptera,
-                           extra.cols = c("Predominant_land_use",
-                                          "SSB","SSBS", "Biome","Order"),
-                           srEstimators = "Chao")
-
-
-# merge all sites_Order data frames into one called "sites" using rbind()
-sites <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera)
-# 10746 obs. of 25 variables
-
-# Chao cannot be estimated for all sites, so drop those that it can't and see what is left
-sites <- sites[!is.na(sites$ChaoR),] 
-# 6585 obs. of 23 variables
-
-# simple plot of estimated species richness against sampled species richness
-jpeg(file="10_Additional_Tests/Species Richness vs Chao.jpeg")
-
-par(tck=-0.01,mgp=c(1.6,0.2,0),mar=c(2.7,2.7,0.2,0.2),las=1)
-plot(sites$Species_richness+1,sites$ChaoR+1,log="xy",pch=16,
-     xlab="Sampled species richness",ylab="Estimated species richness")
-abline(0,1,lwd=2,col="#ff0000")
-
-dev.off()
-
-# histogram of the ratios of estimated to sampled species richness:
-jpeg(file="10_Additional_Tests/Estimated to Sampled Species Richness Ratio.jpeg")
-
-par(tck=-0.01,mgp=c(1.6,0.2,0),mar=c(2.7,2.7,0.2,0.2),las=1)
-hist(x = log10((sites$ChaoR-sites$Species_richness)+1),
-     xaxt="n",xlab="Estimated - Sampled richness",main=NULL)
-axis(1,at=log10(c(0,1,5,10,100,1000)+1),labels=c(0,1,5,10,100,1000))
-
-dev.off()
-
-# Test whether completeness of sampling is related to sampled or estimated species richness:
-jpeg(file="10_Additional_Tests/Completeness of Sampling.jpeg")
-
-par(mfrow=c(1,2),tck=-0.01,mgp=c(1.6,0.2,0),mar=c(2.7,2.7,0.2,0.2),las=1)
-plot(x = sites$Species_richness+1,y = (sites$ChaoR - sites$Species_richness)+1,log="xy",pch=16,
-     xlab="Sampled species richness",ylab="Estimated - Sampled richness",
-     xaxt="n",yaxt="n")
-axis(1,at=c(1,11,51,101,501),labels=c(0,10,50,100,500))
-axis(2,at=c(1,11,51,101,501),labels=c(0,10,50,100,500))
-plot(x = sites$ChaoR+1,y = (sites$ChaoR - sites$Species_richness)+1,log="xy",pch=16,
-     xlab="Estimated species richness",ylab="Estimated - Sampled richness",
-     xaxt="n",yaxt="n")
-axis(1,at=c(1,11,51,101,501,1001),labels=c(0,10,50,100,500,1000))
-axis(2,at=c(1,11,51,101,501),labels=c(0,10,50,100,500))
-
-dev.off()
+# load in the dataset 
+sites <- readRDS(file = paste0(inDir, "PREDICTSSitesClimate_Data.rds"))
 
 # round the estimated species richness values to integers.
 sites$ChaoR <- round(sites$ChaoR,0)
 
-# First, we will rearrange the land-use classification a bit
-# rename "Predominant_land_use" to "LandUse"
-sites$LandUse <- paste(sites$Predominant_land_use)
+# remove sites that do not have an estimate of ChaoR
+sites <- sites[!is.na(sites$ChaoR), ]
+# 5896 rows
 
-# Drop classification where land use could not be identified
-sites$LandUse[(sites$LandUse=="Cannot decide")] <- NA
+# assess coverage of the data
+table(sites$Order, sites$LUI) 
 
-# drop classification where use intensity could not be identified
-sites$Use_intensity[sites$Use_intensity=="Cannot decide"] <- NA
-
-# Now make the variable a factor, and set the reference level to primary vegetation
-sites$LandUse <- factor(sites$LandUse)
-sites$LandUse <- relevel(sites$LandUse,ref="Primary vegetation")
-
-# combine LandUse (LU) and Use Intensity (UI) into new variable Land Use Intensity (LUI)
-sites$LUI <- paste0(sites$LandUse,'_',sites$Use_intensity)
-sites$LUI[grep("NA",sites$LUI)] <- NA # where "NA" appears in the UI field, drop classification
-
-# recode according to land use and use intensity combinations
-sites$LUI <- dplyr::recode(sites$LUI,
-                           'Primary vegetation_Minimal use' = 'Primary vegetation',
-                           'Cropland_Light use' = 'Agriculture_High',
-                           'Secondary vegetation (indeterminate age)_Minimal use' = 'Secondary vegetation',
-                           'Urban_Light use' = 'Urban',
-                           'Secondary vegetation (indeterminate age)_Light use' = 'Secondary vegetation',
-                           'Cropland_Intense use' = 'Agriculture_High',
-                           'Cropland_Minimal use' = 'Agriculture_Low',
-                           'Pasture_Light use' = 'Agriculture_Low',
-                           'Pasture_Minimal use' = 'Agriculture_Low',
-                           'Intermediate secondary vegetation_Minimal use' = 'Secondary vegetation',
-                           'Mature secondary vegetation_Minimal use' = 'Secondary vegetation',
-                           'Secondary vegetation (indeterminate age)_Intense use' = 'Secondary vegetation',
-                           'Pasture_Intense use' = 'Agriculture_High',
-                           'Urban_Minimal use' = 'Urban',
-                           'Primary vegetation_Light use' = 'Primary vegetation',
-                           'Young secondary vegetation_Light use' = 'Secondary vegetation',
-                           'Urban_Intense use' = 'Urban',
-                           'Primary vegetation_Intense use' = 'Primary vegetation',
-                           'Young secondary vegetation_Minimal use' = 'Secondary vegetation',
-                           'Mature secondary vegetation_Intense use' = 'Secondary vegetation',
-                           'Plantation forest_Minimal use' = 'Agriculture_Low',
-                           'Plantation forest_Intense use' = 'Agriculture_High',
-                           'Young secondary vegetation_Intense use' = 'Secondary vegetation',
-                           'Plantation forest_Light use' = 'Agriculture_High',
-                           'Mature secondary vegetation_Light use' = 'Secondary vegetation',
-                           'Intermediate secondary vegetation_Intense use' = 'Secondary vegetation',
-                           'Intermediate secondary vegetation_Light use' = 'Secondary vegetation')
-
-# 6585 obs. of 25 variables
-
-sites$Use_intensity[((sites$LandUse=="Mature secondary vegetation") & 
-                       (sites$Use_intensity=="Intense use"))] <- "Light use"
-sites$Use_intensity[((sites$LandUse=="Intermediate secondary vegetation") & 
-                       (sites$Use_intensity=="Intense use"))] <- "Light use"
-sites$Use_intensity[((sites$LandUse=="Young secondary vegetation") & 
-                       (sites$Use_intensity=="Intense use"))] <- "Light use"
-
-# remove the urban sites and sites that are NA in LUI
-sites <- sites[!sites$LUI == "Urban", ]
-sites <- sites[!is.na(sites$LUI), ]
-
-# 5920 obs. of 25 variables
-sites <- droplevels(sites)
-
-# Remove sites without coordinates
-sites <- sites[!is.na(sites$Latitude), ]
-# 5920 obs. of 25 variables
-
-# load in original dataset and match climate anomaly data to sites
-predictsSites <- readRDS(paste0(inDir,"PREDICTSSites_Climate.rds"))
-predictsSites <- predictsSites@data
-# 8884 obs. of 35 variables
-
-# keep only SSBS and climate anomaly variables
-predictsSites <- predictsSites[ , c("SSBS", "StdTmeanAnomaly", "StdTmaxAnomaly")]
-# 8884 obs. of 3 variables
-
-# Select unique sites only so there is no duplication
-predictsSites <- unique(predictsSites)
-
-# combine to get the anomaly info
-sites2 <- merge(sites, predictsSites, by = "SSBS")
-# 5920 obs. of 27 variables
-
-sites2$LUI <- factor(sites2$LUI)
-sites2$LUI <- relevel(sites2$LUI,ref="Primary vegetation")
-
-# organise the climate anomaly data
-sites2$StdTmeanAnomalyRS <- StdCenterPredictor(sites2$StdTmeanAnomaly)
-
-# drop levels
-sites2 <- droplevels(sites2)
-
-save(sites2, file = paste0(outDir, "PREDICTS_sites_ChaoR.rdata"))
+#             Primary vegetation Secondary vegetation Agriculture_Low Agriculture_High
+# Coleoptera                 512                  339             228              282
+# Diptera                     76                   95              86              143
+# Hemiptera                  143                  110             255               99
+# Hymenoptera                367                  410             473             1157
+# Lepidoptera                283                  491             266               81
 
 
-table(sites2$Order, sites2$LUI)
-
-#             Primary vegetation Agriculture_High Agriculture_Low Secondary vegetation
-# Coleoptera                 512              282             228                  339
-# Diptera                     77              143              86                   95
-# Hemiptera                  143               99             255                  110
-# Hymenoptera                367             1162             478                  423
-# Lepidoptera                283               81             266                  491
-
-
-length(unique(sites2$SSBS)) # 4378 sites
-length(unique(sites2$SS)) # 158 studies
+length(unique(sites$SSBS)) # 4354 sites
+length(unique(sites$SS)) # 157 studies
 
 ############################################################
 #                                                          #
@@ -283,22 +54,21 @@ length(unique(sites2$SS)) # 158 studies
 #                                                          #
 ############################################################
 
-# load(file = paste0(outDir, "PREDICTS_sites_ChaoR.rdata"))
-
-
 # 1. Chao Richness, mean anomaly)
 
-MeanAnomalyModelChaoR <- GLMER(modelData = sites2,responseVar = "ChaoR",
-                              fitFamily = "poisson",
-                              fixedStruct = "LUI * StdTmeanAnomalyRS * Order",
-                              randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",
-                              saveVars = c("Total_abundance","SSBS"))
+MeanAnomalyModelChaoR <- GLMER(modelData = sites,
+                               responseVar = "ChaoR",
+                               fitFamily = "poisson",
+                               fixedStruct = "LUI * StdTmeanAnomalyRS * Order",
+                               randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",
+                               saveVars = c("Total_abundance","SSBS"))
+# Warning message:
+#   In commonArgs(par, fn, control, environment()) :
+#   maxfun < 10 * length(par)^2 is not recommended.
 
 save(MeanAnomalyModelChaoR, file = paste0(outDir, "/MeanAnomalyModelChaoR.rdata"))
 
-
 summary(MeanAnomalyModelChaoR$model)
-# ChaoR ~ LUI * StdTmeanAnomalyRS * Order + (1 | SS) + (1 | SSB) + (1 | SSBS)
 
 
 
@@ -308,13 +78,6 @@ summary(MeanAnomalyModelChaoR$model)
 #                                                          #
 ############################################################
 
-
-# load models
-load(paste0(outDir, "MeanAnomalyModelChaoR.rdata"))
-# load(paste0(outDir, "MaxAnomalyModelChaoR.rdata"))
-
-# load sites2
-load(paste0(outDir, "PREDICTS_sites_ChaoR.rdata"))
 
 #### 1. mean anom ChaoR ####
 
@@ -332,7 +95,7 @@ nd <- expand.grid(
 # back transform the predictors
 nd$StdTmeanAnomaly <- BackTransformCentreredPredictor(
   transformedX = nd$StdTmeanAnomalyRS,
-  originalX = sites2$StdTmeanAnomaly)
+  originalX = sites$StdTmeanAnomaly)
 
 # set richness and abundance to 0 - to be predicted
 nd$ChaoR <- 0
@@ -414,7 +177,7 @@ L_QAH <- quantile(x = MeanAnomalyModelChaoR$data$StdTmeanAnomalyRS[
 
 
 # predict the results
-c.preds.tmean <- PredictGLMERRandIter(model = MeanAnomalyModelChaoR$model,data = nd)
+c.preds.tmean <- PredictGLMERRandIter(model = MeanAnomalyModelChaoR$model, data = nd)
 
 # back transform the abundance values
 c.preds.tmean <- exp(c.preds.tmean)
@@ -699,4 +462,5 @@ MeanAnomChao <- cowplot::plot_grid(MeanAnomChao,legend,ncol=1, rel_heights = c(1
 
 # save the ggplots
 ggsave(filename = paste0(outDir, "MeanAnomChao.pdf"), plot = MeanAnomChao, width = 200, height = 150, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "MeanAnomChao.jpeg"), plot = MeanAnomChao, width = 200, height = 150, units = "mm", dpi = 300)
 
