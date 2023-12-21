@@ -38,11 +38,6 @@ load(paste0(moddir, "MeanAnomalyModelRich.rdata"))  # MeanAnomalyModelRich
 
 # 1. abundance mean anomaly
 
-# result1 <- cooks.distance(MeanAnomalyModelAbund$model, sort = T)
-# range(result1)
-# summary(result1 < 1)# all true
-# result1[result1 > 0.4]
-
 # extract the data used to run the model
 modelData <- MeanAnomalyModelAbund$data
 
@@ -63,29 +58,32 @@ View(result1[result1$V1 >= 1,])
 
 abun_ss <- result1[result1$V1 >= 1, "study"]
 
-# 3 studies are classed as outliers
-
-# studies with cook's distance >= 1
+# 3 studies are classed as outliers (cook's distance greater than 1)
 # "AD1_2008__Billeter 6"    "HW1_2011__Summerville 1" "SC1_2005__Richardson 1" 
 
+# Take a look at the outliers
 test <- modelData[modelData$SS %in% abun_ss, ]
 length(unique(test$SSBS)) # 203
 
 table(test$Order)
 # Coleoptera     Diptera   Hemiptera Hymenoptera Lepidoptera 
-# 139         123          59         123         139 
+# 139                123          59         123         139 
 
+# percentage of sites that are included in the outlying studies
 table(test$Order)/table(modelData$Order) *100
 # Coleoptera     Diptera   Hemiptera Hymenoptera Lepidoptera 
 # 6.056645   17.571429    6.933020    3.938521    9.272849 
 
+# assess land use of outlying studies
 table(test$Order, test$LUI)
-#             Primary vegetation Agriculture_High Agriculture_Low Secondary vegetation
-# Coleoptera                   0                0               0                  139
-# Diptera                      0               32              32                   59
-# Hemiptera                    0                0               0                   59
-# Hymenoptera                  0               32              32                   59
-# Lepidoptera                  0                0               0                  139
+#                 Primary vegetation Secondary vegetation Agriculture_Low Agriculture_High
+# Coleoptera                       0                  139               0                0
+# Diptera                          0                   59              32               32
+# Hemiptera                        0                   59               0                0
+# Hymenoptera                      0                   59              32               32
+# Lepidoptera                      0                  139               0                0
+
+
 
 # 2. Richness mean anomaly
 
@@ -96,7 +94,7 @@ length(unique(modelData$SS)) # 253
 # rerun the model using lme4 to avoid errors when using the influence function
 mod2 <- glmer(formula = Species_richness~LUI * StdTmeanAnomalyRS * Order+(1|SS)+(1|SSB)+(1|SSBS), modelData, family = "poisson")
 
-
+# assess outliers
 alt.est.a <- influence(mod2, "SS") # takes a really long time to run
 plot(alt.est.a, which = "cook", sort = T)
 result2 <- as.data.frame(cooks.distance(alt.est.a, sort = T))
@@ -123,13 +121,13 @@ table(test$Order)/table(modelData$Order) *100
 #test <- modelData[modelData$SS %in% rich_ss, ]
 
 table(test$Order, test$LUI)
-
-#             Primary vegetation Agriculture_High Agriculture_Low Secondary vegetation
-# Coleoptera                 101               96             111                  218
-# Diptera                      0              104              68                   86
-# Hemiptera                   78               84              95                  125
-# Hymenoptera                 23              116              98                  101
-# Lepidoptera                104               99             239                  261
+# 
+#             Primary vegetation Secondary vegetation Agriculture_Low Agriculture_High
+# Coleoptera                 101                  218             111               96
+# Diptera                      0                   86              68              104
+# Hemiptera                   78                  125              95               84
+# Hymenoptera                 23                  101              98              116
+# Lepidoptera                104                  261             239               99
 
 ##%######################################################%##
 #                                                          #
@@ -144,9 +142,11 @@ datadir <- "5_RunLUIClimateModels/"
 predictsSites <- readRDS(file = paste0(datadir,"PREDICTSSitesClimate_Data.rds"))
 
 
+
 # 1. Abundance, mean anomaly
 
 # list of studies that had larger Cook's distance values
+abun_ss <- c("AD1_2008__Billeter 6",   "HW1_2011__Summerville 1", "SC1_2005__Richardson 1") # taken from above
 outliers <- abun_ss
 
 # subset the data to exclude the potential outliers
@@ -156,7 +156,9 @@ model_data <- model_data[!is.na(model_data$LogAbund), ] # 7885 rows
 
 length(unique(model_data$SS)) # 232
 
-MeanAnomalyModelAbund <- GLMER(modelData = model_data,responseVar = "LogAbund",fitFamily = "gaussian",
+MeanAnomalyModelAbund <- GLMER(modelData = model_data, 
+                               responseVar = "LogAbund",
+                               fitFamily = "gaussian",
                                fixedStruct = "LUI * StdTmeanAnomalyRS * Order",
                                randomStruct = "(1|SS)+(1|SSB)",
                                saveVars = c("SSBS"))
@@ -169,21 +171,23 @@ save(MeanAnomalyModelAbund, file = paste0(outdir, "/MeanAnomalyModelAbund_rmout.
 
 # 2. Richness, mean anomaly
 
-
 # list of studies that had larger Cook's distance values
+rich_ss <- c("SC1_2010__Marsh 1", "AD1_2008__Franzen 1", "SE1_2012__Poveda 1", 
+             "LH1_2008__Littlewood 1",  "SE1_2012__Poveda 2", "HP1_2006__Lachat 1",
+             "DI1_2013__Rousseau 2", "TN1_2007__Bouyer 2", "AD1_2008__Billeter 6",
+             "SH1_2011__Todd 1", "SC1_2005__Richardson 1",  "SC1_2011__Meijer 1",     
+             "AR1_2008__Basset 1", "HW1_2011__Summerville 1")
 outliers <- rich_ss
 
 
 # subset the data to exclude the potential outliers
 model_data <- predictsSites[!predictsSites$SS %in% outliers, ] # 6651 rows
 
-model_data <- model_data[!is.na(model_data$StdTmeanAnomalyRS), ] # 6651 rows
-
-nrow(predictsSites[is.na(predictsSites$StdTmeanAnomalyRS), ]) # 0
-
 length(unique(model_data$SS)) # 239
 
-MeanAnomalyModelRich <- GLMER(modelData = model_data,responseVar = "Species_richness",fitFamily = "poisson",
+MeanAnomalyModelRich <- GLMER(modelData = model_data,
+                              responseVar = "Species_richness",
+                              fitFamily = "poisson",
                               fixedStruct = "LUI * StdTmeanAnomalyRS * Order",
                               randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",
                               saveVars = c("SSBS"))
@@ -214,6 +218,7 @@ R2GLMER(MeanAnomalyModelAbund$model)
 # 
 # $marginal
 # [1] 0.1009416
+
 R2GLMER(MeanAnomalyModelRich$model) # tab_model function gives incorrect values for the richness models
 # $conditional
 # [1] 0.7189628
