@@ -13,6 +13,7 @@ rm(list = ls())
 
 # libraries
 library(StatisticalModels)
+library(predictsFunctions)
 library(ggplot2)
 library(cowplot)
 library(dplyr)
@@ -74,22 +75,47 @@ length(fams) # 357
 # drop levels since unique sites etc will have been filtered out
 predicts <- droplevels(predicts)
 
-# how many famliies per order
-results <- predicts %>%
+# look at number where family is unknown
+nrow(predicts[predicts$Family == "", ]) # 24330
+
+table(predicts[predicts$Family == "", "Order"]) 
+# Coleoptera     Diptera   Hemiptera Hymenoptera Lepidoptera 
+#      10396        1018        2923        2323        7670 
+
+predicts$Family <- as.character(predicts$Family)
+predicts$Family[predicts$Family == ""] <- "unknown" 
+
+pred2 <- predicts[!predicts$Family == "unknown", ] # 786069
+
+# how many families per order
+results <-  pred2 %>%
   group_by(Order) %>%
   summarize(count = n_distinct(Family))
 
-# # A tibble: 5 × 2
+# # A tibble: 6 x 2
 # Order       count
 # <fct>       <int>
-# 1 Coleoptera    103
-# 2 Diptera        76
-# 3 Hemiptera      68
-# 4 Hymenoptera    54
-# 5 Lepidoptera    60
+# 1 Coleoptera    102
+# 2 Diptera        75
+# 3 Hemiptera      67
+# 4 Hymenoptera    53
+# 5 Lepidoptera    59
 
 
-pred_data <- predicts
+sum(results$count) # 356
+
+# Are any families present in multiple orders?
+Col_fam <- unique(pred2[pred2$Order == "Coleoptera", "Family"])
+Dip_fam <- unique(pred2[pred2$Order == "Diptera", "Family"])
+Hem_fam <- unique(pred2[pred2$Order == "Hemiptera", "Family"])
+Hym_fam <- unique(pred2[pred2$Order == "Hymenoptera", "Family"])
+Lep_fam <- unique(pred2[pred2$Order == "Lepidoptera", "Family"])
+
+sum(Col_fam %in% c(Dip_fam, Hem_fam, Hym_fam, Lep_fam)) # 0
+sum(Dip_fam %in% c(Col_fam, Hem_fam, Hym_fam, Lep_fam)) # 0
+sum(Hem_fam %in% c(Col_fam, Dip_fam, Hym_fam, Lep_fam)) # 0
+sum(Hym_fam %in% c(Col_fam, Dip_fam, Hem_fam, Lep_fam)) # 0
+sum(Lep_fam %in% c(Col_fam, Dip_fam, Hem_fam, Hym_fam)) # 0
 
 ##### For each family, remove it from the dataset and rerun the analysis ####
 
@@ -97,6 +123,10 @@ pred_data <- predicts
 pred_ori <- readRDS("4_PREDICTSMatchClimateIndex/PREDICTSSites_Climate.rds")
 pred_ori <- pred_ori@data
 
+#remove the "unknown" from the list of families
+length(fams) # 357
+fams <- as.character(fams[!fams == ""])
+length(fams) # 356
 
 #### start for loop ####
 
@@ -104,12 +134,11 @@ plot_data_ab <- NULL
 plot_data_sr <- NULL
 
 # for testing
-# family <- "Pyrochroidae"
+# family <- "Apidae"
 
 for(family in fams){
   
-predicts <- pred_data[!pred_data$Family == family, ]  
-
+predicts <- predicts[!predicts$Family == family, ]  
 
 #### 2. Calculate site metrics and prepare dataset ####
 
@@ -205,48 +234,34 @@ sites <- sites[!is.na(sites$LUI), ]
 
 sites <- droplevels(sites)
 
-# # transform abundance values 
-# sites$LogAbund <- log(sites$Total_abundance+1)
-
 # Remove sites without coordinates
 sites <- sites[!is.na(sites$Latitude), ]
 
 
-# create a new variable designating sites as Tropical or Non-tropical
-# assign new variable for tropical/temperate, convert to factor, and filter out NA
-sites$Realm <- ifelse(sites$Latitude >= -23.5 & sites$Latitude <= 23.5, "Tropical", "NonTropical")
-sites$Realm <- factor(sites$Realm, levels = c("NonTropical", "Tropical"))
-sites <- sites %>%
-  filter(!is.na(Realm))
-
 #### 3. Merge sites with main dataset to add the climate variables ####
 
-pred_ori2 <- pred_ori[, c(15, 29:35)]
+pred_ori2 <- pred_ori[, c(15, 34:36)]
 pred_ori2 <- unique(pred_ori2)
 
 sites <- left_join(sites, pred_ori2, by = "SSBS")
 
 
 # set LUI as factor and set reference level
-sites$LUI <- factor(sites$LUI)
-sites$LUI <- relevel(sites$LUI,ref="Primary vegetation")
+sites$LUI <- factor(sites$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
+#levels(sites$LUI)
 
 # rescale the climate variables
 sites$StdTmeanAnomalyRS <- StdCenterPredictor(sites$StdTmeanAnomaly)
-sites$StdTmaxAnomalyRS <- StdCenterPredictor(sites$StdTmaxAnomaly)
 
 # rescaling abundance and log values
-# CO note changed from RescaleAbundance to RescaleAbundance2 to scale within Study AND Order
-sites <- RescaleAbundance2(sites)
+sites <- RescaleAbundance(sites)
 
 # Charlie added this line as later bits were throwing errors
 sites <- droplevels(sites)
 
 # some of the climate values are NA since they do not meet the thresholds
 sites <- sites[!is.na(sites$avg_temp), ]
-# 8778 rows
 
-levels(sites$LUI)
 
 
 #### 4. rerun the analysis with subsetted data ####
