@@ -1,9 +1,4 @@
-
-###Functions
-library(StatisticalModels)
-library(predictsFunctions)
-library(dplyr)
-
+# a list of functions required for the analyses
 
 ##Function for standardizing and centering predictor variables on very different scales
 StdCenterPredictor <- function(x) {
@@ -24,26 +19,8 @@ BackTransformCentreredPredictor <- function(transformedX,originalX){
   
 }
 
-# RescaleAbundance <- function(sites){
-#   
-#   sites <- droplevels(sites)
-#   
-#   StudyMaxAbund <- suppressWarnings(tapply(
-#     X = sites$Total_abundance,INDEX = sites$SS,
-#     FUN = max,na.rm=TRUE))
-#   
-#   StudyMaxAbund[StudyMaxAbund == -Inf] <- NA
-#   
-#   AllMaxAbund <- StudyMaxAbund[match(sites$SS,names(StudyMaxAbund))]
-#   
-#   sites$Total_abundance_RS <- sites$Total_abundance/AllMaxAbund
-#   
-#   sites$LogAbund <- log(sites$Total_abundance_RS+0.01)
-#   
-#   return(sites)
-# }
 
-RescaleAbundance2 <- function(predictsSites){
+RescaleAbundance <- function(predictsSites){
   
   predictsSites <- droplevels(predictsSites)
   
@@ -65,6 +42,8 @@ RescaleAbundance2 <- function(predictsSites){
   
   return(predictsSites)
 }
+
+
 # 
 # ##For a set of merged sites in predicts:
 # ##This functions finds climate data, calculates scaled abundance values, logs abundance values,
