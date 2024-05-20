@@ -162,16 +162,16 @@ sites$LUI <- dplyr::recode(sites$LUI,
                            'Intermediate secondary vegetation_Intense use' = 'Secondary vegetation',
                            'Intermediate secondary vegetation_Light use' = 'Secondary vegetation')
 
-# 10746 obs. of 29 variables
+# 10746 obs. of 28 variables
 
 # remove the urban sites and sites that are NA in LUI
 sites <- sites[!sites$LUI == "Urban", ]
 sites <- sites[!is.na(sites$LUI), ]
-# 8890 obs. of 29 variables
+# 8890 obs. of 28 variables
 
 sites <- droplevels(sites)
 
-# rescale abundance values
+# rescale abundance values, this also log-transforms values, adding 0.01 to all
 sites <- RescaleAbundance(sites)
 
 # add another column without rescaling for testing later
@@ -211,7 +211,7 @@ sites_summary <- sites %>%
   #mutate(LogAbund = ifelse(is.na(LogAbund), 0, LogAbund)) %>% # replace NA values with 0 for ease of summarising
   summarise(Sites = length(SSBS),
             Studies = n_distinct(SS),
-            Species = n_distinct(Best_guess_binomial),
+            #Species = n_distinct(Best_guess_binomial),
             sites_1 = length(LUI[LUI == "Primary vegetation"]) ,
             studies_1 = n_distinct(SS[LUI == "Primary vegetation"]),
             sites_2 = length(LUI[LUI == "Secondary vegetation"]),
@@ -229,7 +229,7 @@ sites_summary <- sites %>%
   # ) %>%
   tab_spanner(
     label = "Total",
-    columns = c(Sites,Studies,Species)
+    columns = c(Sites,Studies)
   )  %>%
   tab_spanner(
     label = "Primary Vegetation",
@@ -253,13 +253,12 @@ sites_summary <- sites %>%
     )  %>% 
   cols_align(
     align = "center",
-    columns = c(Order,Sites,Studies,Species,sites_1,studies_1,sites_2,studies_2,sites_low,studies_low,sites_high,studies_high,Abundance,SpeciesRichness)
+    columns = c(Order,Sites,Studies,sites_1,studies_1,sites_2,studies_2,sites_low,studies_low,sites_high,studies_high,Abundance,SpeciesRichness)
   ) %>%
   cols_label(
     Order = "Order",
     Sites = "Sites",
     Studies = "Studies",
-    Species = "Species",
     sites_1 = "Sites",
     studies_1 = "Studies",
     sites_2 = "Sites",
