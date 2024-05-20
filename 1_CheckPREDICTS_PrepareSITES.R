@@ -18,7 +18,7 @@ plotDir <- "1_CheckPrepareData/Plots/"
 if(!dir.exists(plotDir)) dir.create(plotDir)
 
 # Load required libraries
-packages <- c("predictsFunctions","patchwork", "dplyr", "ggplot2", "yarg", "lme4", "gt",
+packages <- c("predictsFunctions","patchwork", "dplyr", "ggplot2", "lme4", "gt",
               "broom.mixed", "MASS","webshot")
 suppressWarnings(suppressMessages(lapply(packages, require, character.only = TRUE)))
 
