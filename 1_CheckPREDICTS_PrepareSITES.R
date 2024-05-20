@@ -335,9 +335,9 @@ shp_df <- broom::tidy(map.borders1, region = "SUBREGION")
 
 # map of sites, no colour
 p_map1.1 <- ggplot() +
-  geom_polygon(data = shp_df, aes(x = long, y = lat, group = group), alpha = 0.5, col = "black", fill = c("grey")) +
+  geom_polygon(data = shp_df, aes(x = long, y = lat, group = group), alpha = 0.5,  fill = c("grey")) +
   coord_fixed() +
-  geom_point(data = sites, aes(x = Longitude, y = Latitude, col = Order), shape = 21, size=2, col = c("#A4D3EE"), fill = c("#104E8B")) +
+  geom_point(data = sites, aes(x = Longitude, y = Latitude, col = Order), shape = 21, size=1.5, col = c("#104E8B"), fill = c("#104E8B")) +
   theme(axis.title.x = element_blank(),
         axis.title.y = element_blank(),
         axis.text = element_blank(),
@@ -385,7 +385,7 @@ p_bar <- ggplot(data=mapdf2) +
   scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = 10)) +
   scale_y_continuous(limits = c(0, 1600), breaks = c(0, 250, 500, 750, 1000, 1250, 1500))+
   theme_minimal()+
-  theme(axis.text.x = element_text(angle = 50, size = 10, vjust = 0.5, hjust = 0.7),
+  theme(axis.text.x = element_text(angle = 50, size = 8, vjust = 0.5, hjust = 0.7),
         legend.position = "bottom",
         legend.title = element_blank(),
         panel.grid = element_blank())
@@ -395,7 +395,7 @@ p_bar <- ggplot(data=mapdf2) +
 scatter_bar_mercator <- cowplot::plot_grid(p_map1.1,p_bar, ncol = 1, labels = c("(a)", "(b)"))
 
 # save plot (jpeg)
-ggsave("FIGURE_1_scatter_bar_mercator_UN.jpeg", device ="jpeg", path = plotDir, width=250, height=300, units="mm", dpi = 350)
+ggsave("FIGURE_1_scatter_bar_mercator_UN.jpeg", device ="jpeg", path = plotDir, width=175, height=225, units="mm", dpi = 350)
 
 
 
