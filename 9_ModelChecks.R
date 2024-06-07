@@ -8,7 +8,6 @@
 # Q-Q plots, fitted vs residuals and and a test of spatial
 # autocorrelations using Moran's I. 
 
-
 rm(list = ls())
 
 # directories
@@ -25,9 +24,11 @@ library(StatisticalModels)
 library(gridGraphics)
 
 # read in model files
-# land use only
+# land use and Order
 LUIAbund <- readRDS(file = paste0(LUIDir,"am3.3.rds"))
 LUIRich <- readRDS(file = paste0(LUIDir,"sm3.3.rds"))
+
+# land use only
 load(file = paste0(LUIDir,"Abundance_landuse_model_noOrder.rdata")) # am3
 load(file = paste0(LUIDir,"Richness_landuse_model_noOrder.rdata")) # sm3
 
@@ -39,12 +40,9 @@ load(paste0(LUICCDir, "MeanAnomalyModelRich.rdata")) # MeanAnomalyModelRich
 load(paste0(LUICCDir, "MeanAnomalyModelAbund_noOrder.rdata")) # MeanAnomalyModelAbund2
 load(paste0(LUICCDir, "MeanAnomalyModelRich_noOrder.rdata")) # MeanAnomalyModelRich2
 
-
-# try to write a function to run these checks on each model output and save a pdf of all figs.
-
-#mod_list <- c("LUIAbund", "LUIRich","MeanAnomalyModelAbund", "MeanAnomalyModelRich", "MeanAnomalyModelAbund2", "MeanAnomalyModelRich2")
-mod_list1 <- c("LUIAbund", "LUIRich")
-mod_list2 <- c("MeanAnomalyModelAbund", "MeanAnomalyModelRich", "MeanAnomalyModelAbund2", "MeanAnomalyModelRich2")
+# list models for loops
+mod_list1 <- c("LUIAbund", "LUIRich", "am3", "sm3") # land use models
+mod_list2 <- c("MeanAnomalyModelAbund", "MeanAnomalyModelRich", "MeanAnomalyModelAbund2", "MeanAnomalyModelRich2") #land use/sta models
 
 # load datasets
 model_data_sr <- readRDS(file = paste0(LUIDir,"model_data_sr.rds"))
@@ -52,17 +50,16 @@ model_data_ab <- readRDS(file = paste0(LUIDir,"model_data_ab.rds"))
 
 predictsSites <- readRDS(paste0(predictsDataDir,"PREDICTSSitesClimate_Data.rds"))
 
-#x <- mod_list1[1]
+#x <- mod_list1[2]
 
 # for the Order*LUI models
 for(x in mod_list1){
   
   # only do this one if not SR model
   # grepl() searches for matches to "Abun" in "x", the list of models
-  if(grepl("Abun", x) == TRUE) {
+  if(x %in% c("LUIAbund", "am3")) {
     
-    
-    ## 1. Checking the fitted vs residuals relationship
+  ## 1. Checking the fitted vs residuals relationship
     p1 <- plot(get(x)$model)
   }
   
@@ -75,28 +72,55 @@ for(x in mod_list1){
   invisible(dev.off())
   
   
-  if(grepl("Abun", x) == TRUE) {
+  if(x %in% c("LUIAbund", "am3")) {
     
-    
-    predData <- model_data_ab[!is.na(model_data_ab$LogAbund), ]
+    #predData <- model_data_ab[!is.na(model_data_ab$LogAbund), ]
     
     
     # 3. plot of observed vs fitted values
     pdf(NULL)
     dev.control(displaylist="enable")
-    plot(predData$LogAbund,fitted(get(x)$model), 
+    plot(model_data_ab$LogAbund,fitted(get(x)$model), 
          xlab = "Observed values", ylab = "Fitted values") 
     abline(a = 0, b = 1, col = "red", lwd = 2)
     p3 <- recordPlot()
     invisible(dev.off())
     
     
-    cowplot::plot_grid(p1,p2,p3,
-                       labels = c("(a)", "(b)", "(c)"))
+    
+    ## 4. Check for spatial autocorrelation
+    
+    sa_test<-SpatialAutocorrelationTest(model=get(x), ranefGrouping = "SS")
+    
+    #summary(sa_test)
+    
+    # percentage of studies that show spatial autocorrelation?
+    perc_auto <- (length(which(sa_test$P<0.05))/length(sa_test$P))*100
+    
+    
+    sa_test_vals <- as.data.frame(sa_test$P)
+    sa_test_vals$`sa_test$P` <- round(sa_test_vals$`sa_test$P`, digits = 4)
+    
+    label1 <- paste0("P < 0.05 \nin ", round(perc_auto, 1), "% \nof studies")
+    
+    p4 <- ggplot(data = sa_test_vals ) +
+      geom_histogram(aes(x = sa_test_vals$`sa_test$P`)) +
+      geom_vline(xintercept = 0.05, col = "red") +
+      geom_text(aes(x = 0.9, y = 90, label = label1), size = 4, check_overlap = T) +
+      theme_bw() +
+      ylim(c(0, 100)) +
+      xlab("P-value") +
+      ylab("Frequency") +
+      theme(panel.grid = element_blank(), 
+            aspect.ratio = 1)
+    
+    
+    cowplot::plot_grid(p1, p2, p3, p4,
+                       labels = c("(a)", "(b)", "(c)", "(d)"))
     
     ggsave(file = paste0(outdir, x, "_model_checks.pdf"), height = 10, width = 10)
     
-    rm(p1, p2, p3)
+    rm(p1, p2, p3, p4)
     
     
   }else{
@@ -112,18 +136,49 @@ for(x in mod_list1){
     p3 <- recordPlot()
     invisible(dev.off())
     
-    cowplot::plot_grid(p2,p3,
-                       labels = c("A.", "B."))
+    ## 4. Check for spatial autocorrelation
     
-    ggsave(file = paste0(outdir, x, "_model_checks.pdf")) 
+    sa_test<-SpatialAutocorrelationTest(model=get(x), ranefGrouping = "SS")
     
-    rm(p2, p3)
+    #summary(sa_test)
+    
+    # percentage of studies that show spatial autocorrelation?
+    perc_auto <- (length(which(sa_test$P<0.05))/length(sa_test$P))*100
+    
+    
+    sa_test_vals <- as.data.frame(sa_test$P)
+    sa_test_vals$`sa_test$P` <- round(sa_test_vals$`sa_test$P`, digits = 4)
+    
+    label1 <- paste0("P < 0.05 \nin ", round(perc_auto, 1), "% \nof studies")
+    
+    p4 <- ggplot(data = sa_test_vals ) +
+      geom_histogram(aes(x = sa_test_vals$`sa_test$P`)) +
+      geom_vline(xintercept = 0.05, col = "red") +
+      geom_text(aes(x = 0.9, y = 90, label = label1), size = 4, check_overlap = T) +
+      theme_bw() +
+      ylim(c(0, 100)) +
+      xlab("P-value") +
+      ylab("Frequency") +
+      theme(panel.grid = element_blank(), 
+            aspect.ratio = 1)
+    
+    cowplot::plot_grid(p2, p3, p4,
+                       labels = c("(a)", "(b)", "(c)"))
+    
+    ggsave(file = paste0(outdir, x, "_model_checks.pdf"), height = 10, width = 10)
+    
+    rm(p2, p3, p4)
     
   }
   
 }
 
+
+
+
 # for the Order*LUI*Climate Models
+
+#x <- mod_list2[1]
 
 # loop through models and generate plots for checking assumptions etc
 for(x in mod_list2){
@@ -148,9 +203,7 @@ for(x in mod_list2){
   
   if(grepl("Abun", x) == 1) {
     
-    
     predData <- predictsSites[!is.na(predictsSites$LogAbund), ]
-    
     
     # 3. plot of observed vs fitted values
     pdf(NULL)
@@ -162,18 +215,45 @@ for(x in mod_list2){
     invisible(dev.off())
     
     
-    cowplot::plot_grid(p1,p2,p3,
-                       labels = c("A.", "B.", "C."))
+    ## 4. Check for spatial autocorrelation
+    
+    sa_test<-SpatialAutocorrelationTest(model=get(x), ranefGrouping = "SS")
+    
+    #summary(sa_test)
+    
+    # percentage of studies that show spatial autocorrelation?
+    perc_auto <- (length(which(sa_test$P<0.05))/length(sa_test$P))*100
+    
+    
+    sa_test_vals <- as.data.frame(sa_test$P)
+    sa_test_vals$`sa_test$P` <- round(sa_test_vals$`sa_test$P`, digits = 4)
+    
+    label1 <- paste0("P < 0.05 \nin ", round(perc_auto, 1), "% \nof studies")
+    
+    p4 <- ggplot(data = sa_test_vals ) +
+      geom_histogram(aes(x = sa_test_vals$`sa_test$P`)) +
+      geom_vline(xintercept = 0.05, col = "red") +
+      geom_text(aes(x = 0.9, y = 90, label = label1), size = 4, check_overlap = T) +
+      theme_bw() +
+      ylim(c(0, 100)) +
+      xlab("P-value") +
+      ylab("Frequency") +
+      theme(panel.grid = element_blank(), 
+            aspect.ratio = 1)
+    
+    cowplot::plot_grid(p1, p2, p3, p4, 
+                       labels = c("(a)", "(b)", "(c)"))
     
     ggsave(file = paste0(outdir, x, "_model_checks.pdf"), height = 10, width = 10)
     
-    rm(p1, p2, p3)
+    rm(p1, p2, p3, p4)
+    
     
     
   }else{
     
     
-    # 4. plot of observed vs fitted values
+    # 3. plot of observed vs fitted values
     
     pdf(NULL)
     dev.control(displaylist="enable")
@@ -183,12 +263,39 @@ for(x in mod_list2){
     p3 <- recordPlot()
     invisible(dev.off())
     
-    cowplot::plot_grid(p2,p3,
-                       labels = c("A.", "B."))
     
-    ggsave(file = paste0(outdir, x, "_model_checks.pdf")) 
+    ## 4. Check for spatial autocorrelation
     
-    rm(p2, p3)
+    sa_test<-SpatialAutocorrelationTest(model=get(x), ranefGrouping = "SS")
+    
+    #summary(sa_test)
+    
+    # percentage of studies that show spatial autocorrelation?
+    perc_auto <- (length(which(sa_test$P<0.05))/length(sa_test$P))*100
+    
+    
+    sa_test_vals <- as.data.frame(sa_test$P)
+    sa_test_vals$`sa_test$P` <- round(sa_test_vals$`sa_test$P`, digits = 4)
+    
+    label1 <- paste0("P < 0.05 \nin ", round(perc_auto, 1), "% \nof studies")
+    
+    p4 <- ggplot(data = sa_test_vals ) +
+      geom_histogram(aes(x = sa_test_vals$`sa_test$P`)) +
+      geom_vline(xintercept = 0.05, col = "red") +
+      geom_text(aes(x = 0.9, y = 90, label = label1), size = 4, check_overlap = T) +
+      theme_bw() +
+      ylim(c(0, 100)) +
+      xlab("P-value") +
+      ylab("Frequency") +
+      theme(panel.grid = element_blank(), 
+            aspect.ratio = 1)
+    
+    cowplot::plot_grid(p2, p3, p4,
+                       labels = c("(a)", "(b)", "(c)"))
+    
+    ggsave(file = paste0(outdir, x, "_model_checks.pdf"), height = 10, width = 10)
+    
+    rm(p2, p3, p4)
     
   }
   
@@ -207,6 +314,9 @@ library(performance)
 
 check_model(LUIRich$model)
 check_model(LUIAbund$model)
+
+check_model(sm3$model)
+check_model(am3$model)
 
 check_model(MeanAnomalyModelAbund$model)
 check_model(MeanAnomalyModelAbund2$model)
