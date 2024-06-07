@@ -44,9 +44,6 @@ wgs84 <- crs(tmp) # wgs84: World Geodetic System 1984 & crs: retrieve coordinate
 # read in the predicts sites - insect subset
 sites <- readRDS(paste0(inDir,"PREDICTSSiteData.rds")) 
 
-# Remove sites without coordinates
-sites <- sites[!is.na(sites$Latitude), ] # 0
-
 # Create spatial map of PREDICTS sites
 sites_sp <- SpatialPointsDataFrame(
   coords = cbind(sites$Longitude, sites$Latitude), 
