@@ -9,7 +9,6 @@
 # ignore r project
 LUCC_ByOrder_paper.Rproj
 
- 
 
 # ignore output directories
 Data/
