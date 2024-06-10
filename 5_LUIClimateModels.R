@@ -31,7 +31,7 @@ if(!dir.exists(tabDir)) dir.create(tabDir)
 packages_model <- c("devtools","StatisticalModels", "predictsFunctions","dplyr")
 suppressWarnings(suppressMessages(lapply(packages_model, require, character.only = TRUE)))
 
-packages_plot <- c("patchwork", "dplyr", "ggplot2", "cowplot", "sjPlot", "yarg", "lme4", "gt", "broom.mixed", "MASS")
+packages_plot <- c("patchwork", "dplyr", "ggplot2", "cowplot", "sjPlot", "lme4", "gt", "broom.mixed", "MASS")
 suppressWarnings(suppressMessages(lapply(packages_plot, require, character.only = TRUE)))
 
 # source in additional functions
@@ -41,7 +41,8 @@ source("0_Functions.R")
 
 # read in the predicts data
 predictsSites <- readRDS(paste0(inDir,"PREDICTSSites_Climate.rds"))
-predictsSites <- predictsSites@data
+predictsSites <- predictsSites@data 
+# 8884 obs. of 36 variables
 
 # set LUI as factor and set reference level
 predictsSites$LUI <- factor(predictsSites$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
@@ -77,10 +78,12 @@ saveRDS(object = predictsSites, file = paste0(outDir, "PREDICTSSitesClimate_Data
 # i. Abundance, mean anomaly including interaction
 
 model_data <- predictsSites[!is.na(predictsSites$LogAbund), ]
-model_data <- model_data[!is.na(model_data$StdTmeanAnomalyRS), ] # 8468 rows
+# 8468 obs. of 37 variables
 
 # run model
-MeanAnomalyModelAbund <- GLMER(modelData = model_data,responseVar = "LogAbund",fitFamily = "gaussian",
+MeanAnomalyModelAbund <- GLMER(modelData = model_data, 
+                               responseVar = "LogAbund", 
+                               fitFamily = "gaussian",
                                fixedStruct = "LUI * StdTmeanAnomalyRS * Order",
                                randomStruct = "(1|SS)+(1|SSB)",
                                saveVars = c("SSBS", 'Latitude', 'Longitude'))
@@ -94,10 +97,12 @@ save(MeanAnomalyModelAbund, file = paste0(outDir, "MeanAnomalyModelAbund.rdata")
 
 # i. Abundance, mean anomaly excluding interaction with order
 
-MeanAnomalyModelAbund2 <- GLMER(modelData = model_data,responseVar = "LogAbund",fitFamily = "gaussian",
-                               fixedStruct = "LUI * StdTmeanAnomalyRS",
-                               randomStruct = "(1|SS)+(1|SSB)",
-                               saveVars = c("SSBS", 'Latitude', 'Longitude'))
+MeanAnomalyModelAbund2 <- GLMER(modelData = model_data,
+                                responseVar = "LogAbund",
+                                fitFamily = "gaussian",
+                                fixedStruct = "LUI * StdTmeanAnomalyRS",
+                                randomStruct = "(1|SS)+(1|SSB)",
+                                saveVars = c("SSBS", 'Latitude', 'Longitude'))
 
 # get summary
 summary(MeanAnomalyModelAbund2$model)
@@ -111,10 +116,14 @@ save(MeanAnomalyModelAbund2, file = paste0(outDir, "MeanAnomalyModelAbund_noOrde
 
 model_data <- predictsSites[!is.na(predictsSites$StdTmeanAnomalyRS), ] # 8858 rows
 
-MeanAnomalyModelRich <- GLMER(modelData = model_data,responseVar = "Species_richness",fitFamily = "poisson",
+MeanAnomalyModelRich <- GLMER(modelData = model_data,
+                              responseVar = "Species_richness",
+                              fitFamily = "poisson",
                               fixedStruct = "LUI * StdTmeanAnomalyRS * Order",
                               randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",
-                              saveVars = c("SSBS", 'Latitude', 'Longitude'))
+                              saveVars = c("SSBS", 'Latitude', 'Longitude'), 
+                              maxIters = 20000) # prevents maxfun warning
+
 
 # get summary
 summary(MeanAnomalyModelRich$model)
@@ -124,10 +133,12 @@ save(MeanAnomalyModelRich, file = paste0(outDir, "MeanAnomalyModelRich.rdata"))
 
 # ii. Richness, mean anomaly excluding interaction with order
 
-MeanAnomalyModelRich2 <- GLMER(modelData = model_data,responseVar = "Species_richness",fitFamily = "poisson",
-                              fixedStruct = "LUI * StdTmeanAnomalyRS",
-                              randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",
-                              saveVars = c("SSBS", 'Latitude', 'Longitude'))
+MeanAnomalyModelRich2 <- GLMER(modelData = model_data,
+                               responseVar = "Species_richness",
+                               fitFamily = "poisson",
+                               fixedStruct = "LUI * StdTmeanAnomalyRS",
+                               randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",
+                               saveVars = c("SSBS", 'Latitude', 'Longitude'))
 
 # save the model output
 summary(MeanAnomalyModelRich2$model)
@@ -436,6 +447,7 @@ p_coleoptera <- ggplot(data = nd_Coleoptera, aes(x = StdTmeanAnomaly, y = PredMe
         panel.grid.major = element_line(size = 0.25),
         panel.border = element_rect(size = 0.25)) 
   
+
 
 p_diptera <- ggplot(data = nd_Diptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
   geom_line(aes(col = LUI), size = 0.75) +
