@@ -5,10 +5,11 @@
 ############################################################
 
 
-# In this script, I predict the biodiversity for different combinations of
+# In this script, I predict the biodiversity change for different combinations of
 # land use and STA for both the models from Outhwaite et al (2022) and those
-# tested here (including and excluding the order level interactions)
+# tested here (including and excluding the order-level interactions)
 
+# clear environment
 rm(list = ls())
 
 # directories
@@ -124,8 +125,8 @@ p1 <- ggplot(data = abun_res) +
         panel.grid.major = element_blank(),
         panel.border = element_blank(), 
         panel.background = element_blank(), 
-        axis.ticks = element_line(size = 0.2), 
-        axis.line = element_line(size = 0.2))
+        axis.ticks = element_line(linewidth = 0.2), 
+        axis.line = element_line(linewidth = 0.2))
 
 
 p2 <- ggplot(data = rich_res) +
@@ -146,8 +147,8 @@ p2 <- ggplot(data = rich_res) +
         panel.grid.major = element_blank(),
         panel.border = element_blank(), 
         panel.background = element_blank(), 
-        axis.ticks = element_line(size = 0.2), 
-        axis.line = element_line(size = 0.2))
+        axis.ticks = element_line(linewidth = 0.2), 
+        axis.line = element_line(linewidth = 0.2))
 
 
 p3 <- cowplot::plot_grid(p1, p2)
@@ -353,7 +354,7 @@ all_res <- rbind(result.ab, result.sr)
 # match up noOrder results for combining
 noOrder_res$Order <- "All insects"
 noOrder_res <- noOrder_res[, c(1:3, 5, 6, 4)]
-names(noOrder_res) <- c("grp.median", "grp.upper", "grp.lower", "LUI", "Order", "metric") 
+names(noOrder_res) <- c("grp.median", "grp.lower", "grp.upper", "Metric", "LUI", "Order") 
 
 ## add in results from noOrder models
 all_res <- rbind(all_res, noOrder_res)
@@ -385,9 +386,6 @@ write.csv(all_res, file = paste0(outDir, "/TABLE_percentage_change_LU_Order.csv"
 #                                                          #
 ##%######################################################%##
 
-# load version including results from Outhwaite et al 2022 and rounded values to 2dp
-all_res <- read.csv(file = paste0(outDir, "/percentage_change_LU_Order.csv"))
-
 all_res$LUI <- factor(all_res$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Low-intensity agriculture", "High-intensity agriculture"))
 all_res$Order <- factor(all_res$Order, levels = c("All insects", "Coleoptera", "Diptera", "Hemiptera", "Hymenoptera", "Lepidoptera"))
 
@@ -401,7 +399,7 @@ ggplot(data = all_res, aes(col = LUI, group = LUI)) +
   geom_errorbar(aes(x = Order, ymin = Lower_CI, ymax = Upper_CI), position= position_dodge(width = 1), size = 0.5, width = 0.2)+
   facet_wrap(~ Metric) +
   xlab("") +
-  scale_y_continuous(limits = c(-100, 145), breaks = scales::pretty_breaks(n = 10)) +
+  scale_y_continuous(limits = c(-80, 80), breaks = scales::pretty_breaks(n = 10)) +
   ylab("Percentage change (%)") +
   scale_color_manual(values = c("#009E73","#0072B2","#E69F00","#D55E00")) +
   theme(legend.position = "bottom", 
@@ -786,8 +784,7 @@ write.csv(all_res, file = paste0(outDir, "/TABLE_percentage_change_LU_CC_incNoOr
 #                                                          #
 ##%######################################################%##
 
-# load version including results from Outhwaite et al 2022 and rounded values to 2dp
-final_res <- read.csv(file = paste0(outDir, "/TABLE_percentage_change_LU_CC_incNoOrder.csv"))
+final_res <- all_res
 
 final_res$Order <- factor(final_res$Order, levels = c("All insects", "Coleoptera", "Diptera", "Hemiptera", "Hymenoptera", "Lepidoptera"))
 
