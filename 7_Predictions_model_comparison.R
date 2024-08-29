@@ -19,10 +19,6 @@ moddir2 <- "5_RunLUIClimateModels/"
 outDir <- "7_Predictions/Model_Comparisons/"
 if(!dir.exists(outDir)) dir.create(outDir)
 
-# directories for outputs from Outhwaite (2022)
-oridir1 <- "C:/Users/charl/Dropbox (UCL)/POSTDOC - BIOTA/0. PROJECTS/6. INSECTS LU CC/LanduseClimateInsects/2_RunSimpleLUIModel/"
-oridir2 <- "C:/Users/charl/Dropbox (UCL)/POSTDOC - BIOTA/0. PROJECTS/6. INSECTS LU CC/LanduseClimateInsects/6_RunLUClimateModels/"
-
 # load libraries
 library(StatisticalModels)
 library(predictsFunctions)
