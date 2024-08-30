@@ -41,7 +41,7 @@ sites <- readRDS(file = paste0(inDir,"PREDICTSSiteData.rds")) # 8884 rows
 
 # remove NAs in the specified columns
 model_data_ab <- na.omit(sites[,c('LogAbund_noRS','LandUse','Use_intensity','LUI','SS','SSB','SSBS','Order', 'Latitude', 'Longitude')])
-# 8492 rows
+# 8496 rows
 
 # order data
 model_data_ab$LUI <- factor(model_data_ab$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
@@ -58,10 +58,10 @@ save(am3.3, file = paste0(outDir, "Abundance_landuse_model_noRS.rdata"))
 # check the R2 values
 R2GLMER(am3.3$model)
 # $conditional
-# [1] 0.602671
+# [1] 0.6026711
 # 
 # $marginal
-# [1] 0.07881956
+# [1] 0.07881955
 
 library(sjPlot)
 # save model output tables for use in supplementary information 
@@ -91,7 +91,7 @@ abundance_metric <- predict_effects(iterations = 1000,
 
 # rename prediction data frame and drop "Abundance" column
 result.ab <- fin_conf
-result.ab <- dplyr::select(result.ab,-c(LogAbund))
+result.ab <- dplyr::select(result.ab,-c(LogAbund_noRS))
 
 # adjust plot
 abundance <- abundance_metric +
@@ -132,11 +132,6 @@ write.csv(ab_pred, file = paste0(outDir, "/Predictions_simplemod_ab_noRS.csv"), 
 
 # load in the data with climate variable
 predictsSites <- readRDS(file = paste0(dataDir,"PREDICTSSitesClimate_Data.rds"))
-
-
-# hist(predictsSites$LogAbund_noRS)
-# hist(predictsSites$LogAbund)
-
 
 # i. Abundance, mean anomaly including interaction
 # subset to those sites with abundance data
