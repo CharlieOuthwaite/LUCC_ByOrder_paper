@@ -16,7 +16,7 @@ library(ggplot2)
 
 # set directories 
 datadir <- "5_RunLUIClimateModels/"
-outdir <- "10_Additional_Tests/Order_level_models/"
+outdir <- "10_Additional_Tests/Single_order_models/"
 if(!dir.exists(outdir)) dir.create(outdir)
 
 # read in functions
@@ -30,7 +30,7 @@ predictsSites <- readRDS(file = paste0(datadir,"PREDICTSSitesClimate_Data.rds"))
 
 orders <- c("Coleoptera", "Diptera", "Hemiptera", "Hymenoptera", "Lepidoptera")
 
-# order <- orders[5]
+# order <- orders[1]
 for(order in orders){
   
   print(order)
@@ -38,8 +38,14 @@ for(order in orders){
   # subset the data to just those sites for the order of interest
   order_data <- predictsSites[predictsSites$Order == order, ]
   
+  # drop levels
+  order_data <- droplevels(order_data)
+  
   # remove any rows with NAs in 
   abun_data <- order_data[!is.na(order_data$LogAbund), ]
+  
+  # drop levels
+  abun_data <- droplevels(abun_data)
   
   print("abundance")
 
