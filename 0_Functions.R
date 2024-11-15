@@ -1,6 +1,6 @@
 # a list of functions required for the analyses
 
-##Function for standardizing and centering predictor variables on very different scales
+## Function for standardizing and centering predictor variables on very different scales
 StdCenterPredictor <- function(x) {
   variable <- x
   sd <- sd(na.omit(variable))
@@ -9,6 +9,7 @@ StdCenterPredictor <- function(x) {
   return(variable.s)
 }
 
+## Function for backtransforming standardised variables back to the original units
 BackTransformCentreredPredictor <- function(transformedX,originalX){
   
   sd <- sd(na.omit(originalX))
@@ -19,7 +20,7 @@ BackTransformCentreredPredictor <- function(transformedX,originalX){
   
 }
 
-
+## Function to rescale the abundance values within a study
 RescaleAbundance <- function(predictsSites){
   
   predictsSites <- droplevels(predictsSites)
