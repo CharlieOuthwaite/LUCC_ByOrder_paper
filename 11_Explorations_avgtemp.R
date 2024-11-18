@@ -23,6 +23,7 @@ source("0_Functions.R")
 library(influence.ME)
 library(StatisticalModels)
 library(cowplot)
+library(ggplot2)
 
 
 # load in the data
@@ -35,6 +36,8 @@ cor(predictsSites$avg_temp, predictsSites$StdTmeanAnomaly)
 #### a. Abundance model ####
 
 model_data <- predictsSites[!is.na(predictsSites$LogAbund), ] # 8468
+
+model_data <- droplevels(model_data)
 
 # include average temperature in the model
 MeanAnomalyModelAbund_avg <- GLMER(modelData = model_data, responseVar = "LogAbund",
@@ -53,6 +56,8 @@ save(MeanAnomalyModelAbund_avg, file = paste0(outdir, "MeanAnomalyModelAbund_avg
 #### b. Richness model ####
 
 model_data <- predictsSites[!is.na(predictsSites$StdTmeanAnomalyRS), ] # 8858
+
+model_data <- droplevels(model_data)
 
 # include average temperature in the model
 MeanAnomalyModelRich_avg <- GLMER(modelData = model_data,
@@ -89,14 +94,53 @@ AIC(MeanAnomalyModelAbund_avg$model, MeanAnomalyModelAbund$model)
 # MeanAnomalyModelAbund_avg$model 44 26647.92
 # MeanAnomalyModelAbund$model     43 26643.84
 
+R2GLMER(MeanAnomalyModelAbund_avg$model)
+
+# $conditional
+# [1] 0.415911
+# 
+# $marginal
+# [1] 0.09175325
+
+R2GLMER(MeanAnomalyModelAbund$model)
+
+# $conditional
+# [1] 0.4164462
+# 
+# $marginal
+# [1] 0.08326024
+
+
 AIC(MeanAnomalyModelRich_avg$model, MeanAnomalyModelRich$model)
 
 #                                df      AIC
 # MeanAnomalyModelRich_avg$model 44 54747.09
 # MeanAnomalyModelRich$model     43 54750.61
 
+
+R2GLMER(MeanAnomalyModelRich_avg$model)
+
+# $conditional
+# [1] 0.7501051
+# 
+# $marginal
+# [1] 0.1188299
+
+R2GLMER(MeanAnomalyModelRich$model)
+
+# $conditional
+# [1] 0.7529888
+# 
+# $marginal
+# [1] 0.1093315
+
+
+
 # There is very little difference in AIC values between the two models
 rm(MeanAnomalyModelRich, MeanAnomalyModelAbund)
+
+
+
 
 # later code uses original names so switch back
 MeanAnomalyModelAbund <- MeanAnomalyModelAbund_avg
@@ -448,7 +492,7 @@ p_lepidoptera <- ggplot(data = nd_Lepidoptera, aes(x = StdTmeanAnomaly, y = Pred
 
 
 # get the legend
-legend <- get_legend(
+legend <- cowplot::get_legend(
   p_coleoptera +
     guides(color = guide_legend(ncol = 1)) +
     theme(legend.position = "right",
