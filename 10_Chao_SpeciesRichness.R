@@ -61,10 +61,9 @@ MeanAnomalyModelChaoR <- GLMER(modelData = sites,
                                fitFamily = "poisson",
                                fixedStruct = "LUI * StdTmeanAnomalyRS * Order",
                                randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",
-                               saveVars = c("Total_abundance","SSBS"))
-# Warning message:
-#   In commonArgs(par, fn, control, environment()) :
-#   maxfun < 10 * length(par)^2 is not recommended.
+                               saveVars = c("Total_abundance","SSBS"), 
+                               maxIters = 20000)
+
 
 save(MeanAnomalyModelChaoR, file = paste0(outDir, "/MeanAnomalyModelChaoR.rdata"))
 
