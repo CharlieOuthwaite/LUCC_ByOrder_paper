@@ -70,7 +70,7 @@ predicts <- predicts[predicts$Order %in% c("Coleoptera", "Diptera", "Hemiptera",
 
 # how many unique families?
 fams <- droplevels(unique(predicts$Family))
-length(fams) # 357
+length(fams) # 357 ( including one blank label)
 
 # drop levels since unique sites etc will have been filtered out
 predicts <- droplevels(predicts)
@@ -128,6 +128,11 @@ length(fams) # 357
 fams <- as.character(fams[!fams == ""])
 length(fams) # 356
 
+
+
+# keep predicts full dataset for subsetting
+predicts_full <- predicts
+
 #### start for loop ####
 
 plot_data_ab <- NULL
@@ -138,7 +143,9 @@ plot_data_sr <- NULL
 
 for(family in fams){
   
-predicts <- predicts[!predicts$Family == family, ]  
+print(family)
+  
+predicts <- predicts_full[!predicts_full$Family == family, ]  
 
 #### 2. Calculate site metrics and prepare dataset ####
 
@@ -177,7 +184,7 @@ Lepidoptera <- SiteMetrics(diversity = Lepidoptera,
 
 # merge all sites_Order data frames into one called "sites"
 # merge using rbind()
-sites <- rbind(Coleoptera,Diptera,Hemiptera,Hymenoptera,Lepidoptera)
+sites <- rbind(Coleoptera, Diptera, Hemiptera, Hymenoptera, Lepidoptera)
 
 # First, we will rearrange the land-use classification a bit
 # rename "Predominant_land_use" to "LandUse"
@@ -232,15 +239,15 @@ sites$LUI <- dplyr::recode(sites$LUI,
 sites <- sites[!sites$LUI == "Urban", ]
 sites <- sites[!is.na(sites$LUI), ]
 
-sites <- droplevels(sites)
 
 # Remove sites without coordinates
 sites <- sites[!is.na(sites$Latitude), ]
 
+sites <- droplevels(sites)
 
 #### 3. Merge sites with main dataset to add the climate variables ####
 
-pred_ori2 <- pred_ori[, c(15, 34:36)]
+pred_ori2 <- pred_ori[, c(15, 33:35)]
 pred_ori2 <- unique(pred_ori2)
 
 sites <- left_join(sites, pred_ori2, by = "SSBS")
@@ -256,12 +263,11 @@ sites$StdTmeanAnomalyRS <- StdCenterPredictor(sites$StdTmeanAnomaly)
 # rescaling abundance and log values
 sites <- RescaleAbundance(sites)
 
-# Charlie added this line as later bits were throwing errors
-sites <- droplevels(sites)
-
 # some of the climate values are NA since they do not meet the thresholds
 sites <- sites[!is.na(sites$avg_temp), ]
 
+# Charlie added this line as later bits were throwing errors
+sites <- droplevels(sites)
 
 
 #### 4. rerun the analysis with subsetted data ####
