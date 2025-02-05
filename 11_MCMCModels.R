@@ -6,6 +6,9 @@
 
 # In this script the models are rerun using a Bayesian approach. 
 
+# ensure environment clear
+rm(list = ls())
+
 # load packages
 library(brms)
 library(sjPlot)
@@ -25,62 +28,21 @@ pred_data <- readRDS(paste0(datadir2, "PREDICTSSitesClimate_Data.rds")) # LU STA
 
 ############################################################
 #                                                          #
-####              1. Land use only models               ####
+####             1. Land use and Order                  ####
 #                                                          #
 ############################################################
 
-# 
-# ## richness
-# rich_LU <- brm(Species_richness ~ LUI + (1|SS)+(1|SSB)+(1|SSBS), 
-#                data = sr_data, 
-#                family = poisson("log"), 
-#                chains = 4, 
-#                iter = 5000, 
-#                warmup = 1000, 
-#                thin = 1)
-# 
-# # take a look
-# rich_LU
-# # check plots
-# plot(rich_LU)
-# # check model fit
-# pp_check(rich_LU)
-# # save output
-# save(rich_LU, file = paste0(outdir, "Richness_LU_bayesmod.Rdata"))
-# 
-# 
-# ## abundance
-# abun_LU <- brm(LogAbund ~ LUI + (1|SS)+(1|SSB), 
-#                data = ab_data, 
-#                family = gaussian(), # also ran skew_normal()
-#                chains = 4, 
-#                iter = 5000, 
-#                warmup = 1000, 
-#                thin = 1)
-# 
-# # take a look
-# abun_LU
-# # check plots
-# plot(abun_LU)
-# # check model fit
-# pp_check(abun_LU)
-# # save output
-# save(abun_LU, file = paste0(outdir, "Abundance_LU_bayesmod.Rdata"))
 
-
-############################################################
-#                                                          #
-####             2. Land use and Order                  ####
-#                                                          #
-############################################################
-
-#https://ourcodingclub.github.io/tutorials/brms/
-
+start <- Sys.time()
 ## richness
 rich_LUOr <- brm(Species_richness ~ Order * LUI + (1|SS)+(1|SSB)+(1|SSBS), 
                data = sr_data, 
-               family = poisson("log"), 
-               cores = 4)
+               family = poisson(), 
+               cores = 4, iter = 5000, thin = 10)
+
+end <- Sys.time()
+runtime <- end - start # Time difference of  1.059293 hours
+print(runtime)
 
 # take a look
 rich_LUOr
@@ -92,12 +54,15 @@ pp_check(rich_LUOr)
 save(rich_LUOr, file = paste0(outdir, "Richness_LUOrder_bayesmod.Rdata"))
 
 
-
+start <- Sys.time()
 ## abundance
 abun_LUOr <- brm(LogAbund ~ Order * LUI + (1|SS)+(1|SSB), 
                data = ab_data, 
                family = gaussian(), 
-               cores = 4)
+               cores = 4, iter = 5000, thin = 10)
+end <- Sys.time()
+runtime <- end - start # Time difference of  5.2603 mins
+print(runtime)
 
 # take a look
 abun_LUOr
@@ -109,61 +74,23 @@ pp_check(abun_LUOr)
 save(abun_LUOr, file = paste0(outdir, "Abundance_LUOrder_bayesmod.Rdata"))
 
 
-# 
-# # 3. Land use and climate ------------------------------------------------------
-# 
-# 
-# ## richness
-# rich_LUSTA <- brm(Species_richness ~ LUI * StdTmeanAnomalyRS + (1|SS)+(1|SSB)+(1|SSBS), 
-#                  data = pred_data, 
-#                  family = poisson("log"), 
-#                  chains = 4, 
-#                  iter = 5000, 
-#                  warmup = 1000, 
-#                  thin = 1)
-# 
-# # take a look
-# rich_LUSTA
-# # check plots
-# plot(rich_LUSTA)
-# # check model fit
-# pp_check(rich_LUSTA)
-# # save output
-# save(rich_LUSTA, file = paste0(outdir, "Richness_LUSTA_bayesmod.Rdata"))
-# 
-# 
-# 
-# # subset to abundance data
-# pred_abun <- pred_data[!is.na(pred_data$LogAbund), ]
-# pred_abun <- droplevels(pred_abun)
-# 
-# ## abundance
-# abun_LUSTA <- brm(LogAbund ~ LUI * StdTmeanAnomalyRS + (1|SS)+(1|SSB), 
-#                  data = pred_abun, 
-#                  family = gaussian(), 
-#                  chains = 4, 
-#                  iter = 5000, 
-#                  warmup = 1000, 
-#                  thin = 1)
-# 
-# # take a look
-# abun_LUSTA
-# # check plots
-# plot(abun_LUSTA)
-# # check model fit
-# pp_check(abun_LUSTA)
-# # save output
-# save(abun_LUSTA, file = paste0(outdir, "Abundance_LUSTA_bayesmod.Rdata"))
-# 
 
 
-# 4. Land use, climate and order------------------------------------------------
+##%######################################################%##
+#                                                          #
+####           2. Land use, climate and order           ####
+#                                                          #
+##%######################################################%##
 
+start <- Sys.time()
 ## richness
 rich_LUSTAOr <- brm(Species_richness ~ LUI * StdTmeanAnomalyRS * Order + (1|SS)+(1|SSB)+(1|SSBS), 
                   data = pred_data, 
-                  family = poisson("log"), 
-                  cores = 4)
+                  family = poisson(), 
+                  cores = 4, iter = 8000, thin = 10)
+end <- Sys.time()
+runtime <- end - start # Time difference of  
+print(runtime)
 
 # take a look
 rich_LUSTAOr
@@ -179,11 +106,15 @@ save(rich_LUSTAOr, file = paste0(outdir, "Richness_LUSTAOr_bayesmod.Rdata"))
 # subset to the abundance data
 pred_abun <- pred_data[!is.na(pred_data$LogAbund), ]
 
+start <- Sys.time()
 ## abundance
 abun_LUSTAOr <- brm(LogAbund ~ LUI * StdTmeanAnomalyRS * Order + (1|SS)+(1|SSB), 
                   data = pred_abun, 
                   family = gaussian(), 
-                  cores = 4)
+                  cores = 4, iter = 5000, thin = 10)
+end <- Sys.time()
+runtime <- end - start # Time difference of  5.2603 mins
+print(runtime)
 
 # take a look
 abun_LUSTAOr
@@ -222,7 +153,12 @@ tab_model(abun_LUSTAOr, transform = NULL, file = paste0(outdir,"Bayes_abun_LUSTA
 #                                                          #
 ############################################################
 
+### Land use * Order
 
+
+
+
+### Land use * Order * Anom
 
 
 
