@@ -1058,3 +1058,1245 @@ theme(legend.position = "none")
   
 ggsave(filename = paste0(outdir, "PLOT_Rich_STA_rich_ALL_focus.png"))
 
+
+
+## take a look at outlier studies, do some of them only have secondary vegetation?
+
+
+## richness
+rich_out_pred <- droplevels(filter(predictsSites, SS %in% rich_ss))
+
+table(rich_out_pred$SS, rich_out_pred$LUI)
+
+#                         Primary vegetation Secondary vegetation Agriculture_Low Agriculture_High
+# AR1_2008__Basset 1                       0                   45               0                0
+# DI1_2013__Rousseau 2                     0                   90             180               90
+# HP1_2006__Lachat 1                      24                   24               0               24
+# HW1_2011__Summerville 1                  0                  160               0                0
+# SC1_2005__Richardson 1                   0                  295               0                0
+# SC1_2011__Meijer 1                     198                   81             177                0
+# SE1_2012__Poveda 1                       0                    0               0               85
+# SE1_2012__Poveda 2                       0                    0               0               85
+# SH1_2011__Todd 1                         0                    0               0              100
+# TN1_2007__Bouyer 2                      69                   39              48               36
+# AD1_2008__Billeter 6                     0                    0              64               64
+# AD1_2008__Franzen 1                      0                    4              28                0
+# LH1_2008__Littlewood 1                   0                   38             114                0
+# SC1_2010__Marsh 1                       15                   15               0               15
+
+
+# A number of these outliers only have sites in secondary vegetation
+
+OL_sec <- c("AR1_2008__Basset 1", "HW1_2011__Summerville 1", "SC1_2005__Richardson 1")
+
+# note, some also only have sites in high-intensity agriculture
+# SE1_2012__Poveda 1, SE1_2012__Poveda 2, SH1_2011__Todd 1
+
+
+
+# abundance
+
+abun_out_pred <- droplevels(filter(predictsSites, SS %in% abun_ss))
+
+table(abun_out_pred$SS, abun_out_pred$LUI)
+
+#                         Secondary vegetation Agriculture_Low Agriculture_High
+# HW1_2011__Summerville 1                  160               0                0
+# SC1_2005__Richardson 1                   295               0                0
+# AD1_2008__Billeter 6                       0              64               64
+
+# the two with sec veg only are also in the rich outliers list.
+
+
+
+## take a look across all studies, not just outliers
+
+SS_LUI <- data.frame(table(predictsSites$SS, predictsSites$LUI))
+
+test <- predictsSites %>% 
+  group_by(SS) %>% 
+  count(LUI) %>%
+  pivot_wider(names_from = LUI, values_from = n)
+
+
+# SC1_2005__Richardson 1 & HW1_2011__Summerville 1, both have the highlest number of sites
+# in secondary vegetation across the whole dataset. 295 andn 160, the next highest is 90.
+
+outliers <- c("SC1_2005__Richardson 1", "HW1_2011__Summerville 1")
+outliers <- c("SC1_2005__Richardson 1") # 59 sites for each order
+outliers <- c("HW1_2011__Summerville 1") # 80 sites for col and lep
+
+
+# what is the make-up of these studies?
+test_2 <- predictsSites[predictsSites$SS %in% outliers, ]
+
+table(test_2$LUI)
+# Primary vegetation Secondary vegetation      Agriculture_Low     Agriculture_High 
+#                  0                  455                    0                    0 
+
+table(test_2$Order)
+# Coleoptera     Diptera   Hemiptera Hymenoptera Lepidoptera 
+#        139          59          59          59         139
+
+##%######################################################%##
+#                                                          #
+####   Removing select outliers and rerunning models    ####
+#                                                          #
+##%######################################################%##
+
+
+# Here I will remove SC1_2005__Richardson 1 & HW1_2011__Summerville 1 and see if
+# this has a result on the effects in secondary vegetation for species richness 
+
+
+
+outliers <- c("SC1_2005__Richardson 1", "HW1_2011__Summerville 1")
+
+# these two studies contain 245 secondary vegetation sites only. These are many more
+# sites that other studies have in secondary vegetation. 
+
+# richness
+
+# subset the data to exclude the potential outliers
+model_data <- predictsSites[!predictsSites$SS %in% outliers, ] # 8403 rows
+
+length(unique(model_data$SS)) # 251
+
+MeanAnomalyModelRich <- GLMER(modelData = model_data,
+                              responseVar = "Species_richness",
+                              fitFamily = "poisson",
+                              fixedStruct = "LUI * StdTmeanAnomalyRS * Order",
+                              randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",
+                              saveVars = c("SSBS"), 
+                              maxIters = 20000)
+
+# save model output
+save(MeanAnomalyModelRich, file = paste0(outdir, "/MeanAnomalyModelRich_rm_sec_out.rdata"))
+#load(file = paste0(outdir, "/MeanAnomalyModelRich_rm_sec_out.rdata"))
+
+MeanAnomalyModelRich$model
+
+
+
+# replot outputs from model with the two major secondary veg outliers removed. 
+
+# set quantiles of predicted result to be presented in the plots
+exclQuantiles <- c(0.025,0.975)
+
+nd2 <- expand.grid(
+  StdTmeanAnomalyRS=seq(from = min(MeanAnomalyModelRich$data$StdTmeanAnomalyRS),
+                        to = max(MeanAnomalyModelRich$data$StdTmeanAnomalyRS),
+                        length.out = 100),
+  LUI=factor(c("Primary vegetation","Secondary vegetation","Agriculture_Low","Agriculture_High"),
+             levels = levels(MeanAnomalyModelRich$data$LUI)),
+  Order=factor(c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera")))
+
+# back transform the predictors
+nd2$StdTmeanAnomaly <- BackTransformCentreredPredictor(
+  transformedX = nd2$StdTmeanAnomalyRS,
+  originalX = predictsSites$StdTmeanAnomaly)
+
+# set richness and abundance to 0 - to be predicted
+nd2$LogAbund <- 0
+nd2$Species_richness <- 0
+
+# reference for % difference = primary vegetation and positive anomaly closest to 0
+refRow <- which((nd2$LUI=="Primary vegetation") & (nd2$StdTmeanAnomaly==min(abs(nd2$StdTmeanAnomaly))))
+
+# set quantiles
+# coleoptera
+C_QPV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Primary vegetation" & MeanAnomalyModelRich$data$Order == "Coleoptera"],
+  probs = exclQuantiles)
+C_QSV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Secondary vegetation" & MeanAnomalyModelRich$data$Order == "Coleoptera"],
+  probs = exclQuantiles)
+C_QAL <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Agriculture_Low" & MeanAnomalyModelRich$data$Order == "Coleoptera"],
+  probs = exclQuantiles)
+C_QAH <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Agriculture_High" & MeanAnomalyModelRich$data$Order == "Coleoptera"],
+  probs = exclQuantiles)
+
+# diptera
+D_QPV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Primary vegetation" & MeanAnomalyModelRich$data$Order == "Diptera"],
+  probs = exclQuantiles)
+D_QSV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Secondary vegetation" & MeanAnomalyModelRich$data$Order == "Diptera"],
+  probs = exclQuantiles)
+D_QAL <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Agriculture_Low" & MeanAnomalyModelRich$data$Order == "Diptera"],
+  probs = exclQuantiles)
+D_QAH <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Agriculture_High" & MeanAnomalyModelRich$data$Order == "Diptera"],
+  probs = exclQuantiles)
+
+# hemiptera
+He_QPV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Primary vegetation" & MeanAnomalyModelRich$data$Order == "Hemiptera"],
+  probs = exclQuantiles)
+He_QSV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Secondary vegetation" & MeanAnomalyModelRich$data$Order == "Hemiptera"],
+  probs = exclQuantiles)
+He_QAL <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Agriculture_Low" & MeanAnomalyModelRich$data$Order == "Hemiptera"],
+  probs = exclQuantiles)
+He_QAH <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Agriculture_High" & MeanAnomalyModelRich$data$Order == "Hemiptera"],
+  probs = exclQuantiles)
+
+# hymenoptera
+Hy_QPV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Primary vegetation" & MeanAnomalyModelRich$data$Order == "Hymenoptera"],
+  probs = exclQuantiles)
+Hy_QSV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Secondary vegetation" & MeanAnomalyModelRich$data$Order == "Hymenoptera"],
+  probs = exclQuantiles)
+Hy_QAL <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Agriculture_Low" & MeanAnomalyModelRich$data$Order == "Hymenoptera"],
+  probs = exclQuantiles)
+Hy_QAH <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Agriculture_High" & MeanAnomalyModelRich$data$Order == "Hymenoptera"],
+  probs = exclQuantiles)
+
+# lepidoptera
+L_QPV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Primary vegetation" & MeanAnomalyModelRich$data$Order == "Lepidoptera"],
+  probs = exclQuantiles)
+L_QSV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Secondary vegetation" & MeanAnomalyModelRich$data$Order == "Lepidoptera"],
+  probs = exclQuantiles)
+L_QAL <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Agriculture_Low" & MeanAnomalyModelRich$data$Order == "Lepidoptera"],
+  probs = exclQuantiles)
+L_QAH <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Agriculture_High" & MeanAnomalyModelRich$data$Order == "Lepidoptera"],
+  probs = exclQuantiles)
+
+
+# predict the results
+sr.preds.tmean <- PredictGLMERRandIter(model = MeanAnomalyModelRich$model,data = nd2)
+
+# back transform the abundance values
+sr.preds.tmean <- exp(sr.preds.tmean)-0.01
+
+# create list of matrices
+number_of_chunks = 5
+list_sr.preds.tmean <- lapply(seq(1, NROW(sr.preds.tmean), ceiling(NROW(sr.preds.tmean)/number_of_chunks)),
+                              function(i) sr.preds.tmean[i:min(i + ceiling(NROW(sr.preds.tmean)/number_of_chunks) - 1, NROW(sr.preds.tmean)),])
+# name them
+names(list_sr.preds.tmean) <- c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera")
+
+# sweep out according to the refRow
+list_sr.preds.tmean <- lapply(list_sr.preds.tmean,FUN=function(x){
+  sweep (x=x, MARGIN = 2, STATS=x[refRow[1],],FUN="/") 
+})
+
+list2env(list_sr.preds.tmean,globalenv())
+
+# split nd by order
+Order<- paste0("nd2_",nd2$Order)
+# create a list of data frames
+by_Order <- split(nd2,Order)
+list2env(by_Order,globalenv())
+
+# remove anything above and below the quantiles
+Coleoptera[which((nd2_Coleoptera$LUI=="Primary vegetation") & (nd2_Coleoptera$StdTmeanAnomalyRS < C_QPV[1])),] <- NA
+Coleoptera[which((nd2_Coleoptera$LUI=="Primary vegetation") & (nd2_Coleoptera$StdTmeanAnomalyRS > C_QPV[2])),] <- NA
+Coleoptera[which((nd2_Coleoptera$LUI=="Secondary vegetation") & (nd2_Coleoptera$StdTmeanAnomalyRS < C_QSV[1])),] <- NA
+Coleoptera[which((nd2_Coleoptera$LUI=="Secondary vegetation") & (nd2_Coleoptera$StdTmeanAnomalyRS > C_QSV[2])),] <- NA
+Coleoptera[which((nd2_Coleoptera$LUI=="Agriculture_Low") & (nd2_Coleoptera$StdTmeanAnomalyRS < C_QAL[1])),] <- NA
+Coleoptera[which((nd2_Coleoptera$LUI=="Agriculture_Low") & (nd2_Coleoptera$StdTmeanAnomalyRS > C_QAL[2])),] <- NA
+Coleoptera[which((nd2_Coleoptera$LUI=="Agriculture_High") & (nd2_Coleoptera$StdTmeanAnomalyRS < C_QAH[1])),] <- NA
+Coleoptera[which((nd2_Coleoptera$LUI=="Agriculture_High") & (nd2_Coleoptera$StdTmeanAnomalyRS > C_QAH[2])),] <- NA
+
+Diptera[which((nd2_Diptera$LUI=="Primary vegetation") & (nd2_Diptera$StdTmeanAnomalyRS < D_QPV[1])),] <- NA
+Diptera[which((nd2_Diptera$LUI=="Primary vegetation") & (nd2_Diptera$StdTmeanAnomalyRS > D_QPV[2])),] <- NA
+Diptera[which((nd2_Diptera$LUI=="Secondary vegetation") & (nd2_Diptera$StdTmeanAnomalyRS < D_QSV[1])),] <- NA
+Diptera[which((nd2_Diptera$LUI=="Secondary vegetation") & (nd2_Diptera$StdTmeanAnomalyRS > D_QSV[2])),] <- NA
+Diptera[which((nd2_Diptera$LUI=="Agriculture_Low") & (nd2_Diptera$StdTmeanAnomalyRS < D_QAL[1])),] <- NA
+Diptera[which((nd2_Diptera$LUI=="Agriculture_Low") & (nd2_Diptera$StdTmeanAnomalyRS > D_QAL[2])),] <- NA
+Diptera[which((nd2_Diptera$LUI=="Agriculture_High") & (nd2_Diptera$StdTmeanAnomalyRS < D_QAH[1])),] <- NA
+Diptera[which((nd2_Diptera$LUI=="Agriculture_High") & (nd2_Diptera$StdTmeanAnomalyRS > D_QAH[2])),] <- NA
+
+Hemiptera[which((nd2_Hemiptera$LUI=="Primary vegetation") & (nd2_Hemiptera$StdTmeanAnomalyRS < He_QPV[1])),] <- NA
+Hemiptera[which((nd2_Hemiptera$LUI=="Primary vegetation") & (nd2_Hemiptera$StdTmeanAnomalyRS > He_QPV[2])),] <- NA
+Hemiptera[which((nd2_Hemiptera$LUI=="Secondary vegetation") & (nd2_Hemiptera$StdTmeanAnomalyRS < He_QSV[1])),] <- NA
+Hemiptera[which((nd2_Hemiptera$LUI=="Secondary vegetation") & (nd2_Hemiptera$StdTmeanAnomalyRS > He_QSV[2])),] <- NA
+Hemiptera[which((nd2_Hemiptera$LUI=="Agriculture_Low") & (nd2_Hemiptera$StdTmeanAnomalyRS < He_QAL[1])),] <- NA
+Hemiptera[which((nd2_Hemiptera$LUI=="Agriculture_Low") & (nd2_Hemiptera$StdTmeanAnomalyRS > He_QAL[2])),] <- NA
+Hemiptera[which((nd2_Hemiptera$LUI=="Agriculture_High") & (nd2_Hemiptera$StdTmeanAnomalyRS < He_QAH[1])),] <- NA
+Hemiptera[which((nd2_Hemiptera$LUI=="Agriculture_High") & (nd2_Hemiptera$StdTmeanAnomalyRS > He_QAH[2])),] <- NA
+
+Hymenoptera[which((nd2_Hymenoptera$LUI=="Primary vegetation") & (nd2_Hymenoptera$StdTmeanAnomalyRS < Hy_QPV[1])),] <- NA
+Hymenoptera[which((nd2_Hymenoptera$LUI=="Primary vegetation") & (nd2_Hymenoptera$StdTmeanAnomalyRS > Hy_QPV[2])),] <- NA
+Hymenoptera[which((nd2_Hymenoptera$LUI=="Secondary vegetation") & (nd2_Hymenoptera$StdTmeanAnomalyRS < Hy_QSV[1])),] <- NA
+Hymenoptera[which((nd2_Hymenoptera$LUI=="Secondary vegetation") & (nd2_Hymenoptera$StdTmeanAnomalyRS > Hy_QSV[2])),] <- NA
+Hymenoptera[which((nd2_Hymenoptera$LUI=="Agriculture_Low") & (nd2_Hymenoptera$StdTmeanAnomalyRS < Hy_QAL[1])),] <- NA
+Hymenoptera[which((nd2_Hymenoptera$LUI=="Agriculture_Low") & (nd2_Hymenoptera$StdTmeanAnomalyRS > Hy_QAL[2])),] <- NA
+Hymenoptera[which((nd2_Hymenoptera$LUI=="Agriculture_High") & (nd2_Hymenoptera$StdTmeanAnomalyRS < Hy_QAH[1])),] <- NA
+Hymenoptera[which((nd2_Hymenoptera$LUI=="Agriculture_High") & (nd2_Hymenoptera$StdTmeanAnomalyRS > Hy_QAH[2])),] <- NA
+
+Lepidoptera[which((nd2_Lepidoptera$LUI=="Primary vegetation") & (nd2_Lepidoptera$StdTmeanAnomalyRS < L_QPV[1])),] <- NA
+Lepidoptera[which((nd2_Lepidoptera$LUI=="Primary vegetation") & (nd2_Lepidoptera$StdTmeanAnomalyRS > L_QPV[2])),] <- NA
+Lepidoptera[which((nd2_Lepidoptera$LUI=="Secondary vegetation") & (nd2_Lepidoptera$StdTmeanAnomalyRS < L_QSV[1])),] <- NA
+Lepidoptera[which((nd2_Lepidoptera$LUI=="Secondary vegetation") & (nd2_Lepidoptera$StdTmeanAnomalyRS > L_QSV[2])),] <- NA
+Lepidoptera[which((nd2_Lepidoptera$LUI=="Agriculture_Low") & (nd2_Lepidoptera$StdTmeanAnomalyRS < L_QAL[1])),] <- NA
+Lepidoptera[which((nd2_Lepidoptera$LUI=="Agriculture_Low") & (nd2_Lepidoptera$StdTmeanAnomalyRS > L_QAL[2])),] <- NA
+Lepidoptera[which((nd2_Lepidoptera$LUI=="Agriculture_High") & (nd2_Lepidoptera$StdTmeanAnomalyRS < L_QAH[1])),] <- NA
+Lepidoptera[which((nd2_Lepidoptera$LUI=="Agriculture_High") & (nd2_Lepidoptera$StdTmeanAnomalyRS > L_QAH[2])),] <- NA
+
+
+
+# Get the median, upper and lower quants for the plot
+nd2_Coleoptera$PredMedian <- ((apply(X = Coleoptera,MARGIN = 1,
+                                     FUN = median,na.rm=TRUE))*100)-100
+nd2_Coleoptera$PredUpper <- ((apply(X = Coleoptera,MARGIN = 1,
+                                    FUN = quantile,probs = 0.975,na.rm=TRUE))*100)-100
+nd2_Coleoptera$PredLower <- ((apply(X = Coleoptera,MARGIN = 1,
+                                    FUN = quantile,probs = 0.025,na.rm=TRUE))*100)-100
+
+nd2_Diptera$PredMedian <- ((apply(X = Diptera,MARGIN = 1,
+                                  FUN = median,na.rm=TRUE))*100)-100
+nd2_Diptera$PredUpper <- ((apply(X = Diptera,MARGIN = 1,
+                                 FUN = quantile,probs = 0.975,na.rm=TRUE))*100)-100
+nd2_Diptera$PredLower <- ((apply(X = Diptera,MARGIN = 1,
+                                 FUN = quantile,probs = 0.025,na.rm=TRUE))*100)-100
+
+nd2_Hemiptera$PredMedian <- ((apply(X = Hemiptera,MARGIN = 1,
+                                    FUN = median,na.rm=TRUE))*100)-100
+nd2_Hemiptera$PredUpper <- ((apply(X = Hemiptera,MARGIN = 1,
+                                   FUN = quantile,probs = 0.975,na.rm=TRUE))*100)-100
+nd2_Hemiptera$PredLower <- ((apply(X = Hemiptera,MARGIN = 1,
+                                   FUN = quantile,probs = 0.025,na.rm=TRUE))*100)-100
+
+nd2_Hymenoptera$PredMedian <- ((apply(X = Hymenoptera,MARGIN = 1,
+                                      FUN = median,na.rm=TRUE))*100)-100
+nd2_Hymenoptera$PredUpper <- ((apply(X = Hymenoptera,MARGIN = 1,
+                                     FUN = quantile,probs = 0.975,na.rm=TRUE))*100)-100
+nd2_Hymenoptera$PredLower <- ((apply(X = Hymenoptera,MARGIN = 1,
+                                     FUN = quantile,probs = 0.025,na.rm=TRUE))*100)-100
+
+nd2_Lepidoptera$PredMedian <- ((apply(X = Lepidoptera,MARGIN = 1,
+                                      FUN = median,na.rm=TRUE))*100)-100
+nd2_Lepidoptera$PredUpper <- ((apply(X = Lepidoptera,MARGIN = 1,
+                                     FUN = quantile,probs = 0.975,na.rm=TRUE))*100)-100
+nd2_Lepidoptera$PredLower <- ((apply(X = Lepidoptera,MARGIN = 1,
+                                     FUN = quantile,probs = 0.025,na.rm=TRUE))*100)-100
+
+
+# set factor levels
+nd2_Coleoptera$LUI <- factor(nd2_Coleoptera$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
+nd2_Diptera$LUI <- factor(nd2_Diptera$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
+nd2_Hemiptera$LUI <- factor(nd2_Hemiptera$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
+nd2_Hymenoptera$LUI <- factor(nd2_Hymenoptera$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
+nd2_Lepidoptera$LUI <- factor(nd2_Lepidoptera$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
+
+# plot
+p_coleoptera <- ggplot(data = nd2_Coleoptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
+  geom_line(aes(col = LUI), size = 0.75) +
+  geom_ribbon(aes(ymin = nd2_Coleoptera$PredLower, ymax = nd2_Coleoptera$PredUpper, fill = LUI), alpha = 0.2) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  theme_bw() + 
+  scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
+  ylab("Change in species richness (%)") +
+  xlab("Standardised Temperature Anomaly") +
+  ggtitle("Coleoptera") +
+  theme(aspect.ratio = 1, 
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title.x = element_text(size = 8),
+        axis.title.y = element_text(size = 8),
+        axis.text = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
+        legend.position = "none",
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25)) 
+
+p_diptera <- ggplot(data = nd2_Diptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
+  geom_line(aes(col = LUI), size = 0.75) +
+  geom_ribbon(aes(ymin = nd2_Diptera$PredLower, ymax = nd2_Diptera$PredUpper, fill = LUI), alpha = 0.2) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  theme_bw() + 
+  scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
+  ylab("Change in species richness (%)") +
+  xlab("Standardised Temperature Anomaly") +
+  ggtitle("Diptera") +
+  theme(aspect.ratio = 1, 
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title = element_text(size = 8),
+        axis.text = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
+        legend.position = "none", 
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25))
+
+p_hemiptera <- ggplot(data = nd2_Hemiptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
+  geom_line(aes(col = LUI), size = 0.75) +
+  geom_ribbon(aes(ymin = nd2_Hemiptera$PredLower, ymax = nd2_Hemiptera$PredUpper, fill = LUI), alpha = 0.2) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  theme_bw() + 
+  scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
+  #scale_y_continuous(breaks = c(-100, 0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000), limits = c(-100, 1000)) +
+  ylab("Change in species richness (%)") +
+  xlab("Standardised Temperature Anomaly") +
+  ggtitle("Hemiptera") +
+  theme(aspect.ratio = 1, 
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title = element_text(size = 8),
+        axis.text = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
+        legend.position = "none",
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25))
+
+p_hymenoptera <- ggplot(data = nd2_Hymenoptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
+  geom_line(aes(col = LUI), size = 0.75) +
+  geom_ribbon(aes(ymin = nd2_Hymenoptera$PredLower, ymax = nd2_Hymenoptera$PredUpper, fill = LUI), alpha = 0.2) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  theme_bw() + 
+  scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 275)) +
+  #scale_y_continuous(breaks = c(-100, 0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000), limits = c(-100, 1000)) +
+  ylab("Change in species richness (%)") +
+  xlab("Standardised Temperature Anomaly") +
+  ggtitle("Hymenoptera") +
+  theme(aspect.ratio = 1, 
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title = element_text(size = 8),
+        axis.text = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
+        legend.position = "none",
+        #legend.position = c(0.2, 0.8),
+        #legend.background = element_blank(), 
+        #legend.text = element_text(size = 6), 
+        #legend.title = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25))
+
+p_lepidoptera <- ggplot(data = nd2_Lepidoptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
+  geom_line(aes(col = LUI), size = 0.75) +
+  geom_ribbon(aes(ymin = nd2_Lepidoptera$PredLower, ymax = nd2_Lepidoptera$PredUpper, fill = LUI), alpha = 0.2) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  theme_bw() + 
+  scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
+  #scale_y_continuous(breaks = c(-100, 0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000), limits = c(-100, 1000)) +
+  ylab("Change in species richness (%)") +
+  xlab("Standardised Temperature Anomaly") +
+  ggtitle("Lepidoptera") +
+  theme(aspect.ratio = 1, 
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title = element_text(size = 8),
+        axis.text = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
+        legend.position = "none", 
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25)) 
+
+# get the legend
+legend <- get_legend(
+  p_coleoptera +
+    guides(color = guide_legend(ncol = 1)) +
+    theme(legend.position = "right",
+          legend.background = element_blank(), 
+          legend.text = element_text(size = 7), 
+          legend.title = element_blank())
+)
+
+
+# put them all together to save them
+MeanAnomRich <- cowplot::plot_grid(p_coleoptera,p_diptera,p_hemiptera,p_hymenoptera,p_lepidoptera,legend, ncol=3)
+
+# save plot (pdf)
+ggsave(filename = paste0(outdir, "MeanAnomRich_outrm_sec.pdf"), plot = MeanAnomRich, width = 200, height = 150, units = "mm", dpi = 300)
+
+# save plot (jpeg)
+ggsave("MeanAnomRich_outrm_Sec.jpeg", device ="jpeg", path = outdir, width=20, height=15, units="cm", dpi = 350)
+
+
+
+
+
+
+# abundance
+
+
+# subset the data to exclude the potential outliers
+model_data <- predictsSites[!predictsSites$SS %in% outliers, ] # 8403 rows
+
+model_data <- model_data[!is.na(model_data$LogAbund), ] # 8013 rows
+
+length(unique(model_data$SS)) # 233
+
+MeanAnomalyModelAbund <- GLMER(modelData = model_data, 
+                               responseVar = "LogAbund",
+                               fitFamily = "gaussian",
+                               fixedStruct = "LUI * StdTmeanAnomalyRS * Order",
+                               randomStruct = "(1|SS)+(1|SSB)",
+                               saveVars = c("SSBS"))
+
+# save the model output
+save(MeanAnomalyModelAbund, file = paste0(outdir, "/MeanAnomalyModelAbund_rm_sec_out.rdata"))
+
+### replot 
+
+
+nd <- expand.grid(
+  StdTmeanAnomalyRS=seq(from = min(MeanAnomalyModelAbund$data$StdTmeanAnomalyRS),
+                        to = max(MeanAnomalyModelAbund$data$StdTmeanAnomalyRS),
+                        length.out = 100),
+  LUI=factor(c("Primary vegetation","Secondary vegetation","Agriculture_Low","Agriculture_High"),
+             levels = levels(MeanAnomalyModelAbund$data$LUI)),
+  Order=factor(c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera")))
+
+# back transform the predictors
+nd$StdTmeanAnomaly <- BackTransformCentreredPredictor(
+  transformedX = nd$StdTmeanAnomalyRS,
+  originalX = predictsSites$StdTmeanAnomaly)
+
+# set richness and abundance to 0 - to be predicted
+nd$LogAbund <- 0
+nd$Species_richness <- 0
+
+# reference for % difference = primary vegetation and positive anomaly closest to 0
+refRow <- which((nd$LUI=="Primary vegetation") & (nd$StdTmeanAnomaly==min(abs(nd$StdTmeanAnomaly))))
+
+# set quantiles by Order
+# coleoptera
+C_QPV <- quantile(x = MeanAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelAbund$data$LUI=="Primary vegetation" & MeanAnomalyModelAbund$data$Order == "Coleoptera"],
+  probs = exclQuantiles)
+C_QSV <- quantile(x = MeanAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelAbund$data$LUI=="Secondary vegetation" & MeanAnomalyModelAbund$data$Order == "Coleoptera"],
+  probs = exclQuantiles)
+C_QAL <- quantile(x = MeanAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelAbund$data$LUI=="Agriculture_Low" & MeanAnomalyModelAbund$data$Order == "Coleoptera"],
+  probs = exclQuantiles)
+C_QAH <- quantile(x = MeanAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelAbund$data$LUI=="Agriculture_High" & MeanAnomalyModelAbund$data$Order == "Coleoptera"],
+  probs = exclQuantiles)
+
+# diptera
+D_QPV <- quantile(x = MeanAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelAbund$data$LUI=="Primary vegetation" & MeanAnomalyModelAbund$data$Order == "Diptera"],
+  probs = exclQuantiles)
+D_QSV <- quantile(x = MeanAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelAbund$data$LUI=="Secondary vegetation" & MeanAnomalyModelAbund$data$Order == "Diptera"],
+  probs = exclQuantiles)
+D_QAL <- quantile(x = MeanAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelAbund$data$LUI=="Agriculture_Low" & MeanAnomalyModelAbund$data$Order == "Diptera"],
+  probs = exclQuantiles)
+D_QAH <- quantile(x = MeanAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelAbund$data$LUI=="Agriculture_High" & MeanAnomalyModelAbund$data$Order == "Diptera"],
+  probs = exclQuantiles)
+
+# hemiptera
+He_QPV <- quantile(x = MeanAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelAbund$data$LUI=="Primary vegetation" & MeanAnomalyModelAbund$data$Order == "Hemiptera"],
+  probs = exclQuantiles)
+He_QSV <- quantile(x = MeanAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelAbund$data$LUI=="Secondary vegetation" & MeanAnomalyModelAbund$data$Order == "Hemiptera"],
+  probs = exclQuantiles)
+He_QAL <- quantile(x = MeanAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelAbund$data$LUI=="Agriculture_Low" & MeanAnomalyModelAbund$data$Order == "Hemiptera"],
+  probs = exclQuantiles)
+He_QAH <- quantile(x = MeanAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelAbund$data$LUI=="Agriculture_High" & MeanAnomalyModelAbund$data$Order == "Hemiptera"],
+  probs = exclQuantiles)
+
+# hymenoptera
+Hy_QPV <- quantile(x = MeanAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelAbund$data$LUI=="Primary vegetation" & MeanAnomalyModelAbund$data$Order == "Hymenoptera"],
+  probs = exclQuantiles)
+Hy_QSV <- quantile(x = MeanAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelAbund$data$LUI=="Secondary vegetation" & MeanAnomalyModelAbund$data$Order == "Hymenoptera"],
+  probs = exclQuantiles)
+Hy_QAL <- quantile(x = MeanAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelAbund$data$LUI=="Agriculture_Low" & MeanAnomalyModelAbund$data$Order == "Hymenoptera"],
+  probs = exclQuantiles)
+Hy_QAH <- quantile(x = MeanAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelAbund$data$LUI=="Agriculture_High" & MeanAnomalyModelAbund$data$Order == "Hymenoptera"],
+  probs = exclQuantiles)
+
+# lepidoptera
+L_QPV <- quantile(x = MeanAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelAbund$data$LUI=="Primary vegetation" & MeanAnomalyModelAbund$data$Order == "Lepidoptera"],
+  probs = exclQuantiles)
+L_QSV <- quantile(x = MeanAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelAbund$data$LUI=="Secondary vegetation" & MeanAnomalyModelAbund$data$Order == "Lepidoptera"],
+  probs = exclQuantiles)
+L_QAL <- quantile(x = MeanAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelAbund$data$LUI=="Agriculture_Low" & MeanAnomalyModelAbund$data$Order == "Lepidoptera"],
+  probs = exclQuantiles)
+L_QAH <- quantile(x = MeanAnomalyModelAbund$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelAbund$data$LUI=="Agriculture_High" & MeanAnomalyModelAbund$data$Order == "Lepidoptera"],
+  probs = exclQuantiles)
+
+
+# predict the results
+a.preds.tmean <- PredictGLMERRandIter(model = MeanAnomalyModelAbund$model,data = nd)
+
+# back transform the abundance values
+a.preds.tmean <- exp(a.preds.tmean)-0.01
+
+# create list of matrices
+number_of_chunks = 5
+list_a.preds.tmean <- lapply(seq(1, NROW(a.preds.tmean), ceiling(NROW(a.preds.tmean)/number_of_chunks)),
+                             function(i) a.preds.tmean[i:min(i + ceiling(NROW(a.preds.tmean)/number_of_chunks) - 1, NROW(a.preds.tmean)),])
+
+# name them
+names(list_a.preds.tmean) <- c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera")
+
+# sweep out according to the refRow
+list_a.preds.tmean <- lapply(list_a.preds.tmean,FUN=function(x){
+  sweep (x=x, MARGIN = 2, STATS=x[refRow[1],],FUN="/") 
+})
+
+
+# print to global environment
+list2env(list_a.preds.tmean,globalenv())
+
+# split nd by order
+Order<- paste0("nd_",nd$Order)
+# create a list of data frames
+by_Order <- split(nd,Order)
+list2env(by_Order,globalenv())
+
+# remove anything above and below the quantiles
+Coleoptera[which((nd_Coleoptera$LUI=="Primary vegetation") & (nd_Coleoptera$StdTmeanAnomalyRS < C_QPV[1])),] <- NA
+Coleoptera[which((nd_Coleoptera$LUI=="Primary vegetation") & (nd_Coleoptera$StdTmeanAnomalyRS > C_QPV[2])),] <- NA
+Coleoptera[which((nd_Coleoptera$LUI=="Secondary vegetation") & (nd_Coleoptera$StdTmeanAnomalyRS < C_QSV[1])),] <- NA
+Coleoptera[which((nd_Coleoptera$LUI=="Secondary vegetation") & (nd_Coleoptera$StdTmeanAnomalyRS > C_QSV[2])),] <- NA
+Coleoptera[which((nd_Coleoptera$LUI=="Agriculture_Low") & (nd_Coleoptera$StdTmeanAnomalyRS < C_QAL[1])),] <- NA
+Coleoptera[which((nd_Coleoptera$LUI=="Agriculture_Low") & (nd_Coleoptera$StdTmeanAnomalyRS > C_QAL[2])),] <- NA
+Coleoptera[which((nd_Coleoptera$LUI=="Agriculture_High") & (nd_Coleoptera$StdTmeanAnomalyRS < C_QAH[1])),] <- NA
+Coleoptera[which((nd_Coleoptera$LUI=="Agriculture_High") & (nd_Coleoptera$StdTmeanAnomalyRS > C_QAH[2])),] <- NA
+
+Diptera[which((nd_Diptera$LUI=="Primary vegetation") & (nd_Diptera$StdTmeanAnomalyRS < D_QPV[1])),] <- NA
+Diptera[which((nd_Diptera$LUI=="Primary vegetation") & (nd_Diptera$StdTmeanAnomalyRS > D_QPV[2])),] <- NA
+Diptera[which((nd_Diptera$LUI=="Secondary vegetation") & (nd_Diptera$StdTmeanAnomalyRS < D_QSV[1])),] <- NA
+Diptera[which((nd_Diptera$LUI=="Secondary vegetation") & (nd_Diptera$StdTmeanAnomalyRS > D_QSV[2])),] <- NA
+Diptera[which((nd_Diptera$LUI=="Agriculture_Low") & (nd_Diptera$StdTmeanAnomalyRS < D_QAL[1])),] <- NA
+Diptera[which((nd_Diptera$LUI=="Agriculture_Low") & (nd_Diptera$StdTmeanAnomalyRS > D_QAL[2])),] <- NA
+Diptera[which((nd_Diptera$LUI=="Agriculture_High") & (nd_Diptera$StdTmeanAnomalyRS < D_QAH[1])),] <- NA
+Diptera[which((nd_Diptera$LUI=="Agriculture_High") & (nd_Diptera$StdTmeanAnomalyRS > D_QAH[2])),] <- NA
+
+Hemiptera[which((nd_Hemiptera$LUI=="Primary vegetation") & (nd_Hemiptera$StdTmeanAnomalyRS < He_QPV[1])),] <- NA
+Hemiptera[which((nd_Hemiptera$LUI=="Primary vegetation") & (nd_Hemiptera$StdTmeanAnomalyRS > He_QPV[2])),] <- NA
+Hemiptera[which((nd_Hemiptera$LUI=="Secondary vegetation") & (nd_Hemiptera$StdTmeanAnomalyRS < He_QSV[1])),] <- NA
+Hemiptera[which((nd_Hemiptera$LUI=="Secondary vegetation") & (nd_Hemiptera$StdTmeanAnomalyRS > He_QSV[2])),] <- NA
+Hemiptera[which((nd_Hemiptera$LUI=="Agriculture_Low") & (nd_Hemiptera$StdTmeanAnomalyRS < He_QAL[1])),] <- NA
+Hemiptera[which((nd_Hemiptera$LUI=="Agriculture_Low") & (nd_Hemiptera$StdTmeanAnomalyRS > He_QAL[2])),] <- NA
+Hemiptera[which((nd_Hemiptera$LUI=="Agriculture_High") & (nd_Hemiptera$StdTmeanAnomalyRS < He_QAH[1])),] <- NA
+Hemiptera[which((nd_Hemiptera$LUI=="Agriculture_High") & (nd_Hemiptera$StdTmeanAnomalyRS > He_QAH[2])),] <- NA
+
+Hymenoptera[which((nd_Hymenoptera$LUI=="Primary vegetation") & (nd_Hymenoptera$StdTmeanAnomalyRS < Hy_QPV[1])),] <- NA
+Hymenoptera[which((nd_Hymenoptera$LUI=="Primary vegetation") & (nd_Hymenoptera$StdTmeanAnomalyRS > Hy_QPV[2])),] <- NA
+Hymenoptera[which((nd_Hymenoptera$LUI=="Secondary vegetation") & (nd_Hymenoptera$StdTmeanAnomalyRS < Hy_QSV[1])),] <- NA
+Hymenoptera[which((nd_Hymenoptera$LUI=="Secondary vegetation") & (nd_Hymenoptera$StdTmeanAnomalyRS > Hy_QSV[2])),] <- NA
+Hymenoptera[which((nd_Hymenoptera$LUI=="Agriculture_Low") & (nd_Hymenoptera$StdTmeanAnomalyRS < Hy_QAL[1])),] <- NA
+Hymenoptera[which((nd_Hymenoptera$LUI=="Agriculture_Low") & (nd_Hymenoptera$StdTmeanAnomalyRS > Hy_QAL[2])),] <- NA
+Hymenoptera[which((nd_Hymenoptera$LUI=="Agriculture_High") & (nd_Hymenoptera$StdTmeanAnomalyRS < Hy_QAH[1])),] <- NA
+Hymenoptera[which((nd_Hymenoptera$LUI=="Agriculture_High") & (nd_Hymenoptera$StdTmeanAnomalyRS > Hy_QAH[2])),] <- NA
+
+Lepidoptera[which((nd_Lepidoptera$LUI=="Primary vegetation") & (nd_Lepidoptera$StdTmeanAnomalyRS < L_QPV[1])),] <- NA
+Lepidoptera[which((nd_Lepidoptera$LUI=="Primary vegetation") & (nd_Lepidoptera$StdTmeanAnomalyRS > L_QPV[2])),] <- NA
+Lepidoptera[which((nd_Lepidoptera$LUI=="Secondary vegetation") & (nd_Lepidoptera$StdTmeanAnomalyRS < L_QSV[1])),] <- NA
+Lepidoptera[which((nd_Lepidoptera$LUI=="Secondary vegetation") & (nd_Lepidoptera$StdTmeanAnomalyRS > L_QSV[2])),] <- NA
+Lepidoptera[which((nd_Lepidoptera$LUI=="Agriculture_Low") & (nd_Lepidoptera$StdTmeanAnomalyRS < L_QAL[1])),] <- NA
+Lepidoptera[which((nd_Lepidoptera$LUI=="Agriculture_Low") & (nd_Lepidoptera$StdTmeanAnomalyRS > L_QAL[2])),] <- NA
+Lepidoptera[which((nd_Lepidoptera$LUI=="Agriculture_High") & (nd_Lepidoptera$StdTmeanAnomalyRS < L_QAH[1])),] <- NA
+Lepidoptera[which((nd_Lepidoptera$LUI=="Agriculture_High") & (nd_Lepidoptera$StdTmeanAnomalyRS > L_QAH[2])),] <- NA
+
+
+# Get the median, upper and lower quants for the plot
+
+nd_Coleoptera$PredMedian <- ((apply(X = Coleoptera,MARGIN = 1,
+                                    FUN = median,na.rm=TRUE))*100)-100
+nd_Coleoptera$PredUpper <- ((apply(X = Coleoptera,MARGIN = 1,
+                                   FUN = quantile,probs = 0.975,na.rm=TRUE))*100)-100
+nd_Coleoptera$PredLower <- ((apply(X = Coleoptera,MARGIN = 1,
+                                   FUN = quantile,probs = 0.025,na.rm=TRUE))*100)-100
+
+nd_Diptera$PredMedian <- ((apply(X = Diptera,MARGIN = 1,
+                                 FUN = median,na.rm=TRUE))*100)-100
+nd_Diptera$PredUpper <- ((apply(X = Diptera,MARGIN = 1,
+                                FUN = quantile,probs = 0.975,na.rm=TRUE))*100)-100
+nd_Diptera$PredLower <- ((apply(X = Diptera,MARGIN = 1,
+                                FUN = quantile,probs = 0.025,na.rm=TRUE))*100)-100
+
+nd_Hemiptera$PredMedian <- ((apply(X = Hemiptera,MARGIN = 1,
+                                   FUN = median,na.rm=TRUE))*100)-100
+nd_Hemiptera$PredUpper <- ((apply(X = Hemiptera,MARGIN = 1,
+                                  FUN = quantile,probs = 0.975,na.rm=TRUE))*100)-100
+nd_Hemiptera$PredLower <- ((apply(X = Hemiptera,MARGIN = 1,
+                                  FUN = quantile,probs = 0.025,na.rm=TRUE))*100)-100
+
+nd_Hymenoptera$PredMedian <- ((apply(X = Hymenoptera,MARGIN = 1,
+                                     FUN = median,na.rm=TRUE))*100)-100
+nd_Hymenoptera$PredUpper <- ((apply(X = Hymenoptera,MARGIN = 1,
+                                    FUN = quantile,probs = 0.975,na.rm=TRUE))*100)-100
+nd_Hymenoptera$PredLower <- ((apply(X = Hymenoptera,MARGIN = 1,
+                                    FUN = quantile,probs = 0.025,na.rm=TRUE))*100)-100
+
+nd_Lepidoptera$PredMedian <- ((apply(X = Lepidoptera,MARGIN = 1,
+                                     FUN = median,na.rm=TRUE))*100)-100
+nd_Lepidoptera$PredUpper <- ((apply(X = Lepidoptera,MARGIN = 1,
+                                    FUN = quantile,probs = 0.975,na.rm=TRUE))*100)-100
+nd_Lepidoptera$PredLower <- ((apply(X = Lepidoptera,MARGIN = 1,
+                                    FUN = quantile,probs = 0.025,na.rm=TRUE))*100)-100
+
+
+# set factor levels
+nd_Coleoptera$LUI <- factor(nd_Coleoptera$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
+nd_Diptera$LUI <- factor(nd_Diptera$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
+nd_Hemiptera$LUI <- factor(nd_Hemiptera$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
+nd_Hymenoptera$LUI <- factor(nd_Hymenoptera$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
+nd_Lepidoptera$LUI <- factor(nd_Lepidoptera$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
+
+# plot
+
+p_coleoptera <- ggplot(data = nd_Coleoptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
+  geom_line(aes(col = LUI), size = 0.75) +
+  geom_ribbon(aes(ymin = nd_Coleoptera$PredLower, ymax = nd_Coleoptera$PredUpper, fill = LUI), alpha = 0.2) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  theme_bw() + 
+  scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
+  #scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
+  ylab("Change in total abundance (%)") +
+  xlab("Standardised Temperature Anomaly") + 
+  ggtitle("Coleoptera") +
+  theme(aspect.ratio = 1, 
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title.x = element_text(size = 8),
+        axis.title.y = element_text(size = 8),
+        axis.text = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
+        legend.position = "none", 
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25)) 
+
+
+p_diptera <- ggplot(data = nd_Diptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
+  geom_line(aes(col = LUI), size = 0.75) +
+  geom_ribbon(aes(ymin = nd_Diptera$PredLower, ymax = nd_Diptera$PredUpper, fill = LUI), alpha = 0.2) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  theme_bw() + 
+  scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
+  #scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
+  ylab("Change in total abundance (%)") +
+  xlab("Standardised Temperature Anomaly") +
+  ggtitle("Diptera") +
+  theme(aspect.ratio = 1, 
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title = element_text(size = 8),
+        axis.text = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
+        legend.position = "none", 
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25)) 
+
+
+p_hemiptera <- ggplot(data = nd_Hemiptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
+  geom_line(aes(col = LUI), size = 0.75) +
+  geom_ribbon(aes(ymin = nd_Hemiptera$PredLower, ymax = nd_Hemiptera$PredUpper, fill = LUI), alpha = 0.2) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  theme_bw() + 
+  scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
+  #scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
+  ylab("Change in total abundance (%)") +
+  xlab("Standardised Temperature Anomaly") +
+  ggtitle("Hemiptera") +
+  theme(aspect.ratio = 1, 
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title = element_text(size = 8),
+        axis.text = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
+        legend.position = "none",
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25))
+
+
+p_hymenoptera <- ggplot(data = nd_Hymenoptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
+  geom_line(aes(col = LUI), size = 0.75) +
+  geom_ribbon(aes(ymin = nd_Hymenoptera$PredLower, ymax = nd_Hymenoptera$PredUpper, fill = LUI), alpha = 0.2) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  theme_bw() + 
+  scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
+  #scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 225)) +
+  ylab("Change in total abundance (%)") +
+  xlab("Standardised Temperature Anomaly") +
+  ggtitle("Hymenoptera") +
+  theme(aspect.ratio = 1, 
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title = element_text(size = 8),
+        axis.text = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
+        legend.position = "none", 
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25))
+
+p_lepidoptera <- ggplot(data = nd_Lepidoptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
+  geom_line(aes(col = LUI), size = 0.75) +
+  geom_ribbon(aes(ymin = nd_Lepidoptera$PredLower, ymax = nd_Lepidoptera$PredUpper, fill = LUI), alpha = 0.2) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  theme_bw() + 
+  scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
+  #scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
+  ylab("Change in total abundance (%)") +
+  xlab("Standardised Temperature Anomaly") +
+  ggtitle("Lepidoptera") +
+  theme(aspect.ratio = 1, 
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title = element_text(size = 8),
+        axis.text = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
+        legend.position = "none",
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25)) 
+
+
+# get the legend
+legend <- get_legend(
+  p_coleoptera +
+    guides(color = guide_legend(ncol = 1)) +
+    theme(legend.position = "right",
+          legend.background = element_blank(), 
+          legend.text = element_text(size = 7), 
+          legend.title = element_blank())
+)
+
+
+# put them all together to save them
+MeanAnomAbund <- cowplot::plot_grid(p_coleoptera,p_diptera,p_hemiptera,p_hymenoptera,p_lepidoptera,legend, ncol=3)
+
+# save plot (pdf)
+ggsave(filename = paste0(outdir, "MeanAnomAbund_outrm.pdf"), plot = MeanAnomAbund, width = 200, height = 150, units = "mm", dpi = 300)
+
+# save plot (jpeg)
+ggsave("MeanAnomAbund_outrm.jpeg", device ="jpeg", path = outdir, width=20, height=15, units="cm", dpi = 350)
+
+
+
+
+##%######################################################%##
+#                                                          #
+####      Rerun the richness models removing each       ####
+####            of the outliers on at a time            ####
+#                                                          #
+##%######################################################%##
+
+# list outliers
+rich_ss <- c("SC1_2010__Marsh 1", "AD1_2008__Franzen 1", "SE1_2012__Poveda 1", 
+             "LH1_2008__Littlewood 1",  "SE1_2012__Poveda 2", "HP1_2006__Lachat 1",
+             "DI1_2013__Rousseau 2", "TN1_2007__Bouyer 2", "AD1_2008__Billeter 6",
+             "SH1_2011__Todd 1", "SC1_2005__Richardson 1",  "SC1_2011__Meijer 1",     
+             "AR1_2008__Basset 1", "HW1_2011__Summerville 1")
+# 14 outliers for the richness model
+
+# out <- outliers[2]
+for(out in outliers) {
+  
+# subset the data to exclude the potential outliers
+model_data <- predictsSites[!predictsSites$SS == out, ] 
+
+MeanAnomalyModelRich <- GLMER(modelData = model_data,
+                              responseVar = "Species_richness",
+                              fitFamily = "poisson",
+                              fixedStruct = "LUI * StdTmeanAnomalyRS * Order",
+                              randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",
+                              saveVars = c("SSBS"), 
+                              maxIters = 20000)
+
+
+# set quantiles of predicted result to be presented in the plots
+exclQuantiles <- c(0.025,0.975)
+
+nd2 <- expand.grid(
+  StdTmeanAnomalyRS=seq(from = min(MeanAnomalyModelRich$data$StdTmeanAnomalyRS),
+                        to = max(MeanAnomalyModelRich$data$StdTmeanAnomalyRS),
+                        length.out = 100),
+  LUI=factor(c("Primary vegetation","Secondary vegetation","Agriculture_Low","Agriculture_High"),
+             levels = levels(MeanAnomalyModelRich$data$LUI)),
+  Order=factor(c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera")))
+
+# back transform the predictors
+nd2$StdTmeanAnomaly <- BackTransformCentreredPredictor(
+  transformedX = nd2$StdTmeanAnomalyRS,
+  originalX = predictsSites$StdTmeanAnomaly)
+
+# set richness and abundance to 0 - to be predicted
+nd2$LogAbund <- 0
+nd2$Species_richness <- 0
+
+# reference for % difference = primary vegetation and positive anomaly closest to 0
+refRow <- which((nd2$LUI=="Primary vegetation") & (nd2$StdTmeanAnomaly==min(abs(nd2$StdTmeanAnomaly))))
+
+# set quantiles
+# coleoptera
+C_QPV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Primary vegetation" & MeanAnomalyModelRich$data$Order == "Coleoptera"],
+  probs = exclQuantiles)
+C_QSV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Secondary vegetation" & MeanAnomalyModelRich$data$Order == "Coleoptera"],
+  probs = exclQuantiles)
+C_QAL <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Agriculture_Low" & MeanAnomalyModelRich$data$Order == "Coleoptera"],
+  probs = exclQuantiles)
+C_QAH <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Agriculture_High" & MeanAnomalyModelRich$data$Order == "Coleoptera"],
+  probs = exclQuantiles)
+
+# diptera
+D_QPV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Primary vegetation" & MeanAnomalyModelRich$data$Order == "Diptera"],
+  probs = exclQuantiles)
+D_QSV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Secondary vegetation" & MeanAnomalyModelRich$data$Order == "Diptera"],
+  probs = exclQuantiles)
+D_QAL <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Agriculture_Low" & MeanAnomalyModelRich$data$Order == "Diptera"],
+  probs = exclQuantiles)
+D_QAH <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Agriculture_High" & MeanAnomalyModelRich$data$Order == "Diptera"],
+  probs = exclQuantiles)
+
+# hemiptera
+He_QPV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Primary vegetation" & MeanAnomalyModelRich$data$Order == "Hemiptera"],
+  probs = exclQuantiles)
+He_QSV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Secondary vegetation" & MeanAnomalyModelRich$data$Order == "Hemiptera"],
+  probs = exclQuantiles)
+He_QAL <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Agriculture_Low" & MeanAnomalyModelRich$data$Order == "Hemiptera"],
+  probs = exclQuantiles)
+He_QAH <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Agriculture_High" & MeanAnomalyModelRich$data$Order == "Hemiptera"],
+  probs = exclQuantiles)
+
+# hymenoptera
+Hy_QPV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Primary vegetation" & MeanAnomalyModelRich$data$Order == "Hymenoptera"],
+  probs = exclQuantiles)
+Hy_QSV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Secondary vegetation" & MeanAnomalyModelRich$data$Order == "Hymenoptera"],
+  probs = exclQuantiles)
+Hy_QAL <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Agriculture_Low" & MeanAnomalyModelRich$data$Order == "Hymenoptera"],
+  probs = exclQuantiles)
+Hy_QAH <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Agriculture_High" & MeanAnomalyModelRich$data$Order == "Hymenoptera"],
+  probs = exclQuantiles)
+
+# lepidoptera
+L_QPV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Primary vegetation" & MeanAnomalyModelRich$data$Order == "Lepidoptera"],
+  probs = exclQuantiles)
+L_QSV <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Secondary vegetation" & MeanAnomalyModelRich$data$Order == "Lepidoptera"],
+  probs = exclQuantiles)
+L_QAL <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Agriculture_Low" & MeanAnomalyModelRich$data$Order == "Lepidoptera"],
+  probs = exclQuantiles)
+L_QAH <- quantile(x = MeanAnomalyModelRich$data$StdTmeanAnomalyRS[
+  MeanAnomalyModelRich$data$LUI=="Agriculture_High" & MeanAnomalyModelRich$data$Order == "Lepidoptera"],
+  probs = exclQuantiles)
+
+
+# predict the results
+sr.preds.tmean <- PredictGLMERRandIter(model = MeanAnomalyModelRich$model,data = nd2)
+
+# back transform the abundance values
+sr.preds.tmean <- exp(sr.preds.tmean)-0.01
+
+# create list of matrices
+number_of_chunks = 5
+list_sr.preds.tmean <- lapply(seq(1, NROW(sr.preds.tmean), ceiling(NROW(sr.preds.tmean)/number_of_chunks)),
+                              function(i) sr.preds.tmean[i:min(i + ceiling(NROW(sr.preds.tmean)/number_of_chunks) - 1, NROW(sr.preds.tmean)),])
+# name them
+names(list_sr.preds.tmean) <- c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera")
+
+# sweep out according to the refRow
+list_sr.preds.tmean <- lapply(list_sr.preds.tmean,FUN=function(x){
+  sweep (x=x, MARGIN = 2, STATS=x[refRow[1],],FUN="/") 
+})
+
+list2env(list_sr.preds.tmean,globalenv())
+
+# split nd by order
+Order<- paste0("nd2_",nd2$Order)
+# create a list of data frames
+by_Order <- split(nd2,Order)
+list2env(by_Order,globalenv())
+
+# remove anything above and below the quantiles
+Coleoptera[which((nd2_Coleoptera$LUI=="Primary vegetation") & (nd2_Coleoptera$StdTmeanAnomalyRS < C_QPV[1])),] <- NA
+Coleoptera[which((nd2_Coleoptera$LUI=="Primary vegetation") & (nd2_Coleoptera$StdTmeanAnomalyRS > C_QPV[2])),] <- NA
+Coleoptera[which((nd2_Coleoptera$LUI=="Secondary vegetation") & (nd2_Coleoptera$StdTmeanAnomalyRS < C_QSV[1])),] <- NA
+Coleoptera[which((nd2_Coleoptera$LUI=="Secondary vegetation") & (nd2_Coleoptera$StdTmeanAnomalyRS > C_QSV[2])),] <- NA
+Coleoptera[which((nd2_Coleoptera$LUI=="Agriculture_Low") & (nd2_Coleoptera$StdTmeanAnomalyRS < C_QAL[1])),] <- NA
+Coleoptera[which((nd2_Coleoptera$LUI=="Agriculture_Low") & (nd2_Coleoptera$StdTmeanAnomalyRS > C_QAL[2])),] <- NA
+Coleoptera[which((nd2_Coleoptera$LUI=="Agriculture_High") & (nd2_Coleoptera$StdTmeanAnomalyRS < C_QAH[1])),] <- NA
+Coleoptera[which((nd2_Coleoptera$LUI=="Agriculture_High") & (nd2_Coleoptera$StdTmeanAnomalyRS > C_QAH[2])),] <- NA
+
+Diptera[which((nd2_Diptera$LUI=="Primary vegetation") & (nd2_Diptera$StdTmeanAnomalyRS < D_QPV[1])),] <- NA
+Diptera[which((nd2_Diptera$LUI=="Primary vegetation") & (nd2_Diptera$StdTmeanAnomalyRS > D_QPV[2])),] <- NA
+Diptera[which((nd2_Diptera$LUI=="Secondary vegetation") & (nd2_Diptera$StdTmeanAnomalyRS < D_QSV[1])),] <- NA
+Diptera[which((nd2_Diptera$LUI=="Secondary vegetation") & (nd2_Diptera$StdTmeanAnomalyRS > D_QSV[2])),] <- NA
+Diptera[which((nd2_Diptera$LUI=="Agriculture_Low") & (nd2_Diptera$StdTmeanAnomalyRS < D_QAL[1])),] <- NA
+Diptera[which((nd2_Diptera$LUI=="Agriculture_Low") & (nd2_Diptera$StdTmeanAnomalyRS > D_QAL[2])),] <- NA
+Diptera[which((nd2_Diptera$LUI=="Agriculture_High") & (nd2_Diptera$StdTmeanAnomalyRS < D_QAH[1])),] <- NA
+Diptera[which((nd2_Diptera$LUI=="Agriculture_High") & (nd2_Diptera$StdTmeanAnomalyRS > D_QAH[2])),] <- NA
+
+Hemiptera[which((nd2_Hemiptera$LUI=="Primary vegetation") & (nd2_Hemiptera$StdTmeanAnomalyRS < He_QPV[1])),] <- NA
+Hemiptera[which((nd2_Hemiptera$LUI=="Primary vegetation") & (nd2_Hemiptera$StdTmeanAnomalyRS > He_QPV[2])),] <- NA
+Hemiptera[which((nd2_Hemiptera$LUI=="Secondary vegetation") & (nd2_Hemiptera$StdTmeanAnomalyRS < He_QSV[1])),] <- NA
+Hemiptera[which((nd2_Hemiptera$LUI=="Secondary vegetation") & (nd2_Hemiptera$StdTmeanAnomalyRS > He_QSV[2])),] <- NA
+Hemiptera[which((nd2_Hemiptera$LUI=="Agriculture_Low") & (nd2_Hemiptera$StdTmeanAnomalyRS < He_QAL[1])),] <- NA
+Hemiptera[which((nd2_Hemiptera$LUI=="Agriculture_Low") & (nd2_Hemiptera$StdTmeanAnomalyRS > He_QAL[2])),] <- NA
+Hemiptera[which((nd2_Hemiptera$LUI=="Agriculture_High") & (nd2_Hemiptera$StdTmeanAnomalyRS < He_QAH[1])),] <- NA
+Hemiptera[which((nd2_Hemiptera$LUI=="Agriculture_High") & (nd2_Hemiptera$StdTmeanAnomalyRS > He_QAH[2])),] <- NA
+
+Hymenoptera[which((nd2_Hymenoptera$LUI=="Primary vegetation") & (nd2_Hymenoptera$StdTmeanAnomalyRS < Hy_QPV[1])),] <- NA
+Hymenoptera[which((nd2_Hymenoptera$LUI=="Primary vegetation") & (nd2_Hymenoptera$StdTmeanAnomalyRS > Hy_QPV[2])),] <- NA
+Hymenoptera[which((nd2_Hymenoptera$LUI=="Secondary vegetation") & (nd2_Hymenoptera$StdTmeanAnomalyRS < Hy_QSV[1])),] <- NA
+Hymenoptera[which((nd2_Hymenoptera$LUI=="Secondary vegetation") & (nd2_Hymenoptera$StdTmeanAnomalyRS > Hy_QSV[2])),] <- NA
+Hymenoptera[which((nd2_Hymenoptera$LUI=="Agriculture_Low") & (nd2_Hymenoptera$StdTmeanAnomalyRS < Hy_QAL[1])),] <- NA
+Hymenoptera[which((nd2_Hymenoptera$LUI=="Agriculture_Low") & (nd2_Hymenoptera$StdTmeanAnomalyRS > Hy_QAL[2])),] <- NA
+Hymenoptera[which((nd2_Hymenoptera$LUI=="Agriculture_High") & (nd2_Hymenoptera$StdTmeanAnomalyRS < Hy_QAH[1])),] <- NA
+Hymenoptera[which((nd2_Hymenoptera$LUI=="Agriculture_High") & (nd2_Hymenoptera$StdTmeanAnomalyRS > Hy_QAH[2])),] <- NA
+
+Lepidoptera[which((nd2_Lepidoptera$LUI=="Primary vegetation") & (nd2_Lepidoptera$StdTmeanAnomalyRS < L_QPV[1])),] <- NA
+Lepidoptera[which((nd2_Lepidoptera$LUI=="Primary vegetation") & (nd2_Lepidoptera$StdTmeanAnomalyRS > L_QPV[2])),] <- NA
+Lepidoptera[which((nd2_Lepidoptera$LUI=="Secondary vegetation") & (nd2_Lepidoptera$StdTmeanAnomalyRS < L_QSV[1])),] <- NA
+Lepidoptera[which((nd2_Lepidoptera$LUI=="Secondary vegetation") & (nd2_Lepidoptera$StdTmeanAnomalyRS > L_QSV[2])),] <- NA
+Lepidoptera[which((nd2_Lepidoptera$LUI=="Agriculture_Low") & (nd2_Lepidoptera$StdTmeanAnomalyRS < L_QAL[1])),] <- NA
+Lepidoptera[which((nd2_Lepidoptera$LUI=="Agriculture_Low") & (nd2_Lepidoptera$StdTmeanAnomalyRS > L_QAL[2])),] <- NA
+Lepidoptera[which((nd2_Lepidoptera$LUI=="Agriculture_High") & (nd2_Lepidoptera$StdTmeanAnomalyRS < L_QAH[1])),] <- NA
+Lepidoptera[which((nd2_Lepidoptera$LUI=="Agriculture_High") & (nd2_Lepidoptera$StdTmeanAnomalyRS > L_QAH[2])),] <- NA
+
+
+
+# Get the median, upper and lower quants for the plot
+nd2_Coleoptera$PredMedian <- ((apply(X = Coleoptera,MARGIN = 1,
+                                     FUN = median,na.rm=TRUE))*100)-100
+nd2_Coleoptera$PredUpper <- ((apply(X = Coleoptera,MARGIN = 1,
+                                    FUN = quantile,probs = 0.975,na.rm=TRUE))*100)-100
+nd2_Coleoptera$PredLower <- ((apply(X = Coleoptera,MARGIN = 1,
+                                    FUN = quantile,probs = 0.025,na.rm=TRUE))*100)-100
+
+nd2_Diptera$PredMedian <- ((apply(X = Diptera,MARGIN = 1,
+                                  FUN = median,na.rm=TRUE))*100)-100
+nd2_Diptera$PredUpper <- ((apply(X = Diptera,MARGIN = 1,
+                                 FUN = quantile,probs = 0.975,na.rm=TRUE))*100)-100
+nd2_Diptera$PredLower <- ((apply(X = Diptera,MARGIN = 1,
+                                 FUN = quantile,probs = 0.025,na.rm=TRUE))*100)-100
+
+nd2_Hemiptera$PredMedian <- ((apply(X = Hemiptera,MARGIN = 1,
+                                    FUN = median,na.rm=TRUE))*100)-100
+nd2_Hemiptera$PredUpper <- ((apply(X = Hemiptera,MARGIN = 1,
+                                   FUN = quantile,probs = 0.975,na.rm=TRUE))*100)-100
+nd2_Hemiptera$PredLower <- ((apply(X = Hemiptera,MARGIN = 1,
+                                   FUN = quantile,probs = 0.025,na.rm=TRUE))*100)-100
+
+nd2_Hymenoptera$PredMedian <- ((apply(X = Hymenoptera,MARGIN = 1,
+                                      FUN = median,na.rm=TRUE))*100)-100
+nd2_Hymenoptera$PredUpper <- ((apply(X = Hymenoptera,MARGIN = 1,
+                                     FUN = quantile,probs = 0.975,na.rm=TRUE))*100)-100
+nd2_Hymenoptera$PredLower <- ((apply(X = Hymenoptera,MARGIN = 1,
+                                     FUN = quantile,probs = 0.025,na.rm=TRUE))*100)-100
+
+nd2_Lepidoptera$PredMedian <- ((apply(X = Lepidoptera,MARGIN = 1,
+                                      FUN = median,na.rm=TRUE))*100)-100
+nd2_Lepidoptera$PredUpper <- ((apply(X = Lepidoptera,MARGIN = 1,
+                                     FUN = quantile,probs = 0.975,na.rm=TRUE))*100)-100
+nd2_Lepidoptera$PredLower <- ((apply(X = Lepidoptera,MARGIN = 1,
+                                     FUN = quantile,probs = 0.025,na.rm=TRUE))*100)-100
+
+
+# set factor levels
+nd2_Coleoptera$LUI <- factor(nd2_Coleoptera$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
+nd2_Diptera$LUI <- factor(nd2_Diptera$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
+nd2_Hemiptera$LUI <- factor(nd2_Hemiptera$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
+nd2_Hymenoptera$LUI <- factor(nd2_Hymenoptera$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
+nd2_Lepidoptera$LUI <- factor(nd2_Lepidoptera$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
+
+# plot
+p_coleoptera <- ggplot(data = nd2_Coleoptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
+  geom_line(aes(col = LUI), size = 0.75) +
+  geom_ribbon(aes(ymin = nd2_Coleoptera$PredLower, ymax = nd2_Coleoptera$PredUpper, fill = LUI), alpha = 0.2) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  theme_bw() + 
+  scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
+  ylab("Change in species richness (%)") +
+  xlab("Standardised Temperature Anomaly") +
+  ggtitle("Coleoptera") +
+  theme(aspect.ratio = 1, 
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title.x = element_text(size = 8),
+        axis.title.y = element_text(size = 8),
+        axis.text = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
+        legend.position = "none",
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25)) 
+
+p_diptera <- ggplot(data = nd2_Diptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
+  geom_line(aes(col = LUI), size = 0.75) +
+  geom_ribbon(aes(ymin = nd2_Diptera$PredLower, ymax = nd2_Diptera$PredUpper, fill = LUI), alpha = 0.2) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  theme_bw() + 
+  scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
+  ylab("Change in species richness (%)") +
+  xlab("Standardised Temperature Anomaly") +
+  ggtitle("Diptera") +
+  theme(aspect.ratio = 1, 
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title = element_text(size = 8),
+        axis.text = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
+        legend.position = "none", 
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25))
+
+p_hemiptera <- ggplot(data = nd2_Hemiptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
+  geom_line(aes(col = LUI), size = 0.75) +
+  geom_ribbon(aes(ymin = nd2_Hemiptera$PredLower, ymax = nd2_Hemiptera$PredUpper, fill = LUI), alpha = 0.2) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  theme_bw() + 
+  scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
+  #scale_y_continuous(breaks = c(-100, 0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000), limits = c(-100, 1000)) +
+  ylab("Change in species richness (%)") +
+  xlab("Standardised Temperature Anomaly") +
+  ggtitle("Hemiptera") +
+  theme(aspect.ratio = 1, 
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title = element_text(size = 8),
+        axis.text = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
+        legend.position = "none",
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25))
+
+p_hymenoptera <- ggplot(data = nd2_Hymenoptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
+  geom_line(aes(col = LUI), size = 0.75) +
+  geom_ribbon(aes(ymin = nd2_Hymenoptera$PredLower, ymax = nd2_Hymenoptera$PredUpper, fill = LUI), alpha = 0.2) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  theme_bw() + 
+  scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 275)) +
+  #scale_y_continuous(breaks = c(-100, 0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000), limits = c(-100, 1000)) +
+  ylab("Change in species richness (%)") +
+  xlab("Standardised Temperature Anomaly") +
+  ggtitle("Hymenoptera") +
+  theme(aspect.ratio = 1, 
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title = element_text(size = 8),
+        axis.text = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
+        legend.position = "none",
+        #legend.position = c(0.2, 0.8),
+        #legend.background = element_blank(), 
+        #legend.text = element_text(size = 6), 
+        #legend.title = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25))
+
+p_lepidoptera <- ggplot(data = nd2_Lepidoptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
+  geom_line(aes(col = LUI), size = 0.75) +
+  geom_ribbon(aes(ymin = nd2_Lepidoptera$PredLower, ymax = nd2_Lepidoptera$PredUpper, fill = LUI), alpha = 0.2) +
+  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
+  theme_bw() + 
+  scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
+  #scale_y_continuous(breaks = c(-100, 0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000), limits = c(-100, 1000)) +
+  ylab("Change in species richness (%)") +
+  xlab("Standardised Temperature Anomaly") +
+  ggtitle("Lepidoptera") +
+  theme(aspect.ratio = 1, 
+        plot.title = element_text(size = 8, face = 'bold'),
+        axis.title = element_text(size = 8),
+        axis.text = element_text(size = 7),
+        axis.ticks = element_line(size = 0.25),
+        legend.position = "none", 
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_line(size = 0.25),
+        panel.border = element_rect(size = 0.25)) 
+
+# get the legend
+legend <- get_legend(
+  p_coleoptera +
+    guides(color = guide_legend(ncol = 1)) +
+    theme(legend.position = "right",
+          legend.background = element_blank(), 
+          legend.text = element_text(size = 7), 
+          legend.title = element_blank())
+)
+
+
+# put them all together to save them
+MeanAnomRich <- cowplot::plot_grid(p_coleoptera,p_diptera,p_hemiptera,p_hymenoptera,p_lepidoptera,legend, ncol=3)
+
+# save plot (jpeg)
+ggsave(paste0("Removing_richness_outliers/MeanAnomRich_outrm_Sec_", out, ".jpeg"), device ="jpeg", path = outdir, width=20, height=15, units="cm", dpi = 350)
+
+
+}
+
