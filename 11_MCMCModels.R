@@ -87,10 +87,12 @@ start <- Sys.time()
 rich_LUSTAOr <- brm(Species_richness ~ LUI * StdTmeanAnomalyRS * Order + (1|SS)+(1|SSB)+(1|SSBS), 
                   data = pred_data, 
                   family = poisson(), 
-                  cores = 4, iter = 8000, thin = 10)
+                  cores = 4, iter = 10000, thin = 10)
 end <- Sys.time()
-runtime <- end - start # Time difference of  
+runtime <- end - start # Time difference of 1.283019 hours 
 print(runtime)
+
+# intercept still slightly off ideal ESS
 
 # take a look
 rich_LUSTAOr
@@ -113,7 +115,7 @@ abun_LUSTAOr <- brm(LogAbund ~ LUI * StdTmeanAnomalyRS * Order + (1|SS)+(1|SSB),
                   family = gaussian(), 
                   cores = 4, iter = 5000, thin = 10)
 end <- Sys.time()
-runtime <- end - start # Time difference of  5.2603 mins
+runtime <- end - start # Time difference of  7.125142 mins
 print(runtime)
 
 # take a look
@@ -149,26 +151,9 @@ tab_model(abun_LUSTAOr, transform = NULL, file = paste0(outdir,"Bayes_abun_LUSTA
 
 ############################################################
 #                                                          #
-#                     plot the results                     #
-#                                                          #
-############################################################
-
-### Land use * Order
-
-
-
-
-### Land use * Order * Anom
-
-
-
-
-############################################################
-#                                                          #
 #              Run separate models per Order               #
 #                                                          #
 ############################################################
-
 
 
 
