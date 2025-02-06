@@ -48,13 +48,15 @@ length(unique(modelData$SS)) # 235
 mod1 <- lmer(formula = LogAbund ~ LUI * StdTmeanAnomalyRS * Order + (1 | SS) + (1 | SSB), modelData)
 
 # use influence function to get outliers and plot
-alt.est.a <- influence(mod1, "SS")
-plot(alt.est.a, which = "cook", sort = T) # takes a long time to run
+alt.est.a <- influence(mod1, "SS") # takes a long time to run
+plot(alt.est.a, which = "cook", sort = T) 
 result1 <- cooks.distance(alt.est.a, sort = T)
 
 result1 <- as.data.frame(result1)
 result1$study <- rownames(result1)
 View(result1[result1$V1 >= 1,])
+
+write.csv(result1[result1$V1 >= 1,], file = paste0(outdir, "Abun_Cooks_distances.csv"), row.names = F)
 
 abun_ss <- result1[result1$V1 >= 1, "study"]
 
@@ -100,6 +102,9 @@ plot(alt.est.a, which = "cook", sort = T)
 result2 <- as.data.frame(cooks.distance(alt.est.a, sort = T))
 result2$study <- rownames(result2)
 View(result2[result2$V1 >= 1,])
+
+write.csv(result2[result2$V1 >= 1,], file = paste0(outdir, "Rich_Cooks_distances.csv"), row.names = F)
+
 
 # study IDs for those with cook's distance greater than 1
 rich_ss <- result2[result2$V1 >= 1, "study"]
@@ -1926,7 +1931,7 @@ ggsave("MeanAnomAbund_outrm.jpeg", device ="jpeg", path = outdir, width=20, heig
 ##%######################################################%##
 
 # list outliers
-rich_ss <- c("SC1_2010__Marsh 1", "AD1_2008__Franzen 1", "SE1_2012__Poveda 1", 
+outliers <- c("SC1_2010__Marsh 1", "AD1_2008__Franzen 1", "SE1_2012__Poveda 1", 
              "LH1_2008__Littlewood 1",  "SE1_2012__Poveda 2", "HP1_2006__Lachat 1",
              "DI1_2013__Rousseau 2", "TN1_2007__Bouyer 2", "AD1_2008__Billeter 6",
              "SH1_2011__Todd 1", "SC1_2005__Richardson 1",  "SC1_2011__Meijer 1",     
