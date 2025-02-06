@@ -48,13 +48,15 @@ length(unique(modelData$SS)) # 235
 mod1 <- lmer(formula = LogAbund ~ LUI * StdTmeanAnomalyRS * Order + (1 | SS) + (1 | SSB), modelData)
 
 # use influence function to get outliers and plot
-alt.est.a <- influence(mod1, "SS")
-plot(alt.est.a, which = "cook", sort = T) # takes a long time to run
+alt.est.a <- influence(mod1, "SS") # takes a long time to run
+plot(alt.est.a, which = "cook", sort = T) 
 result1 <- cooks.distance(alt.est.a, sort = T)
 
 result1 <- as.data.frame(result1)
 result1$study <- rownames(result1)
 View(result1[result1$V1 >= 1,])
+
+write.csv(result1[result1$V1 >= 1,], file = paste0(outdir, "Abun_Cooks_distances.csv"), row.names = F)
 
 abun_ss <- result1[result1$V1 >= 1, "study"]
 
@@ -98,17 +100,93 @@ mod2 <- glmer(formula = Species_richness~LUI * StdTmeanAnomalyRS * Order+(1|SS)+
 alt.est.a <- influence(mod2, "SS") # takes a really long time to run
 plot(alt.est.a, which = "cook", sort = T)
 result2 <- as.data.frame(cooks.distance(alt.est.a, sort = T))
-result2$study <- rownames(result2)
+result2$SS <- rownames(result2)
 View(result2[result2$V1 >= 1,])
+
+write.csv(result2[result2$V1 >= 1,], file = paste0(outdir, "Rich_Cooks_distances.csv"), row.names = F)
+
 
 # study IDs for those with cook's distance greater than 1
 rich_ss <- result2[result2$V1 >= 1, "study"]
 
 length(rich_ss) # 14
 
-test <- modelData[modelData$SS %in% rich_ss, ]
+test <- modelData[modelData$SS %in% rich_ss, ] # 2207 rows
 length(unique(test$SSBS)) # 803
 
+hist(test$Species_richness)
+range(test$Species_richness) # 0 - 161
+quantile(test$Species_richness) #   0%  25%  50%  75% 100% 
+                                   # 0    1    4   11  161 
+
+# bring together information on outliers
+rich_bal <- test %>% 
+  group_by(SS) %>% 
+  summarise(minrich = min(Species_richness),
+            maxrich = max(Species_richness), 
+            nLUI = length(unique(LUI)), 
+            nOrders = length(unique(Order)),
+            nSites = length(unique(SSBS)), 
+            nrows = length(SSBS)) 
+
+rich_bal <- inner_join(rich_bal, result2, by = "SS") %>% 
+    arrange(desc(V1))
+
+write.csv(rich_bal, paste0(outdir, "Outliers_data_summary.csv"), row.names = F)
+
+table(droplevels(modelData[modelData$SS %in% rich_ss, "SS"]))
+
+# number of sites, highest cooks distance at the top
+# HW1_2011__Summerville 1 ......160
+# AR1_2008__Basset 1............45
+# SC1_2011__Meijer 1............456
+# SC1_2005__Richardson 1........295
+# SH1_2011__Todd 1 .............100
+# AD1_2008__Billeter 6..........128
+# TN1_2007__Bouyer 2 ...........192
+# DI1_2013__Rousseau 2..........360  # here and above have cooks distance higher than 2 (total 1736)
+# HP1_2006__Lachat 1............72
+# SE1_2012__Poveda 2............85
+# LH1_2008__Littlewood 1........152
+# SE1_2012__Poveda 1............85
+# AD1_2008__Franzen.............32
+# SC1_2010__Marsh 1.............45
+
+table(droplevels(modelData[modelData$SS %in% rich_ss, "SS"]), droplevels(modelData[modelData$SS %in% rich_ss, "Order"]))
+#                         Coleoptera Diptera Hemiptera Hymenoptera Lepidoptera
+# AR1_2008__Basset 1               9       9         9           9           9
+# DI1_2013__Rousseau 2            72      72        72          72          72
+# HP1_2006__Lachat 1              36       0        36           0           0
+# HW1_2011__Summerville 1         80       0         0           0          80
+# SC1_2005__Richardson 1          59      59        59          59          59
+# SC1_2011__Meijer 1             152       0       152           0         152
+# SE1_2012__Poveda 1              17      17        17          17          17
+# SE1_2012__Poveda 2              17      17        17          17          17
+# SH1_2011__Todd 1                20      20        20          20          20
+# TN1_2007__Bouyer 2              64       0         0          64          64
+# AD1_2008__Billeter 6             0      64         0          64           0
+# AD1_2008__Franzen 1              0       0         0          16          16
+# LH1_2008__Littlewood 1           0       0         0           0         152
+# SC1_2010__Marsh 1                0       0         0           0          45
+#                                                                                       
+                       
+table(droplevels(modelData[modelData$SS %in% rich_ss, "SS"]), droplevels(modelData[modelData$SS %in% rich_ss, "LUI"]))
+#                         Primary vegetation Secondary vegetation Agriculture_Low Agriculture_High
+# AR1_2008__Basset 1                       0                   45               0                0
+# DI1_2013__Rousseau 2                     0                   90             180               90
+# HP1_2006__Lachat 1                      24                   24               0               24
+# HW1_2011__Summerville 1                  0                  160               0                0
+# SC1_2005__Richardson 1                   0                  295               0                0
+# SC1_2011__Meijer 1                     198                   81             177                0
+# SE1_2012__Poveda 1                       0                    0               0               85
+# SE1_2012__Poveda 2                       0                    0               0               85
+# SH1_2011__Todd 1                         0                    0               0              100
+# TN1_2007__Bouyer 2                      69                   39              48               36
+# AD1_2008__Billeter 6                     0                    0              64               64
+# AD1_2008__Franzen 1                      0                    4              28                0
+# LH1_2008__Littlewood 1                   0                   38             114                0
+# SC1_2010__Marsh 1                       15                   15               0               15
+       
 nrow(test) # 2207
 table(test$Order)
 # Coleoptera     Diptera   Hemiptera Hymenoptera Lepidoptera 
@@ -1926,7 +2004,7 @@ ggsave("MeanAnomAbund_outrm.jpeg", device ="jpeg", path = outdir, width=20, heig
 ##%######################################################%##
 
 # list outliers
-rich_ss <- c("SC1_2010__Marsh 1", "AD1_2008__Franzen 1", "SE1_2012__Poveda 1", 
+outliers <- c("SC1_2010__Marsh 1", "AD1_2008__Franzen 1", "SE1_2012__Poveda 1", 
              "LH1_2008__Littlewood 1",  "SE1_2012__Poveda 2", "HP1_2006__Lachat 1",
              "DI1_2013__Rousseau 2", "TN1_2007__Bouyer 2", "AD1_2008__Billeter 6",
              "SH1_2011__Todd 1", "SC1_2005__Richardson 1",  "SC1_2011__Meijer 1",     
