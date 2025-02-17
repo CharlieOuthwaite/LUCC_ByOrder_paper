@@ -7,6 +7,8 @@
 # This script takes the 2016 release of the PREDICTS database, subsets it to insects, 
 # and organises the data by Order. 
 
+# UPDATE: outliers that have a strong affect on the results are now removed.
+
 # ensure working directory is clear
 rm(list = ls())
 
@@ -18,8 +20,7 @@ plotDir <- "1_CheckPrepareData/Plots/"
 if(!dir.exists(plotDir)) dir.create(plotDir)
 
 # Load required libraries
-packages <- c("predictsFunctions","patchwork", "dplyr", "ggplot2", "lme4", "gt",
-              "broom.mixed", "MASS","webshot")
+packages <- c("predictsFunctions", "dplyr", "ggplot2", "gt", "webshot2")
 suppressWarnings(suppressMessages(lapply(packages, require, character.only = TRUE)))
 
 # source in additional functions
@@ -38,12 +39,16 @@ predicts <- ReadPREDICTS(predicts.path)
 predicts <- predicts[(predicts$Class=="Insecta"),]
 # 935078 obs. of 67 variables
 
+# remove the 5 studies identified as influential outliers
+outliers <- c("SC1_2005__Richardson 1", "AR1_2008__Basset 1", "HW1_2011__Summerville 1", "SC1_2011__Meijer 1", "DI1_2013__Rousseau 2")
+predicts <- predicts[!predicts$SS %in% outliers, ] # 793986 obs
+
 # Correct effort-sensitive abundance measures (assumes linear relationship between 
 # effort and recorded abundance)
 predicts <- CorrectSamplingEffort(diversity = predicts)
 # Correcting 0 missing sampling effort values
-# Re-scaling sampling effort
-# Correcting 870378 values for sensitivity to sampling effort 
+# Rescaling sampling effort
+# Correcting 734398 values for sensitivity to sampling effort
 
 # check diversity metrics
 table(predicts$Diversity_metric)
@@ -51,23 +56,23 @@ table(predicts$Diversity_metric)
 # insects should not have diversity metric "percent cover", this is a mistake in the database
 # remove those entries that are the problem
 predicts <- predicts[!predicts$Diversity_metric == "percent cover", ]
-# 934845 obs. of 67 variables
+# 793753 obs. of 67 variables
 
 # Merge sites that have the same coordinates, from the same study and same taxonomic 
 # family (e.g. multiple traps on a single transect)
 predicts <- predictsFunctions::MergeSites(diversity = predicts)
-# 826292 obs. of 67 variables
+# 690699 obs. of 67 variables
 
 # remove entries without Order
 predicts <- droplevels(predicts[(predicts$Order!=""),])
-# 826016 obs. of 67 variables
+# 690423 obs. of 67 variables
 
 # check
 table(predicts$Order) 
 
 # keep top five orders 
 predicts <- predicts %>% filter(Order %in% c("Hymenoptera", "Coleoptera", "Lepidoptera", "Diptera", "Hemiptera")) %>% droplevels()
-# 810399 obs. of 67  variables
+# 683640 obs. of 67  variables
 
 # convert Order to a "factor"
 predicts$Order <- as.factor(predicts$Order)
@@ -112,7 +117,7 @@ Lepidoptera <- SiteMetrics(diversity = Lepidoptera,
 
 # merge all sites_Order data frames into one called "sites"
 sites <- rbind(Coleoptera, Diptera, Hemiptera, Hymenoptera, Lepidoptera)
-# 10746 rows
+# 9415 rows
 
 # First, we will rearrange the land-use classification 
 # rename "Predominant_land_use" to "LandUse"
@@ -162,12 +167,12 @@ sites$LUI <- dplyr::recode(sites$LUI,
                            'Intermediate secondary vegetation_Intense use' = 'Secondary vegetation',
                            'Intermediate secondary vegetation_Light use' = 'Secondary vegetation')
 
-# 10746 obs. of 28 variables
+# 9415 obs. of 28 variables
 
 # remove the urban sites and sites that are NA in LUI
 sites <- sites[!sites$LUI == "Urban", ]
 sites <- sites[!is.na(sites$LUI), ]
-# 8890 obs. of 28 variables
+# 7574 obs. of 28 variables
 
 sites <- droplevels(sites)
 
@@ -180,14 +185,14 @@ sites$LogAbund_noRS <- log(sites$Total_abundance+0.01)
 
 # Remove sites without coordinates
 sites <- sites[!is.na(sites$Latitude), ]
-# 8884 obs. of 30 variables
+# 7568 obs. of 30 variables
 
 # create a new variable designating sites as Tropical or Non-tropical
 # assign new variable for tropical/temperate, convert to factor, and filter out NA
-sites$Realm <- ifelse(sites$Latitude >= -23.5 & sites$Latitude <= 23.5, "Tropical", "NonTropical")
-sites$Realm <- factor(sites$Realm, levels = c("NonTropical", "Tropical"))
-sites <- sites %>%
-  filter(!is.na(Realm))
+# sites$Realm <- ifelse(sites$Latitude >= -23.5 & sites$Latitude <= 23.5, "Tropical", "NonTropical")
+# sites$Realm <- factor(sites$Realm, levels = c("NonTropical", "Tropical"))
+# sites <- sites %>%
+#   filter(!is.na(Realm))
 
 # save the prepared dataset
 saveRDS(object = sites,file = paste0(outDir,"PREDICTSSiteData.rds")) 
@@ -200,9 +205,9 @@ saveRDS(object = sites,file = paste0(outDir,"PREDICTSSiteData.rds"))
 
 
 # n unique sites across the dataset
-length(unique(sites$SSBS)) # 6014
+length(unique(sites$SSBS)) # 6014, 5612 after outliers removed
 # n unique studies across the dataset
-length(unique(sites$SS)) # 254
+length(unique(sites$SS)) # 254, 249 after outliers removed
 
 
 # This creates a summary table splitting by Order and land use to show n studies and n sites
@@ -272,24 +277,24 @@ sites_summary <- sites %>%
   )
 
 # save table
-gtsave(sites_summary,"sites_summary_SuppTab1.png",path = outDir)
+gtsave(sites_summary,"sites_summary_SuppTab1_outrm.png",path = outDir)
 
 # save as csv
-write.csv(sites_summary,file = paste0(outDir, "sites_summary_SuppTab1.csv"))
+write.csv(sites_summary,file = paste0(outDir, "sites_summary_SuppTab1_outrm.csv"))
 
 # assess the record level dataset
 # subset to those sites and orders selected
 pred_sub <- predicts[predicts$SSBS %in% sites$SSBS & predicts$Order %in% sites$Order, ]
 pred_sub <- droplevels(pred_sub)
-nrow(pred_sub) # 741933 records
+nrow(pred_sub) # 620319 records
 table(pred_sub$Order)
 # Coleoptera     Diptera   Hemiptera Hymenoptera Lepidoptera 
-#     377237       24149       45217      144474      150856
+#     332054       16012       27252      134241      110760 
 
 table(pred_sub$Predominant_land_use)
-length(unique(pred_sub$SS)) # 254
-length(unique(pred_sub$SSBS)) # 6014
-length(unique(pred_sub$Taxon_name_entered)) # 17218 "species"
+length(unique(pred_sub$SS)) # 249
+length(unique(pred_sub$SSBS)) # 5642
+length(unique(pred_sub$Taxon_name_entered)) # 14637 "species"
 
 # determine unique taxa counts
 species <- unique(pred_sub[,c('Order',"Family", 'Taxon_name_entered')])
@@ -300,7 +305,7 @@ order.counts <- tapply(X = species$Taxon_name_entered,
                        FUN = function(sp) length(unique(sp)))
 
 # Coleoptera     Diptera   Hemiptera Hymenoptera Lepidoptera 
-#       6037        1477        1302        4528        3874
+#       5198        1166         902        3787        3584 
 
 
 # Order level counts of n families
@@ -308,8 +313,8 @@ family.counts <- tapply(X = species$Family,
                        INDEX = species$Order,
                        FUN = function(sp) length(unique(sp)))
 
-# Coleoptera     Diptera   Hemiptera Hymenoptera Lepidoptera 
-#        103          76          68          54          60
+# Coleoptera     Diptera   Hemiptera Hymenoptera Lepidoptera
+#        100          72          62          47          59
 
 
 ############################################################
@@ -319,15 +324,11 @@ family.counts <- tapply(X = species$Family,
 ############################################################
 
 # load the prepared dataset if not already loaded
-sites <- readRDS(file = paste0(outDir,"PREDICTSSiteData.rds")) # 8884 rows
+sites <- readRDS(file = paste0(outDir,"PREDICTSSiteData.rds")) # 7568 rows
 
-# load map of country borders using rgdal
-map.borders1 <- readOGR(dsn = paste0(dataDir,"World Map/TM_WORLD_BORDERS-0.3.shp"), #Provide the directory of shp file 
-                        #layer = "TM_WORLD_BORDERS-0.3", #Provide the name of the shp file without extension (.shp)
-                        verbose = FALSE)
+# plot the raster in ggplot
+map.world <- map_data('world')
 
-# convert to dataframe where the id column will be SUBREGION from the @data
-shp_df <- broom::tidy(map.borders1, region = "SUBREGION")
 
 ## 1. plot map of site distribution: scatterplot ##
 
@@ -335,7 +336,7 @@ shp_df <- broom::tidy(map.borders1, region = "SUBREGION")
 
 # map of sites, no colour
 p_map1.1 <- ggplot() +
-  geom_polygon(data = shp_df, aes(x = long, y = lat, group = group), alpha = 0.5,  fill = c("grey")) +
+  geom_polygon(data = map.world, aes(x = long, y = lat, group = group), alpha = 0.5,  fill = c("grey")) +
   coord_fixed() +
   geom_point(data = sites, aes(x = Longitude, y = Latitude, col = Order), shape = 21, size=1.5, col = c("#104E8B"), fill = c("#104E8B")) +
   theme(axis.title.x = element_blank(),
@@ -371,7 +372,7 @@ mapdf <- sites %>% dplyr::select(UN_subregion,Order,Longitude,Latitude) %>% # fi
 
 # need to reorganize dataframe for barplot
 mapdf2 <- mapdf %>% dplyr::select(UN_subregion, Coleoptera, Diptera, Hemiptera, Hymenoptera, Lepidoptera)
-mapdf2 <- cbind(mapdf2[1], stack(mapdf2[2:3:4:5:6]))
+mapdf2 <- cbind(mapdf2[1], stack(mapdf2[2:6]))
 mapdf2 <- mapdf2 %>% rename_at('ind', ~'Order')
 mapdf2 <- dplyr::select(mapdf2,UN_subregion, Order, values)
 
