@@ -170,24 +170,24 @@ RescaleAbundance <- function(predictsSites){
 # 
 
 
-vif.mer <- function (fit) {
-  ## adapted from rms::vif
-  
-  v <- vcov(fit)
-  nam <- names(fixef(fit))
-  
-  ## exclude intercepts
-  ns <- sum(1 * (nam == "Intercept" | nam == "(Intercept)"))
-  if (ns > 0) {
-    v <- v[-(1:ns), -(1:ns), drop = FALSE]
-    nam <- nam[-(1:ns)]
-  }
-  
-  d <- diag(v)^0.5
-  v <- diag(solve(v/(d %o% d)))
-  names(v) <- nam
-  v
-}
+# vif.mer <- function (fit) {
+#   ## adapted from rms::vif
+#   
+#   v <- vcov(fit)
+#   nam <- names(fixef(fit))
+#   
+#   ## exclude intercepts
+#   ns <- sum(1 * (nam == "Intercept" | nam == "(Intercept)"))
+#   if (ns > 0) {
+#     v <- v[-(1:ns), -(1:ns), drop = FALSE]
+#     nam <- nam[-(1:ns)]
+#   }
+#   
+#   d <- diag(v)^0.5
+#   v <- diag(solve(v/(d %o% d)))
+#   names(v) <- nam
+#   v
+# }
 
 # # edited version of StatisticalModels function for use with glmmTMB model
 # 
@@ -332,10 +332,10 @@ else{
     
     # construct the plot for that biodiversity metric - note the y axis label needs to be specific for that metric
     output_plot <- ggplot(fin_conf) +
-      geom_hline(yintercept = 0, linetype = "dashed") +
-      geom_point(aes(x = fin_conf[,1], y = Median, colour = fin_conf[,2]), position = position_dodge(0.5), size = 2) +
+      geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.2) +
+      geom_point(aes(x = fin_conf[,1], y = Median, colour = fin_conf[,2]), position = position_dodge(0.7), size = 0.5) +
       #geom_errorbar(aes(x = fin_conf[,1], ymin = Lower, ymax = Upper, colour = fin_conf[,2]), position = position_dodge(0.5), size = 1, width = 1/(factor_number_2)) +
-      geom_errorbar(aes(x = fin_conf[,1], ymin = Lower, ymax = Upper, colour = fin_conf[,2]), position = position_dodge(0.5), size = 0.5, width = 0.5) +
+      geom_errorbar(aes(x = fin_conf[,1], ymin = Lower, ymax = Upper, colour = fin_conf[,2]), position = position_dodge(0.7), size = 0.2, width = 0.2) +
       scale_colour_manual(values = c("#009E73","#0072B2","#E69F00","#D55E00"), name = "Land Use Intensity") +
       #scale_y_continuous(name = gsub(x = paste(response_variable, "difference (%)", sep = " "), pattern = "_", replacement = " ")) +
       theme_bw() +
