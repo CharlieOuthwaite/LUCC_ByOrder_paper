@@ -21,18 +21,9 @@ if(!dir.exists(outDir)) dir.create(outDir)
 if(!dir.exists(plotDir)) dir.create(plotDir)
 if(!dir.exists(tabDir)) dir.create(tabDir)
 
-# sink(paste0(outDir,"log_LUI_ClimateModels.txt"))
-# 
-# t.start <- Sys.time()
-# 
-# print(t.start)
-
 # load libraries
-packages_model <- c("devtools","StatisticalModels", "predictsFunctions","dplyr")
-suppressWarnings(suppressMessages(lapply(packages_model, require, character.only = TRUE)))
-
-packages_plot <- c("patchwork", "dplyr", "ggplot2", "cowplot", "sjPlot", "lme4", "gt", "broom.mixed", "MASS")
-suppressWarnings(suppressMessages(lapply(packages_plot, require, character.only = TRUE)))
+packages <- c("StatisticalModels", "ggplot2", "cowplot", "sjPlot")
+suppressWarnings(suppressMessages(lapply(packages, require, character.only = TRUE)))
 
 # source in additional functions
 source("0_Functions.R")
@@ -42,7 +33,7 @@ source("0_Functions.R")
 # read in the predicts data
 predictsSites <- readRDS(paste0(inDir,"PREDICTSSites_Climate.rds"))
 predictsSites <- predictsSites@data 
-# 8884 obs. of 36 variables
+# 7568 obs. of 35 variables
 
 # set LUI as factor and set reference level
 predictsSites$LUI <- factor(predictsSites$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
@@ -50,23 +41,20 @@ predictsSites$LUI <- factor(predictsSites$LUI, levels = c("Primary vegetation", 
 # rescale the climate variables
 predictsSites$StdTmeanAnomalyRS <- StdCenterPredictor(predictsSites$StdTmeanAnomaly)
 
-predictsSites <- droplevels(predictsSites)
-
 # some of the climate values are NA since they do not meet the thresholds
-predictsSites <- predictsSites[!is.na(predictsSites$avg_temp), ] # 8858 rows
+predictsSites <- predictsSites[!is.na(predictsSites$avg_temp), ] # 7542 rows
 
 # take a look at possible correlations between variables
 cor(predictsSites$avg_temp, predictsSites$TmeanAnomaly)
-
-# -0.2657298
+# -0.3917054
 
 cor(predictsSites$avg_temp, predictsSites$StdTmeanAnomaly)
-
-# 0.1973725
+# 0.1110303
 
 cor(predictsSites$TmeanAnomaly, predictsSites$StdTmeanAnomaly)
+# 0.1348597
 
-# 0.2519302
+predictsSites <- droplevels(predictsSites)
 
 # save the dataset
 saveRDS(object = predictsSites, file = paste0(outDir, "PREDICTSSitesClimate_Data.rds"))
@@ -77,10 +65,12 @@ saveRDS(object = predictsSites, file = paste0(outDir, "PREDICTSSitesClimate_Data
 
 # i. Abundance, mean anomaly including interaction
 
-model_data <- predictsSites[!is.na(predictsSites$LogAbund), ]
-# 8468 obs. of 37 variables
+model_data <- droplevels(predictsSites[!is.na(predictsSites$LogAbund), ])
+# 7152 obs. of 36 variables
+length(unique(model_data$SS)) # 230
+length(unique(model_data$SSBS)) # 5310
 
-# run model
+# run model# run mSSodel
 MeanAnomalyModelAbund <- GLMER(modelData = model_data, 
                                responseVar = "LogAbund", 
                                fitFamily = "gaussian",
@@ -92,7 +82,7 @@ MeanAnomalyModelAbund <- GLMER(modelData = model_data,
 summary(MeanAnomalyModelAbund$model)
 
 # save the model output
-save(MeanAnomalyModelAbund, file = paste0(outDir, "MeanAnomalyModelAbund.rdata"))
+save(MeanAnomalyModelAbund, file = paste0(outDir, "MeanAnomalyModelAbund_outliersrm.rdata"))
 
 
 # i. Abundance, mean anomaly excluding interaction with order
@@ -109,12 +99,14 @@ summary(MeanAnomalyModelAbund2$model)
 
 
 # save the model output
-save(MeanAnomalyModelAbund2, file = paste0(outDir, "MeanAnomalyModelAbund_noOrder.rdata"))
+save(MeanAnomalyModelAbund2, file = paste0(outDir, "MeanAnomalyModelAbund_noOrder_outliersrm.rdata"))
 
 
 # ii. Richness, mean anomaly
 
-model_data <- predictsSites[!is.na(predictsSites$StdTmeanAnomalyRS), ] # 8858 rows
+model_data <- droplevels(predictsSites[!is.na(predictsSites$StdTmeanAnomalyRS), ]) # 7542 rows
+length(unique(model_data$SS)) # 248
+length(unique(model_data$SSBS)) # 5616
 
 MeanAnomalyModelRich <- GLMER(modelData = model_data,
                               responseVar = "Species_richness",
@@ -129,7 +121,7 @@ MeanAnomalyModelRich <- GLMER(modelData = model_data,
 summary(MeanAnomalyModelRich$model)
 
 # save the model output
-save(MeanAnomalyModelRich, file = paste0(outDir, "MeanAnomalyModelRich.rdata"))
+save(MeanAnomalyModelRich, file = paste0(outDir, "MeanAnomalyModelRich_outliersrm.rdata"))
 
 # ii. Richness, mean anomaly excluding interaction with order
 
@@ -144,7 +136,7 @@ MeanAnomalyModelRich2 <- GLMER(modelData = model_data,
 summary(MeanAnomalyModelRich2$model)
 
 # save the model output
-save(MeanAnomalyModelRich2, file = paste0(outDir, "MeanAnomalyModelRich_noOrder.rdata"))
+save(MeanAnomalyModelRich2, file = paste0(outDir, "MeanAnomalyModelRich_noOrder_outliersrm.rdata"))
 
 
 # save model output tables for use in supplementary information
@@ -156,39 +148,37 @@ tab_model(MeanAnomalyModelAbund$model, transform = NULL, file = paste0(tabDir,"A
 summary(MeanAnomalyModelAbund$model) # check the table against the outputs
 R2GLMER(MeanAnomalyModelAbund$model) # check the R2 values 
 # $conditional
-# [1] 0.4164462
+# [1] 0.4183544
 # 
 # $marginal
-# [1] 0.08326023
+# [1] 0.08408478
 
 tab_model(MeanAnomalyModelRich$model, transform = NULL, file = paste0(tabDir,"RichMeanAnom_output_table.html"))
 summary(MeanAnomalyModelRich$model) # check the table against the outputs
 R2GLMER(MeanAnomalyModelRich$model) # check the R2 values
 # $conditional
-# [1] 0.7529901
+# [1] 0.7107193
 # 
 # $marginal
-# [1] 0.1093307
+# [1] 0.06022908
 
 tab_model(MeanAnomalyModelAbund2$model, transform = NULL, file = paste0(tabDir,"AbunMeanAnom_output_table_noOrder.html"))
 summary(MeanAnomalyModelAbund2$model) # check the table against the outputs
 R2GLMER(MeanAnomalyModelAbund2$model) # check the R2 values 
-
 # $conditional
-# [1] 0.3417518
+# [1] 0.3532105
 # 
 # $marginal
-# [1] 0.03110523
+# [1] 0.03849201
 
 tab_model(MeanAnomalyModelRich2$model, transform = NULL, file = paste0(tabDir,"RichMeanAnom_output_table_noOrder.html"))
 summary(MeanAnomalyModelRich2$model) # check the table against the outputs
 R2GLMER(MeanAnomalyModelRich2$model) # check the R2 values
-
 # $conditional
-# [1] 0.6715988
+# [1] 0.6705646
 # 
 # $marginal
-# [1] 0.009126409
+# [1] 0.01066316
 
 
 ##%######################################################%##
@@ -424,15 +414,15 @@ nd_Lepidoptera$LUI <- factor(nd_Lepidoptera$LUI, levels = c("Primary vegetation"
 # plot
 
 p_coleoptera <- ggplot(data = nd_Coleoptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
-  geom_line(aes(col = LUI), size = 0.75) +
+  geom_line(aes(col = LUI), linewidth = 0.75) +
   geom_ribbon(aes(ymin = nd_Coleoptera$PredLower, ymax = nd_Coleoptera$PredUpper, fill = LUI), alpha = 0.2) +
-  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  geom_hline(yintercept = 0, lty = "dashed", linewidth = 0.25) +
   scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   #scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
-  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150), limits = c(-100, 150)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") + 
   ggtitle("Coleoptera") +
@@ -450,15 +440,15 @@ p_coleoptera <- ggplot(data = nd_Coleoptera, aes(x = StdTmeanAnomaly, y = PredMe
 
 
 p_diptera <- ggplot(data = nd_Diptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
-  geom_line(aes(col = LUI), size = 0.75) +
+  geom_line(aes(col = LUI), linewidth = 0.75) +
   geom_ribbon(aes(ymin = nd_Diptera$PredLower, ymax = nd_Diptera$PredUpper, fill = LUI), alpha = 0.2) +
-  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  geom_hline(yintercept = 0, lty = "dashed", linewidth = 0.25) +
   scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   #scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
-  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150), limits = c(-100, 150)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") +
   ggtitle("Diptera") +
@@ -474,15 +464,15 @@ p_diptera <- ggplot(data = nd_Diptera, aes(x = StdTmeanAnomaly, y = PredMedian))
   
 
 p_hemiptera <- ggplot(data = nd_Hemiptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
-  geom_line(aes(col = LUI), size = 0.75) +
+  geom_line(aes(col = LUI), linewidth = 0.75) +
   geom_ribbon(aes(ymin = nd_Hemiptera$PredLower, ymax = nd_Hemiptera$PredUpper, fill = LUI), alpha = 0.2) +
-  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  geom_hline(yintercept = 0, lty = "dashed", linewidth = 0.25) +
   scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   #scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
-  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150), limits = c(-100, 150)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") +
   ggtitle("Hemiptera") +
@@ -498,15 +488,15 @@ p_hemiptera <- ggplot(data = nd_Hemiptera, aes(x = StdTmeanAnomaly, y = PredMedi
   
 
 p_hymenoptera <- ggplot(data = nd_Hymenoptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
-  geom_line(aes(col = LUI), size = 0.75) +
+  geom_line(aes(col = LUI), linewidth = 0.75) +
   geom_ribbon(aes(ymin = nd_Hymenoptera$PredLower, ymax = nd_Hymenoptera$PredUpper, fill = LUI), alpha = 0.2) +
-  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  geom_hline(yintercept = 0, lty = "dashed", linewidth = 0.25) +
   scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   #scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
-  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150), limits = c(-100, 150)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") +
   ggtitle("Hymenoptera") +
@@ -521,15 +511,15 @@ p_hymenoptera <- ggplot(data = nd_Hymenoptera, aes(x = StdTmeanAnomaly, y = Pred
         panel.border = element_rect(size = 0.25))
 
 p_lepidoptera <- ggplot(data = nd_Lepidoptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
-  geom_line(aes(col = LUI), size = 0.75) +
+  geom_line(aes(col = LUI), linewidth = 0.75) +
   geom_ribbon(aes(ymin = nd_Lepidoptera$PredLower, ymax = nd_Lepidoptera$PredUpper, fill = LUI), alpha = 0.2) +
-  geom_hline(yintercept = 0, lty = "dashed", size = 0.25) +
+  geom_hline(yintercept = 0, lty = "dashed", linewidth = 0.25) +
   scale_fill_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   scale_colour_manual('Land-use', values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   #scale_x_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1), limits = c(0, 1)) +
-  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
+  scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150), limits = c(-100, 150)) +
   ylab("Change in total abundance (%)") +
   xlab("Standardised Temperature Anomaly") +
   ggtitle("Lepidoptera") +
