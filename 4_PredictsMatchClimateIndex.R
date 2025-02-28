@@ -20,7 +20,6 @@ if(!dir.exists(outDir)) dir.create(outDir)
 library(raster)
 library(sp)
 library(dismo)
-library(rgdal)
 library(predictsFunctions)
 library(Rfast)
 library(snow)
@@ -42,7 +41,7 @@ tmp <- stack(tmp.path,varname = "tmp")
 wgs84 <- crs(tmp) # wgs84: World Geodetic System 1984 & crs: retrieve coordinate reference system from object
 
 # read in the predicts sites - insect subset
-sites <- readRDS(paste0(inDir,"PREDICTSSiteData.rds")) 
+sites <- readRDS(paste0(inDir,"PREDICTSSiteData.rds")) # 7568 rows
 
 # Create spatial map of PREDICTS sites
 sites_sp <- SpatialPointsDataFrame(
@@ -195,7 +194,7 @@ snow::stopCluster(cl)
 
 st2 <- Sys.time()
 
-print(st2 - st1)
+print(st2 - st1) # Time difference of 54.52132 mins using 12 cores
 
 # organise the anomaly info along with the predicts data
 temperatureVars <- as.data.frame(temperatureVars)
