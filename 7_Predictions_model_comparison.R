@@ -27,7 +27,7 @@ library(paletteer)
 source('0_Functions.R')
 
 # read in the predicts data
-predictsSites <- readRDS(paste0(predictsDataDir, "PREDICTSSitesClimate_Data.rds")) # 8858 rows
+predictsSites <- readRDS(paste0(predictsDataDir, "PREDICTSSitesClimate_Data.rds")) # 7542 rows
 
 
 ##%######################################################%##
@@ -80,17 +80,17 @@ a.preds.lower <- ((apply(X = a.preds,MARGIN = 1,FUN = quantile,probs = 0.025))*1
 
 
 # combine data into one table for plotting
-abun_res <- as.data.frame(cbind(a.preds.median, a.preds.lower, a.preds.upper))
-rich_res <- as.data.frame(cbind(s.preds.median, s.preds.lower, s.preds.upper))
-colnames(abun_res) <- c("median", "lower", "upper")
-colnames(rich_res) <- c("median", "lower", "upper")
+abun_res <- as.data.frame(cbind(a.preds.median, a.preds.upper, a.preds.lower))
+rich_res <- as.data.frame(cbind(s.preds.median, s.preds.upper, s.preds.lower))
+colnames(abun_res) <- c("median", "upper", "lower")
+colnames(rich_res) <- c("median", "upper", "lower")
 abun_res$metric <- "total abundance"
 rich_res$metric <- "species richness"
 abun_res$LU <- factor(c("Primary vegetation","Secondary vegetation", "Agriculture_Low","Agriculture_High"), levels = c("Primary vegetation","Secondary vegetation", "Agriculture_Low","Agriculture_High"))
 rich_res$LU <- factor(c("Primary vegetation","Secondary vegetation", "Agriculture_Low","Agriculture_High"), levels = c("Primary vegetation","Secondary vegetation", "Agriculture_Low","Agriculture_High"))
 
-abun_res[abun_res$LU == "Primary vegetation", c("lower", "upper")] <- NA
-rich_res[abun_res$LU == "Primary vegetation", c("lower", "upper")] <- NA
+abun_res[abun_res$LU == "Primary vegetation", c("upper", "lower")] <- NA
+rich_res[abun_res$LU == "Primary vegetation", c("upper", "lower")] <- NA
 
 # combine results
 noOrder_res <- rbind(abun_res, rich_res)
@@ -111,12 +111,13 @@ p1 <- ggplot(data = abun_res) +
   xlab("") +
   ylab("Change in total abundance (%)") +
   scale_color_manual(values = c("#009E73","#0072B2","#E69F00","#D55E00")) +
+  scale_y_continuous(limits = c(-55, 0), breaks = c(0, -10, -20, -30, -40, -50)) +
   theme(legend.position = "none", 
         aspect.ratio = 1, 
         title = element_text(size = 8, face = "bold"),
-        axis.text.y = element_text(size = 7),
-        axis.text.x = element_text(size = 7, angle = 45, vjust = 0.5),
-        axis.title = element_text(size = 7),
+        axis.text.y = element_text(size = 8),
+        axis.text.x = element_text(size = 8, angle = 45, vjust = 0.5),
+        axis.title = element_text(size = 8),
         panel.grid.minor = element_blank(),
         panel.grid.major = element_blank(),
         panel.border = element_blank(), 
@@ -132,13 +133,13 @@ p2 <- ggplot(data = rich_res) +
   xlab("") +
   ylab("Change in species richness (%)") +
   scale_color_manual(values = c("#009E73","#0072B2","#E69F00","#D55E00")) +
-  ylim(c(-50, 0)) +
+  scale_y_continuous(limits = c(-55, 0), breaks = c(0, -10, -20, -30, -40, -50)) +
   theme(legend.position = "none", 
         aspect.ratio = 1, 
         title = element_text(size = 8, face = "bold"),
-        axis.text.y = element_text(size = 7),
-        axis.text.x = element_text(size = 7, angle = 45, vjust = 0.5),
-        axis.title = element_text(size = 7),
+        axis.text.y = element_text(size = 8),
+        axis.text.x = element_text(size = 8, angle = 45, vjust = 0.5),
+        axis.title = element_text(size = 8),
         panel.grid.minor = element_blank(),
         panel.grid.major = element_blank(),
         panel.border = element_blank(), 
@@ -149,7 +150,7 @@ p2 <- ggplot(data = rich_res) +
 
 p3 <- cowplot::plot_grid(p1, p2)
 
-ggsave(filename = paste0(outDir, "FIGURE_landuse_noOrder.pdf"), plot = last_plot(), width = 120, height = 60, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "FIGURE_landuse_noOrder.pdf"), plot = last_plot(), width = 200, height = 100, units = "mm", dpi = 300)
 
 
 ##### Models from this study including interaction with order ####
@@ -350,7 +351,7 @@ all_res <- rbind(result.ab, result.sr)
 # match up noOrder results for combining
 noOrder_res$Order <- "All insects"
 noOrder_res <- noOrder_res[, c(1:3, 5, 6, 4)]
-names(noOrder_res) <- c("grp.median", "grp.lower", "grp.upper", "Metric", "LUI", "Order") 
+names(noOrder_res) <- c("grp.median",  "grp.upper", "grp.lower", "LUI", "Order", "metric") 
 
 ## add in results from noOrder models
 all_res <- rbind(all_res, noOrder_res)
@@ -409,8 +410,8 @@ ggplot(data = all_res, aes(col = LUI, group = LUI)) +
         panel.border = element_blank(), 
         panel.background = element_blank(), 
         strip.background = element_blank(),
-        axis.ticks = element_line(size = 0.2), 
-        axis.line = element_line(size = 0.2), 
+        axis.ticks = element_line(linewidth = 0.2), 
+        axis.line = element_line(linewidth = 0.2), 
         text = element_text(size = 10), 
         legend.key=element_blank(), 
         legend.title = element_blank(),
@@ -433,8 +434,8 @@ ggsave(filename = paste0(outDir, "FIGURE_2_Comparison_LU_only_incNoOrder.jpeg"),
 # need predictions for each land use for 0 and 1 STA for each order
 
 # load in models
-load(file = paste0(moddir2, "MeanAnomalyModelAbund.rdata")) # MeanAnomalyModelAbund
-load(file = paste0(moddir2, "MeanAnomalyModelRich.rdata")) # MeanAnomlayModelRich
+load(file = paste0(moddir2, "MeanAnomalyModelAbund_outliersrm.rdata")) # MeanAnomalyModelAbund
+load(file = paste0(moddir2, "MeanAnomalyModelRich_outliersrm.rdata")) # MeanAnomlayModelRich
 
 #### abundance predictions ####
 
@@ -465,7 +466,7 @@ refRow <- which((nd$LUI=="Primary vegetation") & (nd$StdTmeanAnomaly==min(abs(nd
 # row for each order
 
 # predict the results
-a.preds.tmean <- PredictGLMERRandIter(model = MeanAnomalyModelAbund$model,data = nd)
+a.preds.tmean <- PredictGLMERRandIter(model = MeanAnomalyModelAbund$model, data = nd)
 
 # back transform the abundance values
 a.preds.tmean <- exp(a.preds.tmean)-0.01
@@ -684,8 +685,8 @@ names(all_res)[7:9] <- c("Median", "Lower_CI", "Upper_CI")
 #### This study excluding interaction with Order ####
 
 # load in models
-load(file = paste0(moddir2, "/MeanAnomalyModelAbund_noOrder.rdata")) # MeanAnomalyModelAbund2
-load(file = paste0(moddir2, "/MeanAnomalyModelRich_noOrder.rdata")) # MeanAnomalyModelRich2
+load(file = paste0(moddir2, "/MeanAnomalyModelAbund_noOrder_outliersrm.rdata")) # MeanAnomalyModelAbund2
+load(file = paste0(moddir2, "/MeanAnomalyModelRich_noOrder_outliersrm.rdata")) # MeanAnomalyModelRich2
 
 
 # create matrix for predictions
@@ -796,9 +797,9 @@ ggplot(data = plot_data, aes(col = LUI, group = STA)) +
   geom_hline(yintercept = 0, linetype = "dashed", size = 0.2) +
   geom_point(aes(x = LUI, y = Median, shape = STA), size = 1.5, position= position_dodge(width = 1)) + 
   geom_errorbar(aes(x = LUI, ymin = Lower_CI, ymax = Upper_CI), position= position_dodge(width = 1), size = 0.5, width = 0.2)+
-  facet_wrap(~ Order) +
+  facet_wrap(~ Order, scales = "free_y") +
   xlab("") +
-  scale_y_continuous(limits = c(-100, 120), breaks = scales::pretty_breaks(n = 10)) +
+  scale_y_continuous(limits = c(-100, 150), breaks = scales::pretty_breaks(n = 6)) +
   ylab("Percentage change in total abundance (%)") +
   scale_color_manual(values = c("#009E73","#0072B2","#E69F00","#D55E00"), guide = "none") +
   scale_shape_manual(values=c(16, 17, 18, 15, 0, 1), name = "STA")+
@@ -834,7 +835,7 @@ ggplot(data = plot_data, aes(col = LUI, group = STA)) +
   geom_errorbar(aes(x = LUI, ymin = Lower_CI, ymax = Upper_CI), position= position_dodge(width = 1), size = 0.5, width = 0.2)+
   facet_wrap(~ Order) +
   xlab("") +
-  scale_y_continuous(limits = c(-100, 270), breaks = scales::pretty_breaks(n = 10)) +
+  scale_y_continuous(limits = c(-100, 165), breaks = scales::pretty_breaks(n = 6)) +
   ylab("Percentage change in species richness (%)") +
   scale_color_manual(values = c("#009E73","#0072B2","#E69F00","#D55E00"), guide = "none") +
   scale_shape_manual(values=c(16, 17, 18, 15, 0, 1), name = "STA")+
