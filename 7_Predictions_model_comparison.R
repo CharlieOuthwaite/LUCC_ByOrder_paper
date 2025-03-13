@@ -23,7 +23,6 @@ if(!dir.exists(outDir)) dir.create(outDir)
 library(StatisticalModels)
 library(predictsFunctions)
 library(ggplot2)
-library(paletteer) 
 source('0_Functions.R')
 
 # read in the predicts data
@@ -107,7 +106,7 @@ noOrder_res <- rbind(abun_res, rich_res)
 p1 <- ggplot(data = abun_res) +
   geom_point(aes(x = LU, y = median, col = LU), size = 1.2) + 
   geom_errorbar(aes(x = LU, ymin = lower, ymax = upper, col = LU), size = 0.2, width = 0.2)+
-  geom_hline(yintercept = 0, linetype = "dashed", size = 0.2) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.2) +
   xlab("") +
   ylab("Change in total abundance (%)") +
   scale_color_manual(values = c("#009E73","#0072B2","#E69F00","#D55E00")) +
@@ -129,7 +128,7 @@ p1 <- ggplot(data = abun_res) +
 p2 <- ggplot(data = rich_res) +
   geom_point(aes(x = LU, y = median, col = LU), size = 1.2) + 
   geom_errorbar(aes(x = LU, ymin = lower, ymax = upper, col = LU), size = 0.2, width = 0.2)+
-  geom_hline(yintercept = 0, linetype = "dashed", size = 0.2) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.2) +
   xlab("") +
   ylab("Change in species richness (%)") +
   scale_color_manual(values = c("#009E73","#0072B2","#E69F00","#D55E00")) +
@@ -150,7 +149,7 @@ p2 <- ggplot(data = rich_res) +
 
 p3 <- cowplot::plot_grid(p1, p2)
 
-ggsave(filename = paste0(outDir, "FIGURE_landuse_noOrder.pdf"), plot = last_plot(), width = 200, height = 100, units = "mm", dpi = 300)
+ggsave(, filename = paste0(outDir, "FIGURE_landuse_noOrder.pdf"), plot = p3, width = 200, height = 100, units = "mm", dpi = 300)
 
 
 ##### Models from this study including interaction with order ####
@@ -418,8 +417,8 @@ ggplot(data = all_res, aes(col = LUI, group = LUI)) +
         legend.text = element_text(size = 10))
 
 
-ggsave(filename = paste0(outDir, "FIGURE_2_Comparison_LU_only_incNoOrder.pdf"), plot = last_plot(), width = 200, height = 130, units = "mm", dpi = 300)
-ggsave(filename = paste0(outDir, "FIGURE_2_Comparison_LU_only_incNoOrder.jpeg"), plot = last_plot(), width = 200, height = 130, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "FIGURE_2_Comparison_LU_only_incOrder.pdf"), plot = last_plot(), width = 200, height = 130, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "FIGURE_2_Comparison_LU_only_incOrder.jpeg"), plot = last_plot(), width = 200, height = 130, units = "mm", dpi = 300)
 
 
 
@@ -797,9 +796,9 @@ ggplot(data = plot_data, aes(col = LUI, group = STA)) +
   geom_hline(yintercept = 0, linetype = "dashed", size = 0.2) +
   geom_point(aes(x = LUI, y = Median, shape = STA), size = 1.5, position= position_dodge(width = 1)) + 
   geom_errorbar(aes(x = LUI, ymin = Lower_CI, ymax = Upper_CI), position= position_dodge(width = 1), size = 0.5, width = 0.2)+
-  facet_wrap(~ Order, scales = "free_y") +
+  facet_wrap(~ Order) +
   xlab("") +
-  scale_y_continuous(limits = c(-100, 150), breaks = scales::pretty_breaks(n = 6)) +
+  scale_y_continuous(limits = c(-100, 160), breaks = scales::pretty_breaks(n = 6)) +
   ylab("Percentage change in total abundance (%)") +
   scale_color_manual(values = c("#009E73","#0072B2","#E69F00","#D55E00"), guide = "none") +
   scale_shape_manual(values=c(16, 17, 18, 15, 0, 1), name = "STA")+
