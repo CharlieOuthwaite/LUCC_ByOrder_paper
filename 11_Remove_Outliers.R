@@ -2005,12 +2005,15 @@ ggsave("MeanAnomAbund_outrm.jpeg", device ="jpeg", path = outdir, width=20, heig
 ##%######################################################%##
 
 # list outliers, in order of highest to lowest Cook's distance. 
-outliers <- c("HW1_2011__Summerville 1", "AR1_2008__Basset 1", "SC1_2011__Meijer 1", 
-              "SC1_2005__Richardson 1", "SH1_2011__Todd 1", "AD1_2008__Billeter 6",
-              "TN1_2007__Bouyer 2", "DI1_2013__Rousseau 2", "HP1_2006__Lachat 1",
-              "SE1_2012__Poveda 2", "LH1_2008__Littlewood 1", "SE1_2012__Poveda 1",
-              "AD1_2008__Franzen 1", "SC1_2010__Marsh 1")
+# outliers <- c("HW1_2011__Summerville 1", "AR1_2008__Basset 1", "SC1_2011__Meijer 1", 
+#               "SC1_2005__Richardson 1", "SH1_2011__Todd 1", "AD1_2008__Billeter 6",
+#               "TN1_2007__Bouyer 2", "DI1_2013__Rousseau 2", "HP1_2006__Lachat 1",
+#               "SE1_2012__Poveda 2", "LH1_2008__Littlewood 1", "SE1_2012__Poveda 1",
+#               "AD1_2008__Franzen 1", "SC1_2010__Marsh 1")
 # 14 outliers for the richness model
+
+# for testing removing eachs study one at a time
+outliers <- unique(predictsSites$SS) # 254 studies before outliers removed. 
 
 # somewhere to save the effect sizes
 effsizeTab <- data.frame(rem_study = rep(outliers, each = 20), 
@@ -2447,8 +2450,10 @@ effsizeTab[effsizeTab$rem_study == out, "upper"] <- uppers[c(2:5, 7:10, 12:15, 1
 
 }
 
-write.csv(effsizeTab, file = paste0(outdir, "EffsizeTab_STA1.csv"), row.names = F)
+#write.csv(effsizeTab, file = paste0(outdir, "EffsizeTab_STA1.csv"), row.names = F)
 #write.csv(effsizeTab, file = paste0(outdir, "EffsizeTab_STA0.csv"), row.names = F)
+
+write.csv(effsizeTab, file = paste0(outdir, "EffsizeTab_STA1_ALL.csv"), row.names = F)
 
 ##%######################################################%##
 #                                                          #
@@ -2481,13 +2486,22 @@ ggplotly(p)
 
 # add annotations to those with large differences
 
-# organise the labels
+# organise the labels - outliers only plot
+# dat_text <- data.frame(
+#   label = c("HW1_2011__Summerville 1", "AR1_2008__Basset 1", "SC1_2005__Richardson 1", "SC1_2005__Richardson 1", "SC1_2011__Meijer 1","HW1_2011__Summerville 1", "DI1_2013__Rousseau 2"),
+#   Order   = as.factor(c(rep("Coleoptera", 3), "Diptera", "Hemiptera", "Lepidoptera", "Hymenoptera")),
+#   x     = c(3.4, 3.2, 3.4, 3.3, 3.2, 3.3, 3),
+#   y     = c(50, 96, 500, 30, 139, 20, -25), 
+#   rem_study = c("HW1_2011__Summerville 1", "AR1_2008__Basset 1", "SC1_2005__Richardson 1", "SC1_2005__Richardson 1", "SC1_2011__Meijer 1", "HW1_2011__Summerville 1", "DI1_2013__Rousseau 2")
+# )
+
+# organise the labels - all studies plot
 dat_text <- data.frame(
-  label = c("HW1_2011__Summerville 1", "AR1_2008__Basset 1", "SC1_2005__Richardson 1", "SC1_2005__Richardson 1", "SC1_2011__Meijer 1","HW1_2011__Summerville 1", "DI1_2013__Rousseau 2"),
-  Order   = as.factor(c(rep("Coleoptera", 3), "Diptera", "Hemiptera", "Lepidoptera", "Hymenoptera")),
-  x     = c(3.4, 3.2, 3.4, 3.3, 3.2, 3.3, 3),
-  y     = c(50, 96, 500, 30, 139, 20, -25), 
-  rem_study = c("HW1_2011__Summerville 1", "AR1_2008__Basset 1", "SC1_2005__Richardson 1", "SC1_2005__Richardson 1", "SC1_2011__Meijer 1", "HW1_2011__Summerville 1", "DI1_2013__Rousseau 2")
+  label = c( "SC1_2005__Richardson 1", "AR1_2008__Basset 1", "HW1_2011__Summerville 1", "SC1_2005__Richardson 1", "SC1_2011__Meijer 1", "DI1_2013__Rousseau 2", "HW1_2011__Summerville 1"),
+  Order   = as.factor(c(rep("Coleoptera", 3), "Diptera", "Hemiptera", "Hymenoptera", "Lepidoptera")),
+  x     = c(3.3, 3.1, 3.3, 2, 3.1, 3, 3),
+  y     = c(500, 100, 50, -50, 140, -20, 30), 
+  rem_study = c("SC1_2005__Richardson 1", "AR1_2008__Basset 1", "HW1_2011__Summerville 1", "SC1_2005__Richardson 1", "SC1_2011__Meijer 1", "DI1_2013__Rousseau 2", "HW1_2011__Summerville 1")
 )
 
 # add the labels to the plot
@@ -2499,7 +2513,8 @@ p + geom_text(
 
 # save
 #ggsave(filename = paste0(outdir, "FIG_outlier_impact_STA0.png"), width = 8, height = 7)
-ggsave(filename = paste0(outdir, "FIG_outlier_impact_STA1.png"), width = 8, height = 7)
+#ggsave(filename = paste0(outdir, "FIG_outlier_impact_STA1.png"), width = 8, height = 7)
+ggsave(filename = paste0(outdir, "FIG_outlier_impact_STA1_ALL.png"), width = 8, height = 7)
 
 
 
