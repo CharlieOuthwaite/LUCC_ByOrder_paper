@@ -242,7 +242,7 @@ for(x in mod_list2){
             aspect.ratio = 1)
     
     cowplot::plot_grid(p1, p2, p3, p4, 
-                       labels = c("(a)", "(b)", "(c)"))
+                       labels = c("(a)", "(b)", "(c)", "(d)"))
     
     ggsave(file = paste0(outdir, x, "_model_checks.pdf"), height = 10, width = 10)
     
