@@ -8,6 +8,7 @@
 # in this script, models are run using Chao-estimated species richness
 
 #### Set up ####
+rm(list = ls())
 
 # set up directories
 # dataDir <- "Data/"
@@ -32,21 +33,21 @@ sites$ChaoR <- round(sites$ChaoR,0)
 
 # remove sites that do not have an estimate of ChaoR
 sites <- sites[!is.na(sites$ChaoR), ]
-# 5896 rows
+# 5235 rows
 
 # assess coverage of the data
 table(sites$Order, sites$LUI) 
 
 #             Primary vegetation Secondary vegetation Agriculture_Low Agriculture_High
-# Coleoptera                 512                  339             228              282
-# Diptera                     76                   95              86              143
-# Hemiptera                  143                  110             255               99
-# Hymenoptera                367                  410             473             1157
-# Lepidoptera                283                  491             266               81
+# Coleoptera                 446                  223             169              282
+# Diptera                     76                   86              86              143
+# Hemiptera                   77                   74             196               99
+# Hymenoptera                367                  401             473             1157
+# Lepidoptera                217                  375             207               81
 
 
-length(unique(sites$SSBS)) # 4354 sites
-length(unique(sites$SS)) # 157 studies
+length(unique(sites$SSBS)) # 4113 sites
+length(unique(sites$SS)) # 154 studies
 
 ############################################################
 #                                                          #
@@ -86,7 +87,7 @@ exclQuantiles <- c(0.025,0.975)
 nd <- expand.grid(
   StdTmeanAnomalyRS=seq(from = min(MeanAnomalyModelChaoR$data$StdTmeanAnomalyRS),
                         to = max(MeanAnomalyModelChaoR$data$StdTmeanAnomalyRS),
-                        length.out = 100),
+                        length.out = 150),
   LUI=factor(c("Primary vegetation","Secondary vegetation","Agriculture_Low","Agriculture_High"),
              levels = levels(MeanAnomalyModelChaoR$data$LUI)),
   Order=factor(c("Coleoptera","Diptera","Hemiptera","Hymenoptera","Lepidoptera")))
@@ -302,13 +303,13 @@ nd_Lepidoptera$LUI <- factor(nd_Lepidoptera$LUI, levels = c("Primary vegetation"
 p_coleoptera <- ggplot(data = nd_Coleoptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
   geom_line(aes(col = LUI), linewidth = 0.75) +
   geom_ribbon(aes(ymin = nd_Coleoptera$PredLower, ymax = nd_Coleoptera$PredUpper, fill = LUI), alpha = 0.2) +
-  geom_hline(yintercept = 0, lty = "dashed", size = 0.2) +
+  geom_hline(yintercept = 0, lty = "dashed", linewidth = 0.2) +
   scale_fill_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   scale_colour_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   #scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
-  scale_y_continuous(breaks = c(-100,  0, 100, 200, 300, 400, 500, 600, 700, 800, 900), limits = c(-100, 950)) +
+  scale_y_continuous(breaks = c(-100,  0, 100, 200, 300, 400, 500), limits = c(-100, 550)) +
   ylab("Change in Chao species richness (%)") +
   xlab("Standardised Temperature Anomaly") +
   #xlim(c(-1, 5)) +
@@ -323,21 +324,21 @@ p_coleoptera <- ggplot(data = nd_Coleoptera, aes(x = StdTmeanAnomaly, y = PredMe
         #legend.text = element_text(size = 6), 
         #legend.title = element_blank(), 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.2),
+        panel.grid.major = element_line(linewidth = 0.2),
         panel.border = element_rect(size = 0.2), 
-        axis.ticks = element_line(size = 0.2)) + 
+        axis.ticks = element_line(linewidth = 0.2)) + 
   ggtitle("Coleoptera")
 
 p_diptera <- ggplot(data = nd_Diptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
   geom_line(aes(col = LUI), linewidth = 0.75) +
   geom_ribbon(aes(ymin = nd_Diptera$PredLower, ymax = nd_Diptera$PredUpper, fill = LUI), alpha = 0.2) +
-  geom_hline(yintercept = 0, lty = "dashed", size = 0.2) +
+  geom_hline(yintercept = 0, lty = "dashed", linewidth = 0.2) +
   scale_fill_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   scale_colour_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   #scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
-  scale_y_continuous(breaks = c(-100,  0, 100, 200, 300, 400, 500, 600), limits = c(-100, 600)) +
+  scale_y_continuous(breaks = c(-100,  0, 100, 200, 300, 400, 500), limits = c(-100, 550)) +
   ylab("Change in Chao species richness (%)") +
   xlab("Standardised Temperature Anomaly") +
   #xlim(c(-1, 5)) +
@@ -352,21 +353,21 @@ p_diptera <- ggplot(data = nd_Diptera, aes(x = StdTmeanAnomaly, y = PredMedian))
         #legend.text = element_text(size = 6), 
         #legend.title = element_blank(), 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.2),
+        panel.grid.major = element_line(linewidth = 0.2),
         panel.border = element_rect(size = 0.2), 
-        axis.ticks = element_line(size = 0.2)) + 
+        axis.ticks = element_line(linewidth = 0.2)) + 
   ggtitle("Diptera")
 
 p_hemiptera <- ggplot(data = nd_Hemiptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
   geom_line(aes(col = LUI), linewidth = 0.75) +
   geom_ribbon(aes(ymin = nd_Hemiptera$PredLower, ymax = nd_Hemiptera$PredUpper, fill = LUI), alpha = 0.2) +
-  geom_hline(yintercept = 0, lty = "dashed", size = 0.2) +
+  geom_hline(yintercept = 0, lty = "dashed", linewidth = 0.2) +
   scale_fill_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   scale_colour_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   #scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
-  scale_y_continuous(breaks = c(-100,  0, 100, 200, 300, 400, 500, 600), limits = c(-100, 600)) +
+  scale_y_continuous(breaks = c(-100,  0, 100, 200, 300, 400, 500), limits = c(-100, 550)) +
   ylab("Change in Chao species richness (%)") +
   xlab("Standardised Temperature Anomaly") +
   #xlim(c(-1, 5)) +
@@ -381,21 +382,21 @@ p_hemiptera <- ggplot(data = nd_Hemiptera, aes(x = StdTmeanAnomaly, y = PredMedi
         #legend.text = element_text(size = 6), 
         #legend.title = element_blank(), 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.2),
+        panel.grid.major = element_line(linewidth = 0.2),
         panel.border = element_rect(size = 0.2), 
-        axis.ticks = element_line(size = 0.2)) + 
+        axis.ticks = element_line(linewidth = 0.2)) + 
   ggtitle("Hemiptera")
 
 p_hymenoptera <- ggplot(data = nd_Hymenoptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
   geom_line(aes(col = LUI), linewidth = 0.75) +
   geom_ribbon(aes(ymin = nd_Hymenoptera$PredLower, ymax = nd_Hymenoptera$PredUpper, fill = LUI), alpha = 0.2) +
-  geom_hline(yintercept = 0, lty = "dashed", size = 0.2) +
+  geom_hline(yintercept = 0, lty = "dashed", linewidth = 0.2) +
   scale_fill_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   scale_colour_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   #scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
-  scale_y_continuous(breaks = c(-100,  0, 100, 200, 300, 400, 500, 600), limits = c(-100, 600)) +
+  scale_y_continuous(breaks = c(-100,  0, 100, 200, 300, 400, 500), limits = c(-100, 550)) +
   ylab("Change in Chao species richness (%)") +
   xlab("Standardised Temperature Anomaly") +
   #xlim(c(-1, 5)) +
@@ -410,21 +411,21 @@ p_hymenoptera <- ggplot(data = nd_Hymenoptera, aes(x = StdTmeanAnomaly, y = Pred
         #legend.text = element_text(size = 6), 
         #legend.title = element_blank(), 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.2),
+        panel.grid.major = element_line(linewidth = 0.2),
         panel.border = element_rect(size = 0.2), 
-        axis.ticks = element_line(size = 0.2)) + 
+        axis.ticks = element_line(linewidth = 0.2)) + 
   ggtitle("Hymenoptera")
 
 p_lepidoptera <- ggplot(data = nd_Lepidoptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
   geom_line(aes(col = LUI), linewidth = 0.75) +
   geom_ribbon(aes(ymin = nd_Lepidoptera$PredLower, ymax = nd_Lepidoptera$PredUpper, fill = LUI), alpha = 0.2) +
-  geom_hline(yintercept = 0, lty = "dashed", size = 0.2) +
+  geom_hline(yintercept = 0, lty = "dashed", linewidth = 0.2) +
   scale_fill_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   scale_colour_manual(values = c("#009E73", "#0072B2","#E69F00","#D55E00")) +
   theme_bw() + 
   scale_x_continuous(breaks = c(0,0.5, 1, 1.5, 2), limits = c(0, 2)) +
   #scale_y_continuous(breaks = c(-100,-75, -50, -25, 0, 25, 50, 75, 100, 125,150,175), limits = c(-100, 175)) +
-  scale_y_continuous(breaks = c(-100,  0, 100, 200, 300, 400, 500, 600), limits = c(-100, 600)) +
+  scale_y_continuous(breaks = c(-100,  0, 100, 200, 300, 400, 500), limits = c(-100, 550)) +
   ylab("Change in Chao species richness (%)") +
   xlab("Standardised Temperature Anomaly") +
   #xlim(c(-1, 5)) +
@@ -439,9 +440,9 @@ p_lepidoptera <- ggplot(data = nd_Lepidoptera, aes(x = StdTmeanAnomaly, y = Pred
         #legend.text = element_text(size = 6), 
         #legend.title = element_blank(), 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.2),
+        panel.grid.major = element_line(linewidth = 0.2),
         panel.border = element_rect(size = 0.2), 
-        axis.ticks = element_line(size = 0.2)) + 
+        axis.ticks = element_line(linewidth = 0.2)) + 
   ggtitle("Lepidoptera")
 
 # get the legend
