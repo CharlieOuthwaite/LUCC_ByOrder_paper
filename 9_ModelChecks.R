@@ -25,23 +25,23 @@ library(gridGraphics)
 
 # read in model files
 # land use and Order
-LUIAbund <- readRDS(file = paste0(LUIDir,"am3.3.rds"))
-LUIRich <- readRDS(file = paste0(LUIDir,"sm3.3.rds"))
+load(file = paste0(LUIDir,"Abundance_landuse_model.rdata")) # am3.3
+load(file = paste0(LUIDir,"Richness_landuse_model.rdata")) # sm3.3
 
 # land use only
 load(file = paste0(LUIDir,"Abundance_landuse_model_noOrder.rdata")) # am3
 load(file = paste0(LUIDir,"Richness_landuse_model_noOrder.rdata")) # sm3
 
 # land use, STA and Order
-load(paste0(LUICCDir, "MeanAnomalyModelAbund.rdata")) # MeanAnomalyModelAbund
-load(paste0(LUICCDir, "MeanAnomalyModelRich.rdata")) # MeanAnomalyModelRich
+load(paste0(LUICCDir, "MeanAnomalyModelAbund_outliersrm.rdata")) # MeanAnomalyModelAbund
+load(paste0(LUICCDir, "MeanAnomalyModelRich_outliersrm.rdata")) # MeanAnomalyModelRich
 
 # land use and STA only
-load(paste0(LUICCDir, "MeanAnomalyModelAbund_noOrder.rdata")) # MeanAnomalyModelAbund2
-load(paste0(LUICCDir, "MeanAnomalyModelRich_noOrder.rdata")) # MeanAnomalyModelRich2
+load(paste0(LUICCDir, "MeanAnomalyModelAbund_noOrder_outliersrm.rdata")) # MeanAnomalyModelAbund2
+load(paste0(LUICCDir, "MeanAnomalyModelRich_noOrder_outliersrm.rdata")) # MeanAnomalyModelRich2
 
 # list models for loops
-mod_list1 <- c("LUIAbund", "LUIRich", "am3", "sm3") # land use models
+mod_list1 <- c("am3.3", "sm3.3", "am3", "sm3") # land use models
 mod_list2 <- c("MeanAnomalyModelAbund", "MeanAnomalyModelRich", "MeanAnomalyModelAbund2", "MeanAnomalyModelRich2") #land use/sta models
 
 # load datasets
@@ -57,7 +57,7 @@ for(x in mod_list1){
   
   # only do this one if not SR model
   # grepl() searches for matches to "Abun" in "x", the list of models
-  if(x %in% c("LUIAbund", "am3")) {
+  if(x %in% c("am3.3", "am3")) {
     
   ## 1. Checking the fitted vs residuals relationship
     p1 <- plot(get(x)$model)
@@ -72,7 +72,7 @@ for(x in mod_list1){
   invisible(dev.off())
   
   
-  if(x %in% c("LUIAbund", "am3")) {
+  if(x %in% c("am3.3", "am3")) {
     
     #predData <- model_data_ab[!is.na(model_data_ab$LogAbund), ]
     
