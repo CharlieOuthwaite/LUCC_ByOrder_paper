@@ -23,7 +23,7 @@ if(!dir.exists(outdir)) dir.create(outdir)
 source("0_Functions.R")
 
 # load in the data
-predictsSites <- readRDS(file = paste0(datadir,"PREDICTSSitesClimate_Data.rds"))
+predictsSites <- readRDS(file = paste0(datadir,"PREDICTSSitesClimate_Data.rds")) # 7542 rows
 
 
 #### loop through and run a model for each order ####
