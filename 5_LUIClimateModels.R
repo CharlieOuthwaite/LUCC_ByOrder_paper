@@ -190,8 +190,8 @@ R2GLMER(MeanAnomalyModelRich2$model) # check the R2 values
 
 # load dataset and models if not already in environment
 # predictsSites <- readRDS(file = paste0(outDir,"PREDICTSSitesClimate_Data.rds"))
-# load(paste0(outDir, "MeanAnomalyModelAbund.rdata"))
-# load(paste0(outDir, "MeanAnomalyModelRich.rdata"))
+# load(paste0(outDir, "MeanAnomalyModelAbund_outliersrm.rdata"))
+# load(paste0(outDir, "MeanAnomalyModelRich_outliersrm.rdata"))
 
 # set quantiles of predicted result to be presented in the plots
 exclQuantiles <- c(0.025,0.975)
