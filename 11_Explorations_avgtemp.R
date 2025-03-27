@@ -18,24 +18,22 @@ if(!dir.exists(outdir)) dir.create(outdir)
 
 
 # libraries
-library(performance)
-source("0_Functions.R")
-library(influence.ME)
+source("0_Functions.R") 
 library(StatisticalModels)
 library(cowplot)
-library(ggplot2)
+library(ggplot2) 
 
 
 # load in the data
-predictsSites <- readRDS(file = paste0(datadir,"PREDICTSSitesClimate_Data.rds"))
+predictsSites <- readRDS(file = paste0(datadir,"PREDICTSSitesClimate_Data.rds")) # 7542 rows
 
 ## assess correlations between mean temperature of the site and the STA
 cor(predictsSites$avg_temp, predictsSites$StdTmeanAnomaly)
-# 0.1973725
+# 0.1110303
 
 #### a. Abundance model ####
 
-model_data <- predictsSites[!is.na(predictsSites$LogAbund), ] # 8468
+model_data <- predictsSites[!is.na(predictsSites$LogAbund), ] # 7152
 
 model_data <- droplevels(model_data)
 
@@ -55,7 +53,7 @@ save(MeanAnomalyModelAbund_avg, file = paste0(outdir, "MeanAnomalyModelAbund_avg
 
 #### b. Richness model ####
 
-model_data <- predictsSites[!is.na(predictsSites$StdTmeanAnomalyRS), ] # 8858
+model_data <- predictsSites[!is.na(predictsSites$StdTmeanAnomalyRS), ] # 7542
 
 model_data <- droplevels(model_data)
 
@@ -65,17 +63,14 @@ MeanAnomalyModelRich_avg <- GLMER(modelData = model_data,
                                   fitFamily = "poisson",
                                   fixedStruct = "avg_temp + LUI * StdTmeanAnomalyRS * Order",
                                   randomStruct = "(1|SS)+(1|SSB)+(1|SSBS)",
-                                  saveVars = c("SSBS"))
+                                  saveVars = c("SSBS"),
+                                  maxIters = 20000) # add to remove maxfun warning
 
 # get summary
 summary(MeanAnomalyModelRich_avg$model)
 
 # save the model output
 save(MeanAnomalyModelRich_avg, file = paste0(outdir, "MeanAnomalyModelRich_avgtemp.rdata"))
-
-# Warning message:
-#   In commonArgs(par, fn, control, environment()) :
-#   maxfun < 10 * length(par)^2 is not recommended.
 
 
 #### Read in original models, compare AIC ####
@@ -84,62 +79,58 @@ save(MeanAnomalyModelRich_avg, file = paste0(outdir, "MeanAnomalyModelRich_avgte
 moddir <- "5_RunLUIClimateModels/"
 
 # load abundance and richness data
-load(paste0(moddir, "MeanAnomalyModelAbund.rdata"))
-load(paste0(moddir, "MeanAnomalyModelRich.rdata"))
+load(paste0(moddir, "MeanAnomalyModelAbund_outliersrm.rdata"))
+load(paste0(moddir, "MeanAnomalyModelRich_outliersrm.rdata"))
 
 # assess AICs
 AIC(MeanAnomalyModelAbund_avg$model, MeanAnomalyModelAbund$model)
 
 #                                 df      AIC
-# MeanAnomalyModelAbund_avg$model 44 26647.92
-# MeanAnomalyModelAbund$model     43 26643.84
+# MeanAnomalyModelAbund_avg$model 44 22180.70
+# MeanAnomalyModelAbund$model     43 22179.66
 
 R2GLMER(MeanAnomalyModelAbund_avg$model)
 
 # $conditional
-# [1] 0.415911
+# [1] 0.4188151
 # 
 # $marginal
-# [1] 0.09175325
+# [1] 0.1005457
 
 R2GLMER(MeanAnomalyModelAbund$model)
 
 # $conditional
-# [1] 0.4164462
+# [1] 0.4183544
 # 
 # $marginal
-# [1] 0.08326024
+# [1] 0.08408478
 
 
 AIC(MeanAnomalyModelRich_avg$model, MeanAnomalyModelRich$model)
 
 #                                df      AIC
-# MeanAnomalyModelRich_avg$model 44 54747.09
-# MeanAnomalyModelRich$model     43 54750.61
+# MeanAnomalyModelRich_avg$model 44 42739.63
+# MeanAnomalyModelRich$model     43 42746.14
 
 
 R2GLMER(MeanAnomalyModelRich_avg$model)
 
 # $conditional
-# [1] 0.7501051
+# [1] 0.7061494
 # 
 # $marginal
-# [1] 0.1188299
+# [1] 0.07172016
 
 R2GLMER(MeanAnomalyModelRich$model)
 
 # $conditional
-# [1] 0.7529888
+# [1] 0.7107193
 # 
 # $marginal
-# [1] 0.1093315
-
-
+# [1] 0.06022908
 
 # There is very little difference in AIC values between the two models
 rm(MeanAnomalyModelRich, MeanAnomalyModelAbund)
-
-
 
 
 # later code uses original names so switch back
@@ -389,10 +380,10 @@ p_coleoptera <- ggplot(data = nd_Coleoptera, aes(x = StdTmeanAnomaly, y = PredMe
         axis.title.x = element_text(size = 8),
         axis.title.y = element_text(size = 8),
         axis.text = element_text(size = 7),
-        axis.ticks = element_line(size = 0.25),
+        axis.ticks = element_line(linewidth = 0.25),
         legend.position = "none", 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.25),
+        panel.grid.major = element_line(linewidth = 0.25),
         panel.border = element_rect(size = 0.25)) 
 
 
@@ -413,10 +404,10 @@ p_diptera <- ggplot(data = nd_Diptera, aes(x = StdTmeanAnomaly, y = PredMedian))
         plot.title = element_text(size = 8, face = 'bold'),
         axis.title = element_text(size = 8),
         axis.text = element_text(size = 7),
-        axis.ticks = element_line(size = 0.25),
+        axis.ticks = element_line(linewidth = 0.25),
         legend.position = "none", 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.25),
+        panel.grid.major = element_line(linewidth = 0.25),
         panel.border = element_rect(size = 0.25)) 
 
 
@@ -437,10 +428,10 @@ p_hemiptera <- ggplot(data = nd_Hemiptera, aes(x = StdTmeanAnomaly, y = PredMedi
         plot.title = element_text(size = 8, face = 'bold'),
         axis.title = element_text(size = 8),
         axis.text = element_text(size = 7),
-        axis.ticks = element_line(size = 0.25),
+        axis.ticks = element_line(linewidth = 0.25),
         legend.position = "none",
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.25),
+        panel.grid.major = element_line(linewidth = 0.25),
         panel.border = element_rect(size = 0.25))
 
 
@@ -461,10 +452,10 @@ p_hymenoptera <- ggplot(data = nd_Hymenoptera, aes(x = StdTmeanAnomaly, y = Pred
         plot.title = element_text(size = 8, face = 'bold'),
         axis.title = element_text(size = 8),
         axis.text = element_text(size = 7),
-        axis.ticks = element_line(size = 0.25),
+        axis.ticks = element_line(linewidth = 0.25),
         legend.position = "none", 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.25),
+        panel.grid.major = element_line(linewidth = 0.25),
         panel.border = element_rect(size = 0.25))
 
 p_lepidoptera <- ggplot(data = nd_Lepidoptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
@@ -484,10 +475,10 @@ p_lepidoptera <- ggplot(data = nd_Lepidoptera, aes(x = StdTmeanAnomaly, y = Pred
         plot.title = element_text(size = 8, face = 'bold'),
         axis.title = element_text(size = 8),
         axis.text = element_text(size = 7),
-        axis.ticks = element_line(size = 0.25),
+        axis.ticks = element_line(linewidth = 0.25),
         legend.position = "none",
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.25),
+        panel.grid.major = element_line(linewidth = 0.25),
         panel.border = element_rect(size = 0.25)) 
 
 
@@ -504,9 +495,6 @@ legend <- cowplot::get_legend(
 
 # put them all together to save them
 MeanAnomAbund <- cowplot::plot_grid(p_coleoptera,p_diptera,p_hemiptera,p_hymenoptera,p_lepidoptera,legend, ncol=3)
-
-# save plot (pdf)
-ggsave(filename = paste0(outdir, "MeanAnomAbund_avgtemp.pdf"), plot = MeanAnomAbund, width = 200, height = 150, units = "mm", dpi = 300)
 
 # save plot (jpeg)
 ggsave("MeanAnomAbund_avgtemp.jpeg", device ="jpeg", path = outdir, width=20, height=15, units="cm", dpi = 350)
@@ -743,10 +731,10 @@ p_coleoptera <- ggplot(data = nd2_Coleoptera, aes(x = StdTmeanAnomaly, y = PredM
         axis.title.x = element_text(size = 8),
         axis.title.y = element_text(size = 8),
         axis.text = element_text(size = 7),
-        axis.ticks = element_line(size = 0.25),
+        axis.ticks = element_line(linewidth = 0.25),
         legend.position = "none",
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.25),
+        panel.grid.major = element_line(linewidth = 0.25),
         panel.border = element_rect(size = 0.25)) 
 
 p_diptera <- ggplot(data = nd2_Diptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
@@ -765,10 +753,10 @@ p_diptera <- ggplot(data = nd2_Diptera, aes(x = StdTmeanAnomaly, y = PredMedian)
         plot.title = element_text(size = 8, face = 'bold'),
         axis.title = element_text(size = 8),
         axis.text = element_text(size = 7),
-        axis.ticks = element_line(size = 0.25),
+        axis.ticks = element_line(linewidth = 0.25),
         legend.position = "none", 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.25),
+        panel.grid.major = element_line(linewidth = 0.25),
         panel.border = element_rect(size = 0.25))
 
 p_hemiptera <- ggplot(data = nd2_Hemiptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
@@ -788,10 +776,10 @@ p_hemiptera <- ggplot(data = nd2_Hemiptera, aes(x = StdTmeanAnomaly, y = PredMed
         plot.title = element_text(size = 8, face = 'bold'),
         axis.title = element_text(size = 8),
         axis.text = element_text(size = 7),
-        axis.ticks = element_line(size = 0.25),
+        axis.ticks = element_line(linewidth = 0.25),
         legend.position = "none",
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.25),
+        panel.grid.major = element_line(linewidth = 0.25),
         panel.border = element_rect(size = 0.25))
 
 p_hymenoptera <- ggplot(data = nd2_Hymenoptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
@@ -811,14 +799,14 @@ p_hymenoptera <- ggplot(data = nd2_Hymenoptera, aes(x = StdTmeanAnomaly, y = Pre
         plot.title = element_text(size = 8, face = 'bold'),
         axis.title = element_text(size = 8),
         axis.text = element_text(size = 7),
-        axis.ticks = element_line(size = 0.25),
+        axis.ticks = element_line(linewidth = 0.25),
         legend.position = "none",
         #legend.position = c(0.2, 0.8),
         #legend.background = element_blank(), 
         #legend.text = element_text(size = 6), 
         #legend.title = element_blank(), 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.25),
+        panel.grid.major = element_line(linewidth = 0.25),
         panel.border = element_rect(size = 0.25))
 
 p_lepidoptera <- ggplot(data = nd2_Lepidoptera, aes(x = StdTmeanAnomaly, y = PredMedian)) + 
@@ -838,10 +826,10 @@ p_lepidoptera <- ggplot(data = nd2_Lepidoptera, aes(x = StdTmeanAnomaly, y = Pre
         plot.title = element_text(size = 8, face = 'bold'),
         axis.title = element_text(size = 8),
         axis.text = element_text(size = 7),
-        axis.ticks = element_line(size = 0.25),
+        axis.ticks = element_line(linewidth = 0.25),
         legend.position = "none", 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(size = 0.25),
+        panel.grid.major = element_line(linewidth = 0.25),
         panel.border = element_rect(size = 0.25)) 
 
 # get the legend
@@ -857,9 +845,6 @@ legend <- get_legend(
 
 # put them all together to save them
 MeanAnomRich <- cowplot::plot_grid(p_coleoptera,p_diptera,p_hemiptera,p_hymenoptera,p_lepidoptera,legend, ncol=3)
-
-# save plot (pdf)
-ggsave(filename = paste0(outdir, "MeanAnomRich_avgtemp.pdf"), plot = MeanAnomRich, width = 200, height = 150, units = "mm", dpi = 300)
 
 # save plot (jpeg)
 ggsave("MeanAnomRich_avgtemp.jpeg", device ="jpeg", path = outdir, width=20, height=15, units="cm", dpi = 350)
