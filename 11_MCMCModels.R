@@ -41,7 +41,7 @@ rich_LUOr <- brm(Species_richness ~ Order * LUI + (1|SS)+(1|SSB)+(1|SSBS),
                cores = 4, iter = 5000, thin = 10)
 
 end <- Sys.time()
-runtime <- end - start # Time difference of  1.059293 hours
+runtime <- end - start # Time difference of 39.72653 mins
 print(runtime)
 
 # take a look
@@ -52,7 +52,7 @@ plot(rich_LUOr)
 pp_check(rich_LUOr)
 # save output
 save(rich_LUOr, file = paste0(outdir, "Richness_LUOrder_bayesmod.Rdata"))
-
+#load(paste0(outdir, "Richness_LUOrder_bayesmod.Rdata")) # rich_LUOr
 
 start <- Sys.time()
 ## abundance
@@ -61,7 +61,7 @@ abun_LUOr <- brm(LogAbund ~ Order * LUI + (1|SS)+(1|SSB),
                family = gaussian(), 
                cores = 4, iter = 5000, thin = 10)
 end <- Sys.time()
-runtime <- end - start # Time difference of  5.2603 mins
+runtime <- end - start # Time difference of  4.762081 mins
 print(runtime)
 
 # take a look
@@ -72,7 +72,7 @@ plot(abun_LUOr)
 pp_check(abun_LUOr)
 # save output
 save(abun_LUOr, file = paste0(outdir, "Abundance_LUOrder_bayesmod.Rdata"))
-
+#load(paste0(outdir, "Abundance_LUOrder_bayesmod.Rdata")) # abun_LUOr
 
 
 
@@ -89,7 +89,7 @@ rich_LUSTAOr <- brm(Species_richness ~ LUI * StdTmeanAnomalyRS * Order + (1|SS)+
                   family = poisson(), 
                   cores = 4, iter = 10000, thin = 10)
 end <- Sys.time()
-runtime <- end - start # Time difference of 1.283019 hours 
+runtime <- end - start # Time difference of 1.384166  hours 
 print(runtime)
 
 # intercept still slightly off ideal ESS
@@ -115,7 +115,7 @@ abun_LUSTAOr <- brm(LogAbund ~ LUI * StdTmeanAnomalyRS * Order + (1|SS)+(1|SSB),
                   family = gaussian(), 
                   cores = 4, iter = 5000, thin = 10)
 end <- Sys.time()
-runtime <- end - start # Time difference of  7.125142 mins
+runtime <- end - start # Time difference of  5.621845 mins
 print(runtime)
 
 # take a look
@@ -160,7 +160,7 @@ tab_model(abun_LUSTAOr, transform = NULL, file = paste0(outdir,"Bayes_abun_LUSTA
 #########  Land use and climate  ###########
 
 # load in the data
-predictsSites <- readRDS(file = paste0(datadir,"PREDICTSSitesClimate_Data.rds"))
+predictsSites <- readRDS(file = paste0(datadir2,"PREDICTSSitesClimate_Data.rds"))
 
 
 #### loop through and run a model for each order ####
@@ -173,10 +173,10 @@ for(order in orders){
   print(order)
   
   # subset the data to just those sites for the order of interest
-  order_data <- predictsSites[predictsSites$Order == order, ]
+  order_data <- droplevels(predictsSites[predictsSites$Order == order, ])
   
   # remove any rows with NAs in 
-  abun_data <- order_data[!is.na(order_data$LogAbund), ]
+  abun_data <- droplevels(order_data[!is.na(order_data$LogAbund), ])
   
   print("abundance")
   
@@ -196,7 +196,7 @@ for(order in orders){
   print("richness")
 
   order_mod_sr <- brm(Species_richness ~ LUI * StdTmeanAnomalyRS + (1|SS)+(1|SSB)+(1|SSBS), 
-                      data = pred_data, 
+                      data = order_data, 
                       family = poisson("log"), 
                       cores = 4)
   
@@ -206,4 +206,4 @@ for(order in orders){
   
 }
 
-
+# a lot of warnings for the single order models. 
