@@ -22,7 +22,7 @@ if(!dir.exists(plotDir)) dir.create(plotDir)
 if(!dir.exists(tabDir)) dir.create(tabDir)
 
 # load libraries
-packages <- c("StatisticalModels", "ggplot2", "cowplot", "sjPlot")
+packages <- c("StatisticalModels", "ggplot2", "cowplot", "sjPlot", "gt", "dplyr")
 suppressWarnings(suppressMessages(lapply(packages, require, character.only = TRUE)))
 
 # source in additional functions
@@ -179,6 +179,39 @@ R2GLMER(MeanAnomalyModelRich2$model) # check the R2 values
 # 
 # $marginal
 # [1] 0.01066316
+
+
+# species richness and abundance together
+AIC_table <- data.frame("Response" = c(rep("Species richness", 2),
+                                             rep("Abundance", 2)),
+                              "Model" = c("Species richness ~ LUI * STA  + (1|SS) + (1|SSB) + (1|SSBS)",
+                                          "Species richness ~ Order * LUI * STA + (1|SS) + (1|SSB) + (1|SSBS)",
+                                          "Abundance ~ LUI * STA  + (1|SS) + (1|SSB)",
+                                          "Abundance ~ Order * LUI * STA  + (1|SS) + (1|SSB)"),
+                              "AIC" = c(AIC(MeanAnomalyModelRich2$model), AIC(MeanAnomalyModelRich$model), AIC(MeanAnomalyModelAbund2$model), AIC(MeanAnomalyModelAbund$model)),
+                              "Conditional_Rsquared" = c(R2GLMER(MeanAnomalyModelRich2$model)[[1]], R2GLMER(MeanAnomalyModelRich$model)[[1]], R2GLMER(MeanAnomalyModelAbund2$model)[[1]], R2GLMER(MeanAnomalyModelAbund$model)[[1]]),
+                              "Marginal_Rsquared" = c(R2GLMER(MeanAnomalyModelRich2$model)[[2]], R2GLMER(MeanAnomalyModelRich$model)[[2]], R2GLMER(MeanAnomalyModelAbund2$model)[[2]], R2GLMER(MeanAnomalyModelAbund$model)[[2]])) %>%
+  group_by(Response) %>%                              
+  mutate(deltaAIC = cumsum(c(0, diff(AIC)))) %>%
+  ungroup() %>%
+  dplyr::select(Model, AIC, deltaAIC, Conditional_Rsquared, Marginal_Rsquared) %>%
+  gt(rowname_col = "Model") %>%
+  tab_row_group(
+    label = "Species Richness",
+    rows = starts_with("Species richness")
+  ) %>%
+  tab_row_group(
+    label = "Abundance",
+    rows = starts_with("Abundance")
+  )%>% 
+  cols_align(
+    align = "center",
+    columns = c(Model, AIC, deltaAIC)
+  )%>%
+  tab_stubhead(label = "Models")
+
+# save it
+gtsave(AIC_table, "TableSX_RSquaredAIC.png", path = outDir)
 
 
 ##%######################################################%##
