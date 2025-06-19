@@ -348,7 +348,7 @@ all_res <- rbind(result.ab, result.sr)
 
 
 # match up noOrder results for combining
-noOrder_res$Order <- "All insects"
+noOrder_res$Order <- "All Orders"
 noOrder_res <- noOrder_res[, c(1:3, 5, 6, 4)]
 names(noOrder_res) <- c("grp.median",  "grp.upper", "grp.lower", "LUI", "Order", "metric") 
 
@@ -383,19 +383,19 @@ write.csv(all_res, file = paste0(outDir, "/TABLE_percentage_change_LU_Order.csv"
 ##%######################################################%##
 
 all_res$LUI <- factor(all_res$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Low-intensity agriculture", "High-intensity agriculture"))
-all_res$Order <- factor(all_res$Order, levels = c("All insects", "Coleoptera", "Diptera", "Hemiptera", "Hymenoptera", "Lepidoptera"))
+all_res$Order <- factor(all_res$Order, levels = c("All Orders", "Coleoptera", "Diptera", "Hemiptera", "Hymenoptera", "Lepidoptera"))
 
 all_res$Metric <- sub("species richness", "Species richness", all_res$Metric)
 all_res$Metric <- sub("total abundance", "Total abundance", all_res$Metric)
 
 # create point and error bar plot
 ggplot(data = all_res, aes(col = LUI, group = LUI)) +
-  geom_hline(yintercept = 0, linetype = "dashed", size = 0.2) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.2) +
   geom_point(aes(x = Order, y = Median, col = LUI), size = 2, position= position_dodge(width = 1)) + 
   geom_errorbar(aes(x = Order, ymin = Lower_CI, ymax = Upper_CI), position= position_dodge(width = 1), size = 0.5, width = 0.2)+
   facet_wrap(~ Metric) +
   xlab("") +
-  scale_y_continuous(limits = c(-80, 80), breaks = scales::pretty_breaks(n = 10)) +
+  scale_y_continuous(limits = c(-80, 30), breaks = scales::pretty_breaks(n = 10)) +
   ylab("Percentage change (%)") +
   scale_color_manual(values = c("#009E73","#0072B2","#E69F00","#D55E00")) +
   theme(legend.position = "bottom", 
@@ -761,7 +761,7 @@ rich_res$STA <- nd$StdTmeanAnomaly
 res <- rbind(abun_res, rich_res)
 
 res$Study <- "This study"
-res$Order <- "All insects"
+res$Order <- "All Orders"
 res$Fixed_effs <- "Land use and climate"
 res$Realm <- "Global"
 
@@ -782,7 +782,7 @@ write.csv(all_res, file = paste0(outDir, "/TABLE_percentage_change_LU_CC_incNoOr
 
 final_res <- all_res
 
-final_res$Order <- factor(final_res$Order, levels = c("All insects", "Coleoptera", "Diptera", "Hemiptera", "Hymenoptera", "Lepidoptera"))
+final_res$Order <- factor(final_res$Order, levels = c("All Orders", "Coleoptera", "Diptera", "Hemiptera", "Hymenoptera", "Lepidoptera"))
 
 final_res$STA <- factor(final_res$STA, levels = c("0", "1"))
 
@@ -793,12 +793,12 @@ plot_data <- final_res[final_res$Metric == "Total abundance", ]
 
 # create point and error bar plot
 ggplot(data = plot_data, aes(col = LUI, group = STA)) + 
-  geom_hline(yintercept = 0, linetype = "dashed", size = 0.2) +
+  geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.2) +
   geom_point(aes(x = LUI, y = Median, shape = STA), size = 1.5, position= position_dodge(width = 1)) + 
   geom_errorbar(aes(x = LUI, ymin = Lower_CI, ymax = Upper_CI), position= position_dodge(width = 1), size = 0.5, width = 0.2)+
   facet_wrap(~ Order) +
   xlab("") +
-  scale_y_continuous(limits = c(-100, 160), breaks = scales::pretty_breaks(n = 6)) +
+  scale_y_continuous(limits = c(-100, 170), breaks = scales::pretty_breaks(n = 6)) +
   ylab("Percentage change in total abundance (%)") +
   scale_color_manual(values = c("#009E73","#0072B2","#E69F00","#D55E00"), guide = "none") +
   scale_shape_manual(values=c(16, 17, 18, 15, 0, 1), name = "STA")+
@@ -834,7 +834,7 @@ ggplot(data = plot_data, aes(col = LUI, group = STA)) +
   geom_errorbar(aes(x = LUI, ymin = Lower_CI, ymax = Upper_CI), position= position_dodge(width = 1), size = 0.5, width = 0.2)+
   facet_wrap(~ Order) +
   xlab("") +
-  scale_y_continuous(limits = c(-100, 165), breaks = scales::pretty_breaks(n = 6)) +
+  scale_y_continuous(limits = c(-100, 170), breaks = scales::pretty_breaks(n = 6)) +
   ylab("Percentage change in species richness (%)") +
   scale_color_manual(values = c("#009E73","#0072B2","#E69F00","#D55E00"), guide = "none") +
   scale_shape_manual(values=c(16, 17, 18, 15, 0, 1), name = "STA")+
