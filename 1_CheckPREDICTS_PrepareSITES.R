@@ -39,16 +39,31 @@ predicts <- ReadPREDICTS(predicts.path)
 predicts <- predicts[(predicts$Class=="Insecta"),]
 # 935078 obs. of 67 variables
 
-# remove the 5 studies identified as influential outliers
-outliers <- c("SC1_2005__Richardson 1", "AR1_2008__Basset 1", "HW1_2011__Summerville 1", "SC1_2011__Meijer 1", "DI1_2013__Rousseau 2")
-predicts <- predicts[!predicts$SS %in% outliers, ] # 793986 obs
+# what % of records are from the 5 main orders
+table(droplevels(predicts$Order))
+# 457507 + 31711 + 52187 + 206165 + 168650   = 916220                                    
+# 916220/nrow(predicts)*100 = 97.98327 %
+
+# how many records are at the genus, species or infraspecies level?
+nrow(predicts[predicts$Rank %in% c("Infraspecies", "Species", "Genus"), ]) # 592161
+# 592161/nrow(predicts)*100 = 63.32744 %
+
+# remove the 4 studies identified as influential outliers
+outliers <- c("SC1_2005__Richardson 1", "HW1_2011__Summerville 1", "SC1_2011__Meijer 1", "AD1_2008__Billeter 6")
+# take a look at the outliers
+outdata <- predicts[predicts$SS %in% outliers, ] # 118584 obs
+length(unique(outdata$SS)) # 4
+length(unique(outdata$SSBS)) # 368
+
+# remove outliers
+predicts <- predicts[!predicts$SS %in% outliers, ] # 816494 obs
 
 # Correct effort-sensitive abundance measures (assumes linear relationship between 
 # effort and recorded abundance)
 predicts <- CorrectSamplingEffort(diversity = predicts)
 # Correcting 0 missing sampling effort values
 # Rescaling sampling effort
-# Correcting 734398 values for sensitivity to sampling effort
+# Correcting 751794 values for sensitivity to sampling effort
 
 # check diversity metrics
 table(predicts$Diversity_metric)
@@ -56,26 +71,28 @@ table(predicts$Diversity_metric)
 # insects should not have diversity metric "percent cover", this is a mistake in the database
 # remove those entries that are the problem
 predicts <- predicts[!predicts$Diversity_metric == "percent cover", ]
-# 793753 obs. of 67 variables
+# 816261 obs. of 67 variables
 
 # Merge sites that have the same coordinates, from the same study and same taxonomic 
 # family (e.g. multiple traps on a single transect)
 predicts <- predictsFunctions::MergeSites(diversity = predicts)
-# 690699 obs. of 67 variables
+# 713207 obs. of 67 variables
 
 # remove entries without Order
 predicts <- droplevels(predicts[(predicts$Order!=""),])
-# 690423 obs. of 67 variables
+# 712931 obs. of 67 variables
 
 # check
 table(predicts$Order) 
 
 # keep top five orders 
 predicts <- predicts %>% filter(Order %in% c("Hymenoptera", "Coleoptera", "Lepidoptera", "Diptera", "Hemiptera")) %>% droplevels()
-# 683640 obs. of 67  variables
+# 703796 obs. of 67  variables
 
 # convert Order to a "factor"
 predicts$Order <- as.factor(predicts$Order)
+
+
 
 #### 2. Calculate site metrics and prepare dataset ####
 
@@ -117,7 +134,7 @@ Lepidoptera <- SiteMetrics(diversity = Lepidoptera,
 
 # merge all sites_Order data frames into one called "sites"
 sites <- rbind(Coleoptera, Diptera, Hemiptera, Hymenoptera, Lepidoptera)
-# 9415 rows
+# 9707 rows
 
 # First, we will rearrange the land-use classification 
 # rename "Predominant_land_use" to "LandUse"
@@ -167,12 +184,12 @@ sites$LUI <- dplyr::recode(sites$LUI,
                            'Intermediate secondary vegetation_Intense use' = 'Secondary vegetation',
                            'Intermediate secondary vegetation_Light use' = 'Secondary vegetation')
 
-# 9415 obs. of 28 variables
+# 9707 obs. of 28 variables
 
 # remove the urban sites and sites that are NA in LUI
 sites <- sites[!sites$LUI == "Urban", ]
 sites <- sites[!is.na(sites$LUI), ]
-# 7574 obs. of 28 variables
+# 7851 obs. of 28 variables
 
 sites <- droplevels(sites)
 
@@ -185,14 +202,7 @@ sites$LogAbund_noRS <- log(sites$Total_abundance+0.01)
 
 # Remove sites without coordinates
 sites <- sites[!is.na(sites$Latitude), ]
-# 7568 obs. of 30 variables
-
-# create a new variable designating sites as Tropical or Non-tropical
-# assign new variable for tropical/temperate, convert to factor, and filter out NA
-# sites$Realm <- ifelse(sites$Latitude >= -23.5 & sites$Latitude <= 23.5, "Tropical", "NonTropical")
-# sites$Realm <- factor(sites$Realm, levels = c("NonTropical", "Tropical"))
-# sites <- sites %>%
-#   filter(!is.na(Realm))
+# 7845 obs. of 30 variables
 
 # save the prepared dataset
 saveRDS(object = sites,file = paste0(outDir,"PREDICTSSiteData.rds")) 
@@ -205,9 +215,9 @@ saveRDS(object = sites,file = paste0(outDir,"PREDICTSSiteData.rds"))
 
 
 # n unique sites across the dataset
-length(unique(sites$SSBS)) # 6014, 5612 after outliers removed
+length(unique(sites$SSBS)) # 5659
 # n unique studies across the dataset
-length(unique(sites$SS)) # 254, 249 after outliers removed
+length(unique(sites$SS)) # 250
 
 
 # This creates a summary table splitting by Order and land use to show n studies and n sites
@@ -277,7 +287,7 @@ sites_summary <- sites %>%
   )
 
 # save table
-gtsave(sites_summary,"sites_summary_SuppTab1_outrm.png",path = outDir)
+gtsave(sites_summary,"sites_summary_SuppTab1_outrm.png", path = outDir)
 
 # save as csv
 write.csv(sites_summary,file = paste0(outDir, "sites_summary_SuppTab1_outrm.csv"))
@@ -286,15 +296,20 @@ write.csv(sites_summary,file = paste0(outDir, "sites_summary_SuppTab1_outrm.csv"
 # subset to those sites and orders selected
 pred_sub <- predicts[predicts$SSBS %in% sites$SSBS & predicts$Order %in% sites$Order, ]
 pred_sub <- droplevels(pred_sub)
-nrow(pred_sub) # 620319 records
+nrow(pred_sub) # 635330 records
 table(pred_sub$Order)
 # Coleoptera     Diptera   Hemiptera Hymenoptera Lepidoptera 
-#     332054       16012       27252      134241      110760 
+# 337823       18062       30690      137806      110949 
 
 table(pred_sub$Predominant_land_use)
-length(unique(pred_sub$SS)) # 249
-length(unique(pred_sub$SSBS)) # 5642
-length(unique(pred_sub$Taxon_name_entered)) # 14637 "species"
+length(unique(pred_sub$SS)) # 250
+length(unique(pred_sub$SSBS)) # 5659
+length(unique(pred_sub$Taxon_name_entered)) # 16357 "species"
+
+abun <- sites[!is.na(sites$LogAbund), ]
+nrow(abun) # 7453
+length(unique(abun$SS)) # 232
+length(unique(abun$SSBS)) # 5351
 
 # determine unique taxa counts
 species <- unique(pred_sub[,c('Order',"Family", 'Taxon_name_entered')])
@@ -305,7 +320,7 @@ order.counts <- tapply(X = species$Taxon_name_entered,
                        FUN = function(sp) length(unique(sp)))
 
 # Coleoptera     Diptera   Hemiptera Hymenoptera Lepidoptera 
-#       5198        1166         902        3787        3584 
+#       5717        1384        1197        4470        3589  
 
 
 # Order level counts of n families
@@ -313,8 +328,8 @@ family.counts <- tapply(X = species$Family,
                        INDEX = species$Order,
                        FUN = function(sp) length(unique(sp)))
 
-# Coleoptera     Diptera   Hemiptera Hymenoptera Lepidoptera
-#        100          72          62          47          59
+# Coleoptera     Diptera   Hemiptera Hymenoptera Lepidoptera 
+#        101          75          64          54          59
 
 
 ############################################################
@@ -324,7 +339,7 @@ family.counts <- tapply(X = species$Family,
 ############################################################
 
 # load the prepared dataset if not already loaded
-sites <- readRDS(file = paste0(outDir,"PREDICTSSiteData.rds")) # 7568 rows
+sites <- readRDS(file = paste0(outDir,"PREDICTSSiteData.rds")) # 7848 rows
 
 # plot the raster in ggplot
 map.world <- map_data('world')
@@ -397,7 +412,6 @@ scatter_bar_mercator <- cowplot::plot_grid(p_map1.1,p_bar, ncol = 1, labels = c(
 
 # save plot (jpeg)
 ggsave("FIGURE_1_scatter_bar_mercator_UN.jpeg", device ="jpeg", path = plotDir, width=175, height=225, units="mm", dpi = 350)
-
 
 
 
