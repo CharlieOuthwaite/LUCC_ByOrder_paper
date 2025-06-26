@@ -36,7 +36,7 @@ source("0_Functions.R")
 
 
 # read in the Site data
-sites <- readRDS(file = paste0(inDir,"PREDICTSSiteData.rds")) # 7568 rows
+sites <- readRDS(file = paste0(inDir,"PREDICTSSiteData.rds")) # 7845 rows
 
 ## Species Richness Model ##
 
@@ -51,25 +51,25 @@ model_data_sr$Order <- factor(model_data_sr$Order, levels = c("Coleoptera","Dipt
 saveRDS(object = model_data_sr, file = paste0(outDir,"model_data_sr.rds"))
 
 # summaries
-length(unique(model_data_sr$SS)) # 249
-length(unique(model_data_sr$SSBS)) # 5642
+length(unique(model_data_sr$SS)) # 250
+length(unique(model_data_sr$SSBS)) # 5659
 
 table(model_data_sr$Order)
 # Coleoptera     Diptera   Hemiptera Hymenoptera Lepidoptera 
-#       1943         581         579        3188        1277 
+#       2024         598         660        3205        1358 
 
 # look at the spread of land use/use intensity categories
 table(model_data_sr$LUI)
 # Primary vegetation Secondary vegetation      Agriculture_Low     Agriculture_High 
-#               1895                 1721                 1529                 2423 
+#               1895                 1856                 1645                 2449 
 
 table(model_data_sr$Order, model_data_sr$LUI)
 #             Primary vegetation Secondary vegetation Agriculture_Low Agriculture_High
-# Coleoptera                 832                  311             371              429
-# Diptera                     95                  164             107              215
-# Hemiptera                   94                   98             216              171
-# Hymenoptera                564                  656             559             1409
-# Lepidoptera                310                  492             276              199
+# Coleoptera                 832                  338             407              447
+# Diptera                     95                  191             111              201
+# Hemiptera                   94                  125             252              189
+# Hymenoptera                564                  683             563             1395
+# Lepidoptera                310                  519             312              217
 
 
 ##%######################################################%##
@@ -96,10 +96,10 @@ save(sm3, file = paste0(outDir, "Richness_landuse_model_noOrder.rdata"))
 # check the R2 values
 R2GLMER(sm3$model)
 # $conditional
-# [1] 0.6697481
+# [1] 0.6714473
 # 
 # $marginal
-# [1] 0.01046651
+# [1] 0.01034962
 
 # interaction order and LUI
 sm3.3 <- GLMER(modelData = model_data_sr,
@@ -116,16 +116,16 @@ save(sm3.3, file = paste0(outDir, "Richness_landuse_model.rdata"))
 # check the R2 values
 R2GLMER(sm3.3$model) # with order level interaction
 # $conditional
-# [1] 0.7005782
+# [1] 0.7223403
 # 
 # $marginal
-# [1] 0.05033525
+# [1] 0.06615709
 
 # # take a look at the AICs
 AIC_sr <- AIC(sm3$model, sm3.3$model)
 #             df      AIC
-# sm3$model    7 46057.05
-# sm3.3$model 23 43021.08
+# sm3$model    7 48611.38
+# sm3.3$model 23 44529.71
 
 write.csv(AIC_sr, file = paste0(outDir,"AIC_sr.csv"))
 
@@ -141,7 +141,7 @@ write.csv(AIC_sr, file = paste0(outDir,"AIC_sr.csv"))
 
 # remove NAs in the specified columns
 model_data_ab <- na.omit(sites[,c('LogAbund','LandUse','Use_intensity','LUI','SS','SSB','SSBS','Order', 'Latitude', 'Longitude')])
-# 7176 rows
+# 7453 rows
 
 # order data
 model_data_ab$LUI <- factor(model_data_ab$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
@@ -151,25 +151,25 @@ model_data_ab$Order <- factor(model_data_ab$Order, levels = c("Coleoptera","Dipt
 saveRDS(object = model_data_ab ,file = paste0(outDir,"model_data_ab.rds"))
 
 # summaries
-length(unique(model_data_ab$SS)) # 231 Studies
-length(unique(model_data_ab$SSBS))# 5334
+length(unique(model_data_ab$SS)) # 232 Studies
+length(unique(model_data_ab$SSBS))# 5351
 
 table(model_data_ab$Order)
 # Coleoptera     Diptera   Hemiptera Hymenoptera Lepidoptera 
-#       1923         561         559        3006        1127 
+#       2004         578         640        3023        1208
 
 # look at the spread of land use/use intensity categories
 table(model_data_ab$LUI)
 # Primary vegetation Secondary vegetation      Agriculture_Low     Agriculture_High 
-#               1803                 1583                 1510                 2280 
+#               1803                 1718                 1626                 2306 
 
 table(model_data_ab$Order, model_data_ab$LUI)
 #             Primary vegetation Secondary vegetation Agriculture_Low Agriculture_High
-# Coleoptera                 832                  311             371              409
-# Diptera                     95                  164             107              195
-# Hemiptera                   94                   98             216              151
-# Hymenoptera                506                  594             543             1363
-# Lepidoptera                276                  416             273              162
+# Coleoptera                 832                  338             407              427
+# Diptera                     95                  191             111              181
+# Hemiptera                   94                  125             252              169
+# Hymenoptera                506                  621             547             1349
+# Lepidoptera                276                  443             309              180
 
 
 
@@ -191,10 +191,10 @@ save(am3, file = paste0(outDir, "Abundance_landuse_model_noOrder.rdata"))
 # check the R2 values
 R2GLMER(am3$model)
 # $conditional
-# [1] 0.3501162
+# [1] 0.3449871
 # 
 # $marginal
-# [1] 0.03449465
+# [1] 0.0324813
 
 # run the model with the interaction with Order
 am3.3 <- GLMER(modelData = model_data_ab,
@@ -214,16 +214,16 @@ save(am3.3, file = paste0(outDir, "Abundance_landuse_model.rdata"))
 # check the R2 values
 R2GLMER(am3.3$model)
 # $conditional
-# [1] 0.3796676
+# [1] 0.377826
 # 
 # $marginal
-# [1] 0.05109883
+# [1] 0.05202652
 
 # # take a look at the AICs
 AIC_ab <- AIC(am3$model, am3.3$model)
 #             df      AIC
-# am3$model    7 22309.66
-# am3.3$model 23 22195.28
+# am3$model    7 23268.84
+# am3.3$model 23 23127.95
 
 write.csv(AIC_ab, file = paste0(outDir,"AIC_ab.csv"))
 
@@ -267,43 +267,47 @@ gtsave(selection_table, "TableSX_RSquaredAIC.png", path = outDir)
 # save model output tables for use in supplementary information 
 # use function from sjPlot library to save neat versions of model output table
 tab_model(am3.3$model, transform = NULL, file = paste0(outDir,"SupptabX_Output_table_abund.html"))
+tab_model(am3.3$model, transform = NULL)
 summary(am3.3$model) # check the table against the outputs
 R2GLMER(am3.3$model) # check the R2 values 
 # $conditional
-# [1] 0.3796676
+# [1] 0.377826
 # 
 # $marginal
-# [1] 0.05109883
+# [1] 0.05202652
 
 tab_model(sm3.3$model, transform = NULL, file = paste0(outDir,"SupptabX_Output_table_rich.html"))
+tab_model(sm3.3$model, transform = NULL)
 summary(sm3.3$model) # check the table against the outputs
 R2GLMER(sm3.3$model) # check the R2 values 
-$conditional
-# [1] 0.7005782
+# $conditional
+# [1] 0.7223403
 # 
 # $marginal
-# [1] 0.05033525
+# [1] 0.06615709
 
 
 # save model output tables for use in supplementary information 
 # use function from sjPlot library to save neat versions of model output table
 tab_model(am3$model, transform = NULL, file = paste0(outDir,"Output_table_abund_noOrder.html"))
+tab_model(am3$model, transform = NULL)
 summary(am3$model) # check the table against the outputs
 R2GLMER(am3$model) # check the R2 values 
 # $conditional
-# [1] 0.3501162
+# [1] 0.3449871
 # 
 # $marginal
-# [1] 0.03449465
+# [1] 0.0324813
 
 tab_model(sm3$model, transform = NULL, file = paste0(outDir,"Output_table_rich_noOrder.html"))
+tab_model(sm3$model, transform = NULL)
 summary(sm3$model) # check the table against the outputs
 R2GLMER(sm3$model) # check the R2 values 
 # $conditional
-# [1] 0.6697481
+# [1] 0.6714473
 # 
 # $marginal
-# [1] 0.01046651
+# [1] 0.01034962
 
 
 # ##%######################################################%##
