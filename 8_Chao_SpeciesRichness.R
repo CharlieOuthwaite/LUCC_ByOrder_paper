@@ -33,20 +33,20 @@ sites$ChaoR <- round(sites$ChaoR,0)
 
 # remove sites that do not have an estimate of ChaoR
 sites <- sites[!is.na(sites$ChaoR), ]
-# 5235 rows
+# 5152 rows
 
 # assess coverage of the data
 table(sites$Order, sites$LUI) 
 
 #             Primary vegetation Secondary vegetation Agriculture_Low Agriculture_High
-# Coleoptera                 446                  223             169              282
-# Diptera                     76                   86              86              143
-# Hemiptera                   77                   74             196               99
-# Hymenoptera                367                  401             473             1157
-# Lepidoptera                217                  375             207               81
+# Coleoptera                 446                  232             169              282
+# Diptera                     76                   95              54              111
+# Hemiptera                   77                   83             196               99
+# Hymenoptera                367                  410             441             1125
+# Lepidoptera                217                  384             207               81
 
 
-length(unique(sites$SSBS)) # 4113 sites
+length(unique(sites$SSBS)) # 4058 sites
 length(unique(sites$SS)) # 154 studies
 
 ############################################################
