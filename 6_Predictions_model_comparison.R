@@ -26,7 +26,7 @@ library(ggplot2)
 source('0_Functions.R')
 
 # read in the predicts data
-predictsSites <- readRDS(paste0(predictsDataDir, "PREDICTSSitesClimate_Data.rds")) # 7542 rows
+predictsSites <- readRDS(paste0(predictsDataDir, "PREDICTSSitesClimate_Data.rds")) # 7819 rows
 
 
 ##%######################################################%##
@@ -149,7 +149,7 @@ p2 <- ggplot(data = rich_res) +
 
 p3 <- cowplot::plot_grid(p1, p2)
 
-ggsave(, filename = paste0(outDir, "FIGURE_landuse_noOrder.pdf"), plot = p3, width = 200, height = 100, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "FIGURE_landuse_noOrder.pdf"), plot = p3, width = 200, height = 100, units = "mm", dpi = 300)
 
 
 ##### Models from this study including interaction with order ####
@@ -395,7 +395,7 @@ ggplot(data = all_res, aes(col = LUI, group = LUI)) +
   geom_errorbar(aes(x = Order, ymin = Lower_CI, ymax = Upper_CI), position= position_dodge(width = 1), size = 0.5, width = 0.2)+
   facet_wrap(~ Metric) +
   xlab("") +
-  scale_y_continuous(limits = c(-80, 30), breaks = scales::pretty_breaks(n = 10)) +
+  scale_y_continuous(limits = c(-80, 35), breaks = scales::pretty_breaks(n = 10)) +
   ylab("Percentage change (%)") +
   scale_color_manual(values = c("#009E73","#0072B2","#E69F00","#D55E00")) +
   theme(legend.position = "bottom", 
@@ -798,7 +798,7 @@ ggplot(data = plot_data, aes(col = LUI, group = STA)) +
   geom_errorbar(aes(x = LUI, ymin = Lower_CI, ymax = Upper_CI), position= position_dodge(width = 1), size = 0.5, width = 0.2)+
   facet_wrap(~ Order) +
   xlab("") +
-  scale_y_continuous(limits = c(-100, 170), breaks = scales::pretty_breaks(n = 6)) +
+  scale_y_continuous(limits = c(-100, 220), breaks = scales::pretty_breaks(n = 6)) +
   ylab("Percentage change in total abundance (%)") +
   scale_color_manual(values = c("#009E73","#0072B2","#E69F00","#D55E00"), guide = "none") +
   scale_shape_manual(values=c(16, 17, 18, 15, 0, 1), name = "STA")+
@@ -834,7 +834,7 @@ ggplot(data = plot_data, aes(col = LUI, group = STA)) +
   geom_errorbar(aes(x = LUI, ymin = Lower_CI, ymax = Upper_CI), position= position_dodge(width = 1), size = 0.5, width = 0.2)+
   facet_wrap(~ Order) +
   xlab("") +
-  scale_y_continuous(limits = c(-100, 170), breaks = scales::pretty_breaks(n = 6)) +
+  scale_y_continuous(limits = c(-100, 220), breaks = scales::pretty_breaks(n = 6)) +
   ylab("Percentage change in species richness (%)") +
   scale_color_manual(values = c("#009E73","#0072B2","#E69F00","#D55E00"), guide = "none") +
   scale_shape_manual(values=c(16, 17, 18, 15, 0, 1), name = "STA")+
