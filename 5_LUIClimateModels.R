@@ -33,7 +33,7 @@ source("0_Functions.R")
 # read in the predicts data
 predictsSites <- readRDS(paste0(inDir,"PREDICTSSites_Climate.rds"))
 predictsSites <- predictsSites@data 
-# 7568 obs. of 35 variables
+# 7845 obs. of 35 variables
 
 # set LUI as factor and set reference level
 predictsSites$LUI <- factor(predictsSites$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
@@ -42,17 +42,17 @@ predictsSites$LUI <- factor(predictsSites$LUI, levels = c("Primary vegetation", 
 predictsSites$StdTmeanAnomalyRS <- StdCenterPredictor(predictsSites$StdTmeanAnomaly)
 
 # some of the climate values are NA since they do not meet the thresholds
-predictsSites <- predictsSites[!is.na(predictsSites$avg_temp), ] # 7542 rows
+predictsSites <- predictsSites[!is.na(predictsSites$avg_temp), ] # 7819 rows
 
 # take a look at possible correlations between variables
 cor(predictsSites$avg_temp, predictsSites$TmeanAnomaly)
-# -0.3917054
+# -0.4142448
 
 cor(predictsSites$avg_temp, predictsSites$StdTmeanAnomaly)
-# 0.1110303
+# 0.1215445
 
 cor(predictsSites$TmeanAnomaly, predictsSites$StdTmeanAnomaly)
-# 0.1348597
+# 0.124835
 
 predictsSites <- droplevels(predictsSites)
 
@@ -66,9 +66,9 @@ saveRDS(object = predictsSites, file = paste0(outDir, "PREDICTSSitesClimate_Data
 # i. Abundance, mean anomaly including interaction
 
 model_data <- droplevels(predictsSites[!is.na(predictsSites$LogAbund), ])
-# 7152 obs. of 36 variables
-length(unique(model_data$SS)) # 230
-length(unique(model_data$SSBS)) # 5310
+# 7429 obs. of 36 variables
+length(unique(model_data$SS)) # 231
+length(unique(model_data$SSBS)) # 5327
 
 # run model# run mSSodel
 MeanAnomalyModelAbund <- GLMER(modelData = model_data, 
@@ -104,9 +104,9 @@ save(MeanAnomalyModelAbund2, file = paste0(outDir, "MeanAnomalyModelAbund_noOrde
 
 # ii. Richness, mean anomaly
 
-model_data <- droplevels(predictsSites[!is.na(predictsSites$StdTmeanAnomalyRS), ]) # 7542 rows
-length(unique(model_data$SS)) # 248
-length(unique(model_data$SSBS)) # 5616
+model_data <- droplevels(predictsSites[!is.na(predictsSites$StdTmeanAnomalyRS), ]) # 7819 rows
+length(unique(model_data$SS)) # 249
+length(unique(model_data$SSBS)) # 5633
 
 MeanAnomalyModelRich <- GLMER(modelData = model_data,
                               responseVar = "Species_richness",
@@ -144,41 +144,41 @@ save(MeanAnomalyModelRich2, file = paste0(outDir, "MeanAnomalyModelRich_noOrder_
   # conditional: the conditional R2 value, i.e. the variance explained by fixed and random effects 
   # marginal: the marginal R2 value, i.e. the variance explained by the fixed effects
 
-tab_model(MeanAnomalyModelAbund$model, transform = NULL, file = paste0(tabDir,"AbunMeanAnom_output_table.html"))
+tab_model(MeanAnomalyModelAbund$model, transform = NULL, file = paste0(outDir,"AbunMeanAnom_output_table.html"))
 summary(MeanAnomalyModelAbund$model) # check the table against the outputs
 R2GLMER(MeanAnomalyModelAbund$model) # check the R2 values 
 # $conditional
-# [1] 0.4183544
+# [1] 0.4411624
 # 
 # $marginal
-# [1] 0.08408478
+# [1] 0.1062173
 
-tab_model(MeanAnomalyModelRich$model, transform = NULL, file = paste0(tabDir,"RichMeanAnom_output_table.html"))
+tab_model(MeanAnomalyModelRich$model, transform = NULL, file = paste0(outDir,"RichMeanAnom_output_table.html"))
 summary(MeanAnomalyModelRich$model) # check the table against the outputs
 R2GLMER(MeanAnomalyModelRich$model) # check the R2 values
 # $conditional
-# [1] 0.7107193
+# [1] 0.7371528
 # 
 # $marginal
-# [1] 0.06022908
+# [1] 0.08202972
 
-tab_model(MeanAnomalyModelAbund2$model, transform = NULL, file = paste0(tabDir,"AbunMeanAnom_output_table_noOrder.html"))
+tab_model(MeanAnomalyModelAbund2$model, transform = NULL, file = paste0(outDir,"AbunMeanAnom_output_table_noOrder.html"))
 summary(MeanAnomalyModelAbund2$model) # check the table against the outputs
 R2GLMER(MeanAnomalyModelAbund2$model) # check the R2 values 
 # $conditional
-# [1] 0.3532105
+# [1] 0.3480545
 # 
 # $marginal
-# [1] 0.03849201
+# [1] 0.03751445
 
-tab_model(MeanAnomalyModelRich2$model, transform = NULL, file = paste0(tabDir,"RichMeanAnom_output_table_noOrder.html"))
+tab_model(MeanAnomalyModelRich2$model, transform = NULL, file = paste0(outDir,"RichMeanAnom_output_table_noOrder.html"))
 summary(MeanAnomalyModelRich2$model) # check the table against the outputs
 R2GLMER(MeanAnomalyModelRich2$model) # check the R2 values
 # $conditional
-# [1] 0.6705646
+# [1] 0.6722537
 # 
 # $marginal
-# [1] 0.01066316
+# [1] 0.01058182
 
 
 # species richness and abundance together
@@ -582,10 +582,10 @@ legend <- get_legend(
 MeanAnomAbund <- cowplot::plot_grid(p_coleoptera, p_diptera, p_hemiptera, p_hymenoptera, p_lepidoptera, legend, ncol=3)
 
 # save plot (pdf)
-ggsave(filename = paste0(plotDir, "MeanAnomAbund.pdf"), plot = MeanAnomAbund, width = 200, height = 150, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "SuppFig_MeanAnomAbund_STA.pdf"), plot = MeanAnomAbund, width = 200, height = 150, units = "mm", dpi = 300)
 
 # save plot (jpeg)
-ggsave("MeanAnomAbund.jpeg", device ="jpeg", path = plotDir, width=20, height=15, units="cm", dpi = 350)
+ggsave("SuppFig_MeanAnomAbund_STA.jpeg", device ="jpeg", path = outDir, width=20, height=15, units="cm", dpi = 350)
 
 
 #### 4. Richness, Mean Anomaly ####
@@ -935,10 +935,10 @@ legend <- get_legend(
 MeanAnomRich <- cowplot::plot_grid(p_coleoptera,p_diptera,p_hemiptera,p_hymenoptera,p_lepidoptera,legend, ncol=3)
 
 # save plot (pdf)
-ggsave(filename = paste0(plotDir, "MeanAnomRich.pdf"), plot = MeanAnomRich, width = 200, height = 150, units = "mm", dpi = 300)
+ggsave(filename = paste0(outDir, "SuppFig_MeanAnomRich_STA.pdf"), plot = MeanAnomRich, width = 200, height = 150, units = "mm", dpi = 300)
 
 # save plot (jpeg)
-ggsave("MeanAnomRich.jpeg", device ="jpeg", path = plotDir, width=20, height=15, units="cm", dpi = 350)
+ggsave("SuppFig_MeanAnomRich_STA.jpeg", device ="jpeg", path = outDir, width=20, height=15, units="cm", dpi = 350)
 
 
 
