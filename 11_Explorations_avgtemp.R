@@ -25,15 +25,15 @@ library(ggplot2)
 
 
 # load in the data
-predictsSites <- readRDS(file = paste0(datadir,"PREDICTSSitesClimate_Data.rds")) # 7542 rows
+predictsSites <- readRDS(file = paste0(datadir,"PREDICTSSitesClimate_Data.rds")) # 7819 rows
 
 ## assess correlations between mean temperature of the site and the STA
 cor(predictsSites$avg_temp, predictsSites$StdTmeanAnomaly)
-# 0.1110303
+# 0.1215445
 
 #### a. Abundance model ####
 
-model_data <- predictsSites[!is.na(predictsSites$LogAbund), ] # 7152
+model_data <- predictsSites[!is.na(predictsSites$LogAbund), ] # 7429
 
 model_data <- droplevels(model_data)
 
@@ -53,7 +53,7 @@ save(MeanAnomalyModelAbund_avg, file = paste0(outdir, "MeanAnomalyModelAbund_avg
 
 #### b. Richness model ####
 
-model_data <- predictsSites[!is.na(predictsSites$StdTmeanAnomalyRS), ] # 7542
+model_data <- predictsSites[!is.na(predictsSites$StdTmeanAnomalyRS), ] # 7819
 
 model_data <- droplevels(model_data)
 
@@ -86,48 +86,49 @@ load(paste0(moddir, "MeanAnomalyModelRich_outliersrm.rdata"))
 AIC(MeanAnomalyModelAbund_avg$model, MeanAnomalyModelAbund$model)
 
 #                                 df      AIC
-# MeanAnomalyModelAbund_avg$model 44 22180.70
-# MeanAnomalyModelAbund$model     43 22179.66
+# MeanAnomalyModelAbund_avg$model 44 23045.65
+# MeanAnomalyModelAbund$model     43 23043.78
 
 R2GLMER(MeanAnomalyModelAbund_avg$model)
 
 # $conditional
-# [1] 0.4188151
+# [1] 0.4406948
 # 
 # $marginal
-# [1] 0.1005457
+# [1] 0.1192519
 
 R2GLMER(MeanAnomalyModelAbund$model)
 
 # $conditional
-# [1] 0.4183544
+# [1] 0.4411624
 # 
 # $marginal
-# [1] 0.08408478
+# [1] 0.1062173
 
 
 AIC(MeanAnomalyModelRich_avg$model, MeanAnomalyModelRich$model)
 
 #                                df      AIC
-# MeanAnomalyModelRich_avg$model 44 42739.63
-# MeanAnomalyModelRich$model     43 42746.14
+# MeanAnomalyModelRich_avg$model 44 44073.53
+# MeanAnomalyModelRich$model     43 44080.87
 
 
 R2GLMER(MeanAnomalyModelRich_avg$model)
 
 # $conditional
-# [1] 0.7061494
+# [1] 0.7322587
 # 
 # $marginal
-# [1] 0.07172016
+# [1] 0.09244454
 
 R2GLMER(MeanAnomalyModelRich$model)
 
 # $conditional
-# [1] 0.7107193
+# [1] 0.7371528
 # 
 # $marginal
-# [1] 0.06022908
+# [1] 0.08202972
+
 
 # There is very little difference in AIC values between the two models
 rm(MeanAnomalyModelRich, MeanAnomalyModelAbund)
