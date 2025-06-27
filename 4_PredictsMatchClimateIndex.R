@@ -41,7 +41,7 @@ tmp <- stack(tmp.path,varname = "tmp")
 wgs84 <- crs(tmp) # wgs84: World Geodetic System 1984 & crs: retrieve coordinate reference system from object
 
 # read in the predicts sites - insect subset
-sites <- readRDS(paste0(inDir,"PREDICTSSiteData.rds")) # 7568 rows
+sites <- readRDS(paste0(inDir,"PREDICTSSiteData.rds")) # 7845 rows
 
 # Create spatial map of PREDICTS sites
 sites_sp <- SpatialPointsDataFrame(
