@@ -34,11 +34,11 @@ source("0_Functions.R")
 ##%######################################################%##
 
 # read in the Site data
-sites <- readRDS(file = paste0(inDir,"PREDICTSSiteData.rds")) # 7568 rows
+sites <- readRDS(file = paste0(inDir,"PREDICTSSiteData.rds")) # 7845 rows
 
 # remove NAs in the specified columns
-model_data_ab <- na.omit(sites[,c('LogAbund_noRS','LandUse','Use_intensity','LUI','SS','SSB','SSBS','Order', 'Latitude', 'Longitude')])
-# 7180 rows
+model_data_ab <- na.omit(sites[,c('LogAbund', 'LogAbund_noRS','LandUse','Use_intensity','LUI','SS','SSB','SSBS','Order', 'Latitude', 'Longitude')])
+# 7453 rows
 
 # order data
 model_data_ab$LUI <- factor(model_data_ab$LUI, levels = c("Primary vegetation", "Secondary vegetation", "Agriculture_Low", "Agriculture_High"))
@@ -63,10 +63,10 @@ tab_model(am3.3$model, transform = NULL, file = paste0(outDir,"SupptabX_Output_t
 summary(am3.3$model) # check the table against the outputs
 R2GLMER(am3.3$model) # check the R2 values 
 # $conditional
-# [1] 0.6035854
+# [1] 0.6173995
 # 
 # $marginal
-# [1] 0.06572165
+# [1] 0.07230494
 
 
 
@@ -180,7 +180,7 @@ ggplot(data = result.ab, aes(col = LUI, group = LUI)) +
   geom_point(aes(x = Order, y = grp.median, col = LUI), size = 2, position= position_dodge(width = 1)) + 
   geom_errorbar(aes(x = Order, ymin = grp.lower , ymax = grp.upper), position= position_dodge(width = 1), size = 0.5, width = 0.2)+
   xlab("") +
-  scale_y_continuous(limits = c(-100, 150), breaks = scales::pretty_breaks(n = 6)) +
+  scale_y_continuous(limits = c(-100, 210), breaks = scales::pretty_breaks(n = 6)) +
   ylab("Percentage change (%)") +
   scale_color_manual(values = c("#009E73","#0072B2","#E69F00","#D55E00")) +
   theme(legend.position = "bottom", 
@@ -214,11 +214,11 @@ ggsave(filename = paste0(outDir, "Supp_Fig_Abun_LU_Norescaling.jpeg"), plot = la
 
 
 # load in the data with climate variable
-predictsSites <- readRDS(file = paste0(dataDir,"PREDICTSSitesClimate_Data.rds")) # 7542 rows
+predictsSites <- readRDS(file = paste0(dataDir,"PREDICTSSitesClimate_Data.rds")) # 7819 rows
 
 # i. Abundance, mean anomaly including interaction
 # subset to those sites with abundance data
-model_data <- predictsSites[!is.na(predictsSites$LogAbund_noRS), ] # 7154 rows
+model_data <- predictsSites[!is.na(predictsSites$LogAbund), ] # 7433 rows
 
 MeanAnomalyModelAbund_noresc <- GLMER(modelData = model_data, 
                                       responseVar = "LogAbund_noRS",
@@ -238,10 +238,10 @@ tab_model(MeanAnomalyModelAbund_noresc$model, transform = NULL, file = paste0(ou
 summary(MeanAnomalyModelAbund_noresc$model) # check the table against the outputs
 R2GLMER(MeanAnomalyModelAbund_noresc$model) # check the R2 values 
 # $conditional
-# [1] 0.6485828
+# [1] 0.6875771
 # 
 # $marginal
-# [1] 0.1128463
+# [1] 0.1441083
 
 
 ##### predictions for LUI CC model #####
