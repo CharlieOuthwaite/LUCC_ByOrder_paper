@@ -818,7 +818,8 @@ ggplot(data = plot_data, aes(col = LUI, group = STA)) +
         text = element_text(size = 8), 
         legend.key=element_blank(), 
         #legend.title = element_blank(),
-        legend.text = element_text(size = 8))
+        legend.text = element_text(size = 8), 
+        strip.text = element_text(size = 8))
 
 
 ggsave(filename = paste0(outDir, "FIGURE_4_Comparison_LUSTA_Abun.pdf"), plot = last_plot(), width = 150, height = 120, units = "mm", dpi = 300)
@@ -854,7 +855,8 @@ ggplot(data = plot_data, aes(col = LUI, group = STA)) +
         text = element_text(size = 8), 
         legend.key=element_blank(), 
         #legend.title = element_blank(),
-        legend.text = element_text(size = 8))
+        legend.text = element_text(size = 8), 
+        strip.text = element_text(size = 8))
 
 
 ggsave(filename = paste0(outDir, "FIGURE_3_Comparison_LUSTA_Rich.pdf"), plot = last_plot(), width = 150, height = 120, units = "mm", dpi = 300)
