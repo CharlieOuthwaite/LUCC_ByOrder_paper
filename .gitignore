@@ -2,6 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
+.gitignore
 
  
 
@@ -24,6 +25,7 @@ Data/
 
 # unnecessary scripts
 3_PrepareClimateIndexMaps_2018
+11_Remove_Outliers_b.R
 
 
  
