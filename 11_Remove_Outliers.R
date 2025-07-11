@@ -24,6 +24,8 @@ library(StatisticalModels)
 library(cowplot)
 library(sjPlot)
 library(ggplot2)
+library(predictsFunctions)
+library(dplyr)
 
 # load in models
 load(paste0(moddir, "MeanAnomalyModelAbund_incoutliers.rdata")) # MeanAnomalyModelAbund
@@ -1528,7 +1530,7 @@ ggsave(filename = paste0(outdir, "FIG_outlier_impact_Abun.png"), width = 8, heig
 ## Map the sites that were identified as outliers
 
 # Set the path to copy of the database
-predicts.path <- paste0(dataDir,"database.rds")
+predicts.path <- paste0("data/database.rds")
 
 # Read in the PREDICTS data
 predicts <- ReadPREDICTS(predicts.path)
@@ -1538,9 +1540,9 @@ predicts <- ReadPREDICTS(predicts.path)
 predicts <- predicts[(predicts$Class=="Insecta"),]
 # 935078 obs. of 67 variables
 
-# remove the 5 studies identified as influential outliers
-outliers <- c("SC1_2005__Richardson 1", "AR1_2008__Basset 1", "HW1_2011__Summerville 1", "SC1_2011__Meijer 1", "DI1_2013__Rousseau 2")
-predicts <- predicts[predicts$SS %in% outliers, ] # 141092 obs
+# remove the 4 studies identified as influential outliers
+outliers <- c("SC1_2005__Richardson 1", "HW1_2011__Summerville 1", "SC1_2011__Meijer 1", "AD1_2008__Billeter 6")
+predicts <- predicts[predicts$SS %in% outliers, ] # 118584 obs
 
 # Correct effort-sensitive abundance measures (assumes linear relationship between 
 # effort and recorded abundance)
@@ -1555,7 +1557,7 @@ predicts <- predictsFunctions::MergeSites(diversity = predicts)
 
 # keep top five orders 
 predicts <- predicts %>% filter(Order %in% c("Hymenoptera", "Coleoptera", "Lepidoptera", "Diptera", "Hemiptera")) %>% droplevels()
-# 126759 obs. of 67  variables
+# 106603 obs. of 67  variables
 
 # convert Order to a "factor"
 predicts$Order <- as.factor(predicts$Order)
@@ -1597,7 +1599,7 @@ Lepidoptera <- SiteMetrics(diversity = Lepidoptera,
 
 # merge all sites_Order data frames into one called "sites"
 sites <- rbind(Coleoptera, Diptera, Hemiptera, Hymenoptera, Lepidoptera)
-# 9415 rows
+# 1039 rows
 
 # First, we will rearrange the land-use classification 
 # rename "Predominant_land_use" to "LandUse"
@@ -1647,7 +1649,7 @@ sites$LUI <- dplyr::recode(sites$LUI,
                            'Intermediate secondary vegetation_Intense use' = 'Secondary vegetation',
                            'Intermediate secondary vegetation_Light use' = 'Secondary vegetation')
 
-# 9415 obs. of 28 variables
+# 1039 obs. of 28 variables
 
 # remove the urban sites and sites that are NA in LUI
 sites <- sites[!sites$LUI == "Urban", ]
@@ -1678,5 +1680,5 @@ p_map1.1 <- ggplot() +
         panel.background = element_blank(),
         legend.position = "none")
 
-ggsave(filename = "10_Additional_Tests/Outliers/Map_5_outliers.png")
+ggsave(filename = "10_Additional_Tests/Outliers/Map_4_outliers.png")
 
