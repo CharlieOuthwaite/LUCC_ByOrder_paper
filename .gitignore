@@ -13,6 +13,7 @@ LUCC_ByOrder_paper.Rproj
 
 # ignore output directories
 Data/
+0_data_package_requirements/
 1_CheckPrepareData/
 2_RunSimpleLUIModel/
 3_PrepareClimateIndexMaps/
