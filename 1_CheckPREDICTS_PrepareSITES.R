@@ -93,7 +93,6 @@ predicts <- predicts %>% filter(Order %in% c("Hymenoptera", "Coleoptera", "Lepid
 predicts$Order <- as.factor(predicts$Order)
 
 
-
 #### 2. Calculate site metrics and prepare dataset ####
 
 # Split predicts into separate data frames according to insect Order 
@@ -331,6 +330,26 @@ family.counts <- tapply(X = species$Family,
 # Coleoptera     Diptera   Hemiptera Hymenoptera Lepidoptera 
 #        101          75          64          54          59
 
+
+# take a look at record level data for the sites included in the study
+pred2 <- predicts[predicts$SSBS %in% sites$SSBS, ]
+
+tab <- as.data.frame(table(pred2$Order, pred2$Rank))
+
+# create a frequency table to summarise the number of records
+# at each taxonomic rank.
+freqtab <- pred2 %>% count(Order, Rank) %>%
+  pivot_wider(names_from = Rank, values_from = n,  names_prefix = "rank_") %>%
+  mutate(sum = rowSums(across(where(is.numeric)), na.rm = T))
+
+# save the table
+write.csv(freqtab, file = paste0(outDir,"record_level_freqtab.csv"))
+
+# calculate percentage change relative to sum
+perctab <- freqtab %>% mutate(across(starts_with("rank_"), ~ .x / sum*100))
+
+#save the table
+write.csv(perctab, file = paste0(outDir,"record_level_perctab.csv"))
 
 ############################################################
 #                                                          #
